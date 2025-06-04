@@ -1,4 +1,5 @@
 import { Facebook, Twitter, Instagram, Youtube, Music, MessageCircle } from "lucide-react";
+import anprLogo from "@assets/anpr_logo.png";
 
 export default function Footer() {
   return (
@@ -12,18 +13,11 @@ export default function Footer() {
           
           {/* Logo y marca */}
           <div className="flex items-center justify-center md:justify-start">
-            <div className="flex items-center">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold text-lg">ANPR</span>
-              </div>
-              <div className="text-left">
-                <div className="text-sm font-medium">ASOCIACIÓN</div>
-                <div className="text-sm font-medium">NACIONAL DE</div>
-                <div className="text-sm font-medium">PARQUES Y</div>
-                <div className="text-sm font-medium">RECREACIÓN</div>
-                <div className="text-xs text-green-400 font-medium">DE MÉXICO</div>
-              </div>
-            </div>
+            <img 
+              src={anprLogo}
+              alt="ANPR México - Asociación Nacional de Parques y Recreación de México"
+              className="h-16 w-auto object-contain"
+            />
           </div>
 
           {/* Información de contacto */}
