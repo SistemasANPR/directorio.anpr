@@ -337,7 +337,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Slider de categorías - Nuevo diseño minimalista */}
+      {/* Slider de categorías - Diseño con contenedor blanco */}
       <div className="bg-gray-50 py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-8">
@@ -345,14 +345,15 @@ export default function Home() {
             <p className="text-gray-600">Encuentra empresas especializadas en cada sector</p>
           </div>
           
-          <div className="relative">
+          {/* Contenedor blanco con padding */}
+          <div className="bg-white rounded-xl shadow-sm p-8 relative">
             {/* Botón izquierdo */}
             <button
               onClick={() => {
                 const slider = document.getElementById('categorySlider');
                 if (slider) slider.scrollBy({ left: -320, behavior: 'smooth' });
               }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
             >
               <LucideIcons.ChevronLeft className="w-4 h-4 text-gray-700" />
             </button>
@@ -363,7 +364,7 @@ export default function Home() {
                 const slider = document.getElementById('categorySlider');
                 if (slider) slider.scrollBy({ left: 320, behavior: 'smooth' });
               }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
             >
               <LucideIcons.ChevronRight className="w-4 h-4 text-gray-700" />
             </button>
@@ -371,19 +372,18 @@ export default function Home() {
             {/* Contenedor del slider */}
             <div 
               id="categorySlider"
-              className="flex gap-8 overflow-x-auto scroll-smooth px-12 py-6"
+              className="flex gap-8 overflow-x-auto scroll-smooth px-12 py-4 scrollbar-hide"
               style={{
                 scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitScrollbar: { display: 'none' }
+                msOverflowStyle: 'none'
               }}
             >
               {/* Todas las empresas */}
               <Link href="/directorio">
                 <div className="flex-shrink-0 group cursor-pointer">
-                  <div className="text-center min-w-[100px]">
-                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-sm border-2 border-gray-200">
-                      <LucideIcons.Building className="w-8 h-8 text-orange-500" />
+                  <div className="text-center min-w-[100px] relative">
+                    <div className="flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                      <LucideIcons.Building className="w-10 h-10 text-orange-500" />
                     </div>
                     <h4 className="font-medium text-gray-800 text-sm">Todas</h4>
                   </div>
@@ -397,9 +397,9 @@ export default function Home() {
                   href={`/directorio?categoryId=${category.id}`}
                 >
                   <div className="flex-shrink-0 group cursor-pointer">
-                    <div className="text-center min-w-[100px]">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-sm border-2 border-gray-200">
-                        <CategoryIcon category={category} className="w-8 h-8 text-orange-500" />
+                    <div className="text-center min-w-[100px] relative">
+                      <div className="flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                        <CategoryIcon category={category} className="w-10 h-10 text-orange-500" />
                       </div>
                       <h4 className="font-medium text-gray-800 text-sm leading-tight">{category.nombreCategoria}</h4>
                     </div>
