@@ -101,7 +101,7 @@ export default function PublicMemberships() {
       </div>
 
       {/* ¿Qué es el Directorio? - Nueva sección */}
-      <div className="bg-white py-16">
+      <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Contenido del texto */}
@@ -227,7 +227,7 @@ export default function PublicMemberships() {
       </div>
 
       {/* ¿Por qué unirte al Directorio? - Nueva sección */}
-      <div className="bg-white py-16">
+      <div className="bg-gray-50 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12 text-center">
             ¿Por qué unirte al Directorio?
@@ -336,7 +336,7 @@ export default function PublicMemberships() {
 
 
       {/* Planes de Membresía */}
-      <div id="planes-section" className="bg-white py-16">
+      <div id="planes-section" className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-700 mb-4">
             Elige tu plan
@@ -486,7 +486,7 @@ export default function PublicMemberships() {
 
         {/* ¿Cómo funciona? */}
         <div className="mt-16 mb-16">
-          <div className="bg-white py-16">
+          <div className="bg-gray-50 py-16">
             <div className="max-w-6xl mx-auto px-4">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12 text-center">
                 ¿Cómo funciona?
