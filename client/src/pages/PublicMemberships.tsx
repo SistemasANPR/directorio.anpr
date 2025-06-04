@@ -456,29 +456,29 @@ export default function PublicMemberships() {
         {/* Bonos y promociones exclusivas */}
         <div className="mt-16 mb-16">
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl shadow-lg p-8 max-w-6xl mx-auto text-white">
-            <h2 className="text-3xl font-bold mb-8 text-center">
+            <h2 className="text-3xl font-bold mb-8 text-center text-white">
               Bonos y promociones exclusivas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white bg-opacity-20 rounded-lg p-6">
                 <div className="text-2xl mb-3">🚀</div>
-                <h3 className="text-xl font-semibold mb-2">Paquetes de lanzamiento</h3>
-                <p className="text-green-100">Visibilidad destacada durante los 3 primeros meses</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">Paquetes de lanzamiento</h3>
+                <p className="text-white">Visibilidad destacada durante los 3 primeros meses</p>
               </div>
               <div className="bg-white bg-opacity-20 rounded-lg p-6">
                 <div className="text-2xl mb-3">🏆</div>
-                <h3 className="text-xl font-semibold mb-2">Sellos de calidad</h3>
-                <p className="text-green-100">Muestra que eres parte del Directorio oficial de ANPR México</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">Sellos de calidad</h3>
+                <p className="text-white">Muestra que eres parte del Directorio oficial de ANPR México</p>
               </div>
               <div className="bg-white bg-opacity-20 rounded-lg p-6">
                 <div className="text-2xl mb-3">⏰</div>
-                <h3 className="text-xl font-semibold mb-2">Oferta por tiempo limitado</h3>
-                <p className="text-green-100">¡Inscríbete antes del 15 de junio y recibe 1 mes Premium gratis!</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">Oferta por tiempo limitado</h3>
+                <p className="text-white">¡Inscríbete antes del 15 de junio y recibe 1 mes Premium gratis!</p>
               </div>
               <div className="bg-white bg-opacity-20 rounded-lg p-6">
                 <div className="text-2xl mb-3">👥</div>
-                <h3 className="text-xl font-semibold mb-2">Descuentos por referidos</h3>
-                <p className="text-green-100">Invita a otra empresa y gana beneficios adicionales</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">Descuentos por referidos</h3>
+                <p className="text-white">Invita a otra empresa y gana beneficios adicionales</p>
               </div>
             </div>
           </div>
