@@ -66,7 +66,7 @@ export default function PublicMemberships() {
         {/* Contenido del Hero */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">
           <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="hero-title text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">
               Directorio de
               <br />
               Equipamiento Urbano
@@ -106,7 +106,7 @@ export default function PublicMemberships() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Contenido del texto */}
             <div className="order-2 lg:order-1">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
+              <h2 className="hero-title text-3xl md:text-4xl text-gray-800 mb-6">
                 ¿Qué es el Directorio?
               </h2>
               
@@ -229,7 +229,7 @@ export default function PublicMemberships() {
       {/* ¿Por qué unirte al Directorio? - Nueva sección */}
       <div className="bg-gray-50 py-16">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12 text-center">
+          <h2 className="hero-title text-3xl md:text-4xl text-gray-800 mb-12 text-center">
             ¿Por qué unirte al Directorio?
           </h2>
           
@@ -338,7 +338,7 @@ export default function PublicMemberships() {
       {/* Planes de Membresía */}
       <div id="planes-section" className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-700 mb-4">
+          <h2 className="hero-title text-3xl text-gray-700 mb-4">
             Elige tu plan
           </h2>
           <p className="text-lg text-gray-500 max-w-3xl mx-auto">
@@ -456,7 +456,7 @@ export default function PublicMemberships() {
         {/* Bonos y promociones exclusivas */}
         <div className="mt-16 mb-16">
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl shadow-lg p-8 max-w-6xl mx-auto text-white">
-            <h2 className="text-3xl font-bold mb-8 text-center text-white">
+            <h2 className="hero-title text-3xl mb-8 text-center text-white">
               Bonos y promociones exclusivas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -488,7 +488,7 @@ export default function PublicMemberships() {
         <div className="mt-16 mb-16">
           <div className="bg-gray-50 py-16">
             <div className="max-w-6xl mx-auto px-4">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12 text-center">
+              <h2 className="hero-title text-3xl md:text-4xl text-gray-800 mb-12 text-center">
                 ¿Cómo funciona?
               </h2>
               

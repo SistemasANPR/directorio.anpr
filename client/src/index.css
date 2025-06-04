@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +7,12 @@
 /* Montserrat font family for the entire site */
 * {
   font-family: 'Montserrat', sans-serif;
+}
+
+/* Montserrat Black for hero titles */
+.hero-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900; /* Black weight */
 }
 
 :root {
