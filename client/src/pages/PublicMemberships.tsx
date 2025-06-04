@@ -89,92 +89,148 @@ export default function PublicMemberships() {
             </p>
           </div>
 
-          {/* Plans Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
-            {memberships?.map((membership: MembershipType, index: number) => {
-              const Icon = getIcon(index);
-              const colorScheme = getColorScheme(index);
-              
-              let prices: Array<{ periodicidad: string; costo: number }> = [];
-              try {
-                if (membership.opcionesPrecios) {
-                  if (typeof membership.opcionesPrecios === 'string') {
-                    prices = JSON.parse(membership.opcionesPrecios);
-                  } else if (Array.isArray(membership.opcionesPrecios)) {
-                    prices = membership.opcionesPrecios;
+          {/* Plans Grid - Centered */}
+          <div className="flex justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
+              {memberships?.map((membership: MembershipType, index: number) => {
+                const Icon = getIcon(index);
+                const colorScheme = getColorScheme(index);
+                
+                let prices: Array<{ periodicidad: string; costo: number }> = [];
+                try {
+                  if (membership.opcionesPrecios) {
+                    if (typeof membership.opcionesPrecios === 'string') {
+                      prices = JSON.parse(membership.opcionesPrecios);
+                    } else if (Array.isArray(membership.opcionesPrecios)) {
+                      prices = membership.opcionesPrecios;
+                    }
                   }
+                } catch (error) {
+                  console.error('Error parsing prices:', error);
                 }
-              } catch (error) {
-                console.error('Error parsing prices:', error);
-              }
 
-              let benefits: string[] = [];
-              try {
-                if (membership.beneficios) {
-                  if (typeof membership.beneficios === 'string') {
-                    benefits = membership.beneficios.split('\n').filter(b => b.trim());
-                  } else if (Array.isArray(membership.beneficios)) {
-                    benefits = membership.beneficios;
+                let benefits: string[] = [];
+                try {
+                  if (membership.beneficios) {
+                    if (typeof membership.beneficios === 'string') {
+                      benefits = membership.beneficios.split('\n').filter(b => b.trim());
+                    } else if (Array.isArray(membership.beneficios)) {
+                      benefits = membership.beneficios;
+                    }
                   }
+                } catch (error) {
+                  console.error('Error parsing benefits:', error);
                 }
-              } catch (error) {
-                console.error('Error parsing benefits:', error);
-              }
 
-              return (
-                <Card key={membership.id} className={`relative border-2 ${colorScheme.border} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`}>
-                  <CardHeader className="text-center pb-4">
-                    <div className={`inline-flex items-center justify-center w-16 h-16 ${colorScheme.bg} text-white rounded-full mb-4 mx-auto`}>
-                      <Icon className="h-8 w-8" />
-                    </div>
-                    <CardTitle className="text-2xl font-bold text-gray-900">{membership.nombrePlan}</CardTitle>
-                    {membership.descripcionPlan && (
-                      <p className="text-gray-600 mt-2">{membership.descripcionPlan}</p>
-                    )}
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    {/* Pricing */}
-                    <div className="text-center mb-6">
-                      {prices.length > 0 ? (
-                        <div className="space-y-2">
-                          {prices.map((priceOption, idx) => (
-                            <div key={idx} className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600 capitalize">{priceOption.periodicidad}:</span>
-                              <span className={`text-2xl font-bold ${colorScheme.accent}`}>
-                                ${priceOption.costo?.toLocaleString('es-MX')}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-lg text-gray-600">Precio por consultar</span>
+                return (
+                  <Card key={membership.id} className={`relative border-2 ${colorScheme.border} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`}>
+                    <CardHeader className="text-center pb-4">
+                      <div className={`inline-flex items-center justify-center w-16 h-16 ${colorScheme.bg} text-white rounded-full mb-4 mx-auto`}>
+                        <Icon className="h-8 w-8" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold text-gray-900">{membership.nombrePlan}</CardTitle>
+                      {membership.descripcionPlan && (
+                        <p className="text-gray-600 mt-2">{membership.descripcionPlan}</p>
                       )}
-                    </div>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0">
+                      {/* Pricing */}
+                      <div className="text-center mb-6">
+                        {prices.length > 0 ? (
+                          <div className="space-y-2">
+                            {prices.map((priceOption, idx) => (
+                              <div key={idx} className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600 capitalize">{priceOption.periodicidad}:</span>
+                                <span className={`text-2xl font-bold ${colorScheme.accent}`}>
+                                  ${priceOption.costo?.toLocaleString('es-MX')}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-lg text-gray-600">Precio por consultar</span>
+                        )}
+                      </div>
 
-                    {/* Benefits */}
-                    <div className="space-y-3 mb-8">
-                      <h4 className="font-semibold text-gray-900 text-center mb-4">Beneficios incluidos:</h4>
-                      {benefits.map((benefit, idx) => (
-                        <div key={idx} className="flex items-start">
-                          <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                          <span className="text-gray-700 text-sm leading-relaxed">{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
+                      {/* Benefits */}
+                      <div className="space-y-3 mb-8">
+                        <h4 className="font-semibold text-gray-900 text-center mb-4">Beneficios incluidos:</h4>
+                        {benefits.map((benefit, idx) => (
+                          <div key={idx} className="flex items-start">
+                            <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                            <span className="text-gray-700 text-sm leading-relaxed">{benefit}</span>
+                          </div>
+                        ))}
+                      </div>
 
-                    {/* CTA Button */}
-                    <Button 
-                      className={`w-full ${colorScheme.bg} hover:opacity-90 text-white font-semibold py-3 text-lg transition-all duration-300`}
-                      onClick={() => setLocation('/register')}
-                    >
-                      <ShoppingCart className="mr-2 h-5 w-5" />
-                      Seleccionar Plan
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                      {/* CTA Button - Centered and aligned */}
+                      <div className="flex justify-center">
+                        <Button 
+                          style={{ backgroundColor: '#bcce16' }}
+                          className="w-full hover:bg-opacity-90 text-white font-semibold py-3 text-lg transition-all duration-300"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#a8b814';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#bcce16';
+                          }}
+                          onClick={() => setLocation('/register')}
+                        >
+                          <ShoppingCart className="mr-2 h-5 w-5" />
+                          Seleccionar Plan
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Divisor line */}
+        <div className="flex justify-center mb-16">
+          <div className="w-[70%] h-px bg-gray-300"></div>
+        </div>
+
+        {/* Bonos y promociones exclusivas */}
+        <div className="mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1 text-center">
+              <img 
+                src="/attached_assets/paso 1.png" 
+                alt="Bonos y promociones exclusivas"
+                className="w-full max-w-md h-auto mx-auto"
+              />
+            </div>
+            <div className="order-1 lg:order-2">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Bonos y promociones exclusivas
+              </h2>
+              <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+                Como miembro del directorio, tendrás acceso a beneficios exclusivos, descuentos especiales 
+                en eventos, capacitaciones y servicios adicionales que te ayudarán a hacer crecer tu negocio.
+              </p>
+              <ul className="space-y-3 text-gray-600">
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Descuentos en eventos y conferencias de la industria
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Acceso prioritario a nuevos productos y servicios
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Capacitaciones especializadas sin costo adicional
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Networking exclusivo con líderes de la industria
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -235,97 +291,7 @@ export default function PublicMemberships() {
           <div className="w-[70%] h-px bg-gray-300"></div>
         </div>
 
-        {/* Bonos y promociones exclusivas */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 text-center">
-              <img 
-                src="/attached_assets/paso 1.png" 
-                alt="Bonos y promociones exclusivas"
-                className="w-full max-w-md h-auto mx-auto"
-              />
-            </div>
-            <div className="order-1 lg:order-2">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Bonos y promociones exclusivas
-              </h2>
-              <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-                Como miembro del directorio, tendrás acceso a beneficios exclusivos, descuentos especiales 
-                en eventos, capacitaciones y servicios adicionales que te ayudarán a hacer crecer tu negocio.
-              </p>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Descuentos en eventos y conferencias de la industria
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Acceso prioritario a nuevos productos y servicios
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Capacitaciones especializadas sin costo adicional
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Networking exclusivo con líderes de la industria
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Divisor line */}
-        <div className="flex justify-center mb-16">
-          <div className="w-[70%] h-px bg-gray-300"></div>
-        </div>
-
-        {/* Red de contactos Section */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Amplía tu red de contactos
-              </h2>
-              <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-                Conecta con empresas líderes del sector, encuentra nuevos socios comerciales 
-                y expande tu alcance en el mercado del equipamiento urbano.
-              </p>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Directorio completo de empresas del sector
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Eventos de networking y ferias comerciales
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Plataforma de comunicación entre miembros
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Oportunidades de colaboración y alianzas
-                </li>
-              </ul>
-            </div>
-            <div className="text-center">
-              <img 
-                src="/attached_assets/paso 2.png" 
-                alt="Red de contactos"
-                className="w-full max-w-md h-auto"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Divisor line */}
-        <div className="flex justify-center mb-16">
-          <div className="w-[70%] h-px bg-gray-300"></div>
-        </div>
-
-        {/* Soporte y atención personalizada */}
+        {/* Información y contacto Section */}
         <div className="mb-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1 text-center">
