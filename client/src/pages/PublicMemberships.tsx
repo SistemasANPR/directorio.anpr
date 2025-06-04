@@ -194,51 +194,6 @@ export default function PublicMemberships() {
           <div className="w-[70%] h-px bg-gray-300"></div>
         </div>
 
-        {/* Bonos y promociones exclusivas */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 text-center">
-              <img 
-                src="/attached_assets/paso 1.png" 
-                alt="Bonos y promociones exclusivas"
-                className="w-full max-w-md h-auto mx-auto"
-              />
-            </div>
-            <div className="order-1 lg:order-2">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Bonos y promociones exclusivas
-              </h2>
-              <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-                Como miembro del directorio, tendrás acceso a beneficios exclusivos, descuentos especiales 
-                en eventos, capacitaciones y servicios adicionales que te ayudarán a hacer crecer tu negocio.
-              </p>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Descuentos en eventos y conferencias de la industria
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Acceso prioritario a nuevos productos y servicios
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Capacitaciones especializadas sin costo adicional
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  Networking exclusivo con líderes de la industria
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Divisor line */}
-        <div className="flex justify-center mb-16">
-          <div className="w-[70%] h-px bg-gray-300"></div>
-        </div>
-
         {/* ¿Cómo funciona? Section */}
         <div className="mb-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -296,12 +251,50 @@ export default function PublicMemberships() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1 text-center">
               <img 
-                src="/attached_assets/paso 3.png" 
-                alt="Soporte y atención personalizada"
+                src="/attached_assets/paso 2.png" 
+                alt="Información y contacto"
                 className="w-full max-w-md h-auto"
               />
             </div>
             <div className="order-1 lg:order-2">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Información y contacto
+              </h2>
+              <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+                Mantente informado sobre las últimas tendencias de la industria y conecta con otros profesionales 
+                del sector a través de nuestra plataforma especializada.
+              </p>
+              <ul className="space-y-3 text-gray-600">
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Boletines informativos especializados
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Eventos y conferencias exclusivas
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Directorio de contactos empresariales
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  Herramientas de networking profesional
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Divisor line */}
+        <div className="flex justify-center mb-16">
+          <div className="w-[70%] h-px bg-gray-300"></div>
+        </div>
+
+        {/* Soporte y atención personalizada */}
+        <div className="mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
                 Soporte y atención personalizada
               </h2>
@@ -327,6 +320,13 @@ export default function PublicMemberships() {
                   Gestión de perfil empresarial optimizada
                 </li>
               </ul>
+            </div>
+            <div className="text-center">
+              <img 
+                src="/attached_assets/paso 3.png" 
+                alt="Soporte y atención personalizada"
+                className="w-full max-w-md h-auto"
+              />
             </div>
           </div>
         </div>
