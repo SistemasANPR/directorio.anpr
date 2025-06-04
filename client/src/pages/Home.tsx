@@ -48,7 +48,7 @@ function CompanyCard({ company }: { company: any }) {
       >
         <div
           style={{
-            height: "75%",
+            height: "100%",
             background: company.galeriaProductosUrls && company.galeriaProductosUrls.length > 0
               ? `url(${company.galeriaProductosUrls[0]}) center/cover`
               : company.imagenPortada
@@ -119,32 +119,7 @@ function CompanyCard({ company }: { company: any }) {
           )}
         </div>
 
-        <div
-          style={{
-            height: "25%",
-            padding: "0.75rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "0.95rem",
-              fontWeight: "600",
-              color: "#1f2937",
-              textAlign: "center",
-              lineHeight: "1.2",
-              margin: "0",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {company.nombreEmpresa}
-          </h3>
-        </div>
+
       </div>
     </Link>
   );
