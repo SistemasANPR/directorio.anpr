@@ -14,23 +14,23 @@ export default function Footer() {
       
       {/* Contenido principal del footer */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start md:items-center">
           
           {/* Logo y marca */}
           <div className="flex items-center justify-center md:justify-start">
             <img 
               src={anprLogo}
               alt="ANPR México - Asociación Nacional de Parques y Recreación de México"
-              className="h-16 w-auto object-contain"
+              className="h-12 sm:h-16 w-auto object-contain"
             />
           </div>
 
           {/* Información de contacto */}
           <div className="text-center">
-            <div className="text-sm mb-2">Todos los derechos reservados • ANPR 2016 - 2022</div>
-            <div className="text-sm mb-1">Tel. +52 9999 44 4060</div>
-            <div className="text-sm">
-              <a href="mailto:info@anpr.org.mx" className="hover:text-green-400 transition-colors">
+            <div className="text-xs sm:text-sm mb-2">Todos los derechos reservados • ANPR 2016 - 2022</div>
+            <div className="text-xs sm:text-sm mb-1">Tel. +52 9999 44 4060</div>
+            <div className="text-xs sm:text-sm">
+              <a href="mailto:info@anpr.org.mx" className="hover:text-green-400 transition-colors break-all">
                 info@anpr.org.mx
               </a>
             </div>
@@ -38,15 +38,15 @@ export default function Footer() {
 
           {/* Redes sociales */}
           <div className="text-center md:text-right">
-            <div className="text-sm font-medium mb-4">Síguenos:</div>
-            <div className="flex justify-center md:justify-end space-x-3">
+            <div className="text-xs sm:text-sm font-medium mb-4">Síguenos:</div>
+            <div className="flex justify-center md:justify-end flex-wrap gap-2 sm:gap-3">
               <a 
                 href="https://facebook.com/anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
               >
-                <img src={iconFacebook} alt="Facebook" className="w-10 h-10" />
+                <img src={iconFacebook} alt="Facebook" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
                 href="https://twitter.com/anprmexico" 
@@ -54,7 +54,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
               >
-                <img src={iconTwitter} alt="Twitter" className="w-10 h-10" />
+                <img src={iconTwitter} alt="Twitter" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
                 href="https://instagram.com/anprmexico" 
@@ -62,7 +62,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
               >
-                <img src={iconInstagram} alt="Instagram" className="w-10 h-10" />
+                <img src={iconInstagram} alt="Instagram" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
                 href="https://youtube.com/anprmexico" 
@@ -70,7 +70,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
               >
-                <img src={iconYoutube} alt="YouTube" className="w-10 h-10" />
+                <img src={iconYoutube} alt="YouTube" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
                 href="https://open.spotify.com/user/anprmexico" 
@@ -78,7 +78,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
               >
-                <img src={iconSpotify} alt="Spotify" className="w-10 h-10" />
+                <img src={iconSpotify} alt="Spotify" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
                 href="https://wa.me/5299994440600" 
@@ -86,7 +86,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
               >
-                <img src={iconWhatsapp} alt="WhatsApp" className="w-10 h-10" />
+                <img src={iconWhatsapp} alt="WhatsApp" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
             </div>
           </div>
@@ -96,12 +96,12 @@ export default function Footer() {
       {/* Línea inferior con aviso de privacidad */}
       <div className="border-t border-blue-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="text-center text-sm text-blue-300">
-            <a href="/privacy" className="hover:text-white transition-colors mr-4">
+          <div className="text-center text-xs sm:text-sm text-blue-300 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0">
+            <a href="/privacy" className="hover:text-white transition-colors sm:mr-4">
               Aviso de Privacidad
             </a>
-            <span className="mr-4">•</span>
-            <span>© 2025 Asociación Nacional de Parques y Recreación</span>
+            <span className="hidden sm:inline mr-4">•</span>
+            <span className="text-center">© 2025 Asociación Nacional de Parques y Recreación</span>
           </div>
         </div>
       </div>

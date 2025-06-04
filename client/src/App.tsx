@@ -25,6 +25,7 @@ import RepresentativeLogin from "@/pages/RepresentativeLogin";
 import RepresentativeDashboard from "@/pages/RepresentativeDashboard";
 import SystemSettings from "@/pages/SystemSettings";
 import MainNavigation from "@/components/MainNavigation";
+import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
 import NotFound from "@/pages/not-found";
 
@@ -48,6 +49,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <main>
         {children}
       </main>
+      <Footer />
     </div>
   );
 }
