@@ -575,15 +575,16 @@ export default function PublicMemberships() {
             </div>
           </div>
         </div>
-
-        {/* Call to Action Final - Full Width */}
-        <div className="mt-16">
-          <div style={{ background: 'linear-gradient(135deg, #0f2161 0%, #1a2f7a 100%)' }} className="w-full py-16 text-white">
-            <div className="max-w-6xl mx-auto px-4 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                ¡Súmate hoy al directorio más grande de América Latina!
-              </h2>
-              <p className="text-xl mb-8 max-w-3xl mx-auto leading-relaxed" style={{ color: '#e5e7eb' }}>
+      </div>
+      
+      {/* Full width CTA section */}
+      <div className="mt-16" style={{ background: 'linear-gradient(135deg, #0f2161 0%, #1a2f7a 100%)' }}>
+        <div className="w-full py-16 text-white">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              ¡Súmate hoy al directorio más grande de América Latina!
+            </h2>
+            <p className="text-xl mb-8 max-w-3xl mx-auto leading-relaxed" style={{ color: '#e5e7eb' }}>
                 No dejes pasar la oportunidad de gozar de una herramienta que impulsa la calidad, 
                 la innovación y las alianzas en el sector del espacio público. 
                 Conecta, crece y transforma junto a la ANPR México.
