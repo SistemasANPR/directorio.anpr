@@ -382,10 +382,12 @@ export default function Home() {
               <Link href="/directorio">
                 <div className="flex-shrink-0 group cursor-pointer">
                   <div className="text-center min-w-[100px] relative">
-                    <div className="flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <LucideIcons.Building className="w-10 h-10 text-orange-500" />
                     </div>
-                    <h4 className="font-medium text-gray-800 text-sm">Todas</h4>
+                    <h4 className="font-medium text-gray-800 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                      Todas
+                    </h4>
                   </div>
                 </div>
               </Link>
@@ -398,10 +400,12 @@ export default function Home() {
                 >
                   <div className="flex-shrink-0 group cursor-pointer">
                     <div className="text-center min-w-[100px] relative">
-                      <div className="flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                      <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <CategoryIcon category={category} className="w-10 h-10 text-orange-500" />
                       </div>
-                      <h4 className="font-medium text-gray-800 text-sm leading-tight">{category.nombreCategoria}</h4>
+                      <h4 className="font-medium text-gray-800 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                        {category.nombreCategoria}
+                      </h4>
                     </div>
                   </div>
                 </Link>
