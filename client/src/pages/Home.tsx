@@ -346,64 +346,38 @@ export default function Home() {
           </div>
           
           {/* Contenedor blanco con padding */}
-          <div className="bg-white rounded-xl shadow-sm p-8 relative">
-            {/* Botón izquierdo */}
-            <button
-              onClick={() => {
-                const slider = document.getElementById('categorySlider');
-                if (slider) slider.scrollBy({ left: -320, behavior: 'smooth' });
-              }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
-            >
-              <LucideIcons.ChevronLeft className="w-4 h-4 text-gray-700" />
-            </button>
-
-            {/* Botón derecho */}
-            <button
-              onClick={() => {
-                const slider = document.getElementById('categorySlider');
-                if (slider) slider.scrollBy({ left: 320, behavior: 'smooth' });
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
-            >
-              <LucideIcons.ChevronRight className="w-4 h-4 text-gray-700" />
-            </button>
-
-            {/* Contenedor del slider */}
+          <div className="bg-white rounded-xl shadow-sm p-8 pb-16">
+            {/* Contenedor de categorías */}
             <div 
               id="categorySlider"
-              className="flex gap-8 overflow-x-auto scroll-smooth px-12 py-4 scrollbar-hide"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
-              }}
+              className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-6"
             >
               {/* Todas las empresas */}
               <Link href="/directorio">
-                <div className="flex-shrink-0 group cursor-pointer">
-                  <div className="text-center min-w-[100px] relative">
-                    <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <div className="group cursor-pointer">
+                  <div className="text-center relative">
+                    <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300 h-16">
                       <LucideIcons.Building className="w-10 h-10 text-orange-500" />
                     </div>
-                    <h4 className="font-medium text-gray-800 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                    <h4 className="font-medium text-gray-800 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10">
                       Todas
                     </h4>
                   </div>
                 </div>
               </Link>
 
-              {/* Categorías individuales */}
-              {categories.map((category: any) => (
+              {/* Categorías individuales - Mostrar hasta 11 para que con "Todas" sean 12 */}
+              {categories.slice(0, 11).map((category: any) => (
                 <Link 
                   key={category.id} 
                   href={`/directorio?categoryId=${category.id}`}
                 >
-                  <div className="flex-shrink-0 group cursor-pointer">
-                    <div className="text-center min-w-[100px] relative">
-                      <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="group cursor-pointer">
+                    <div className="text-center relative">
+                      <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300 h-16">
                         <CategoryIcon category={category} className="w-10 h-10 text-orange-500" />
                       </div>
-                      <h4 className="font-medium text-gray-800 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                      <h4 className="font-medium text-gray-800 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10">
                         {category.nombreCategoria}
                       </h4>
                     </div>
