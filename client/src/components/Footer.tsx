@@ -1,5 +1,10 @@
-import { Facebook, Twitter, Instagram, Youtube, Music, MessageCircle } from "lucide-react";
 import anprLogo from "@assets/anpr_logo.png";
+import iconFacebook from "@assets/icon_facebook.webp";
+import iconTwitter from "@assets/icon_twitter.webp";
+import iconInstagram from "@assets/icon_instagram.webp";
+import iconYoutube from "@assets/icon_youtube.webp";
+import iconSpotify from "@assets/icon_spotify.webp";
+import iconWhatsapp from "@assets/icon_whatsapp.webp";
 
 export default function Footer() {
   return (
@@ -39,49 +44,49 @@ export default function Footer() {
                 href="https://facebook.com/anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+                className="hover:scale-110 transition-transform"
               >
-                <Facebook className="w-5 h-5" />
+                <img src={iconFacebook} alt="Facebook" className="w-10 h-10" />
               </a>
               <a 
                 href="https://twitter.com/anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center hover:bg-sky-600 transition-colors"
+                className="hover:scale-110 transition-transform"
               >
-                <Twitter className="w-5 h-5" />
+                <img src={iconTwitter} alt="Twitter" className="w-10 h-10" />
               </a>
               <a 
                 href="https://instagram.com/anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center hover:bg-pink-700 transition-colors"
+                className="hover:scale-110 transition-transform"
               >
-                <Instagram className="w-5 h-5" />
+                <img src={iconInstagram} alt="Instagram" className="w-10 h-10" />
               </a>
               <a 
                 href="https://youtube.com/anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition-colors"
+                className="hover:scale-110 transition-transform"
               >
-                <Youtube className="w-5 h-5" />
+                <img src={iconYoutube} alt="YouTube" className="w-10 h-10" />
               </a>
               <a 
                 href="https://open.spotify.com/user/anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition-colors"
+                className="hover:scale-110 transition-transform"
               >
-                <Music className="w-5 h-5" />
+                <img src={iconSpotify} alt="Spotify" className="w-10 h-10" />
               </a>
               <a 
                 href="https://wa.me/5299994440600" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
+                className="hover:scale-110 transition-transform"
               >
-                <MessageCircle className="w-5 h-5" />
+                <img src={iconWhatsapp} alt="WhatsApp" className="w-10 h-10" />
               </a>
             </div>
           </div>
