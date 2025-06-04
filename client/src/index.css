@@ -73,16 +73,32 @@
     color: #4a4a49; /* Default text color for entire platform */
   }
 
-  /* Apply default text color to all text elements */
+  /* Apply default text color to all text elements on white backgrounds */
   h1, h2, h3, h4, h5, h6, p, span, div, a, li, td, th, label {
     color: #4a4a49;
   }
 
-  /* Override only when specifically needed (white text, etc.) */
+  /* White text on colored backgrounds */
+  .bg-blue-900 *, 
+  .bg-blue-800 *, 
+  .bg-blue-700 *, 
+  .bg-blue-600 *,
+  .bg-gray-900 *, 
+  .bg-gray-800 *, 
+  .bg-gray-700 *,
+  .bg-green-600 *, 
+  .bg-green-700 *, 
+  .bg-green-800 *,
+  .bg-red-600 *, 
+  .bg-red-700 *, 
+  .bg-red-800 *,
+  [style*="background: linear-gradient"] *,
+  [style*="background-color: #"] *:not([class*="text-"]),
   .text-white {
     color: white !important;
   }
 
+  /* Specific overrides for colored text when needed */
   .text-blue-600 {
     color: #2563eb !important;
   }
@@ -95,20 +111,17 @@
     color: #dc2626 !important;
   }
 
-  .text-gray-600 {
-    color: #4a4a49 !important;
-  }
-
-  .text-gray-700 {
-    color: #4a4a49 !important;
-  }
-
-  .text-gray-800 {
-    color: #4a4a49 !important;
-  }
-
+  /* Gray variants all use the standard gray */
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-800,
   .text-gray-900 {
     color: #4a4a49 !important;
+  }
+
+  /* Ensure white text on dark gradient backgrounds */
+  [style*="linear-gradient(135deg, #0f2161"] * {
+    color: white !important;
   }
 }
 
