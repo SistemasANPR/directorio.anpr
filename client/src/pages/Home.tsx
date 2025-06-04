@@ -337,11 +337,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Slider de categorías moderno */}
-      <div className="bg-gradient-to-r from-slate-50 to-gray-100 py-12">
+      {/* Slider de categorías - Nuevo diseño minimalista */}
+      <div className="bg-gray-50 py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Explora por Categorías</h3>
+            <h3 className="hero-title text-2xl md:text-3xl text-gray-800 mb-2">Explora por Categorías</h3>
             <p className="text-gray-600">Encuentra empresas especializadas en cada sector</p>
           </div>
           
@@ -350,42 +350,42 @@ export default function Home() {
             <button
               onClick={() => {
                 const slider = document.getElementById('categorySlider');
-                if (slider) slider.scrollBy({ left: -300, behavior: 'smooth' });
+                if (slider) slider.scrollBy({ left: -320, behavior: 'smooth' });
               }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-gray-200"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
             >
-              <LucideIcons.ChevronLeft className="w-6 h-6 text-gray-600" />
+              <LucideIcons.ChevronLeft className="w-4 h-4 text-gray-700" />
             </button>
 
             {/* Botón derecho */}
             <button
               onClick={() => {
                 const slider = document.getElementById('categorySlider');
-                if (slider) slider.scrollBy({ left: 300, behavior: 'smooth' });
+                if (slider) slider.scrollBy({ left: 320, behavior: 'smooth' });
               }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-gray-200"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray-300 hover:bg-gray-400 rounded-full p-2 transition-all duration-300"
             >
-              <LucideIcons.ChevronRight className="w-6 h-6 text-gray-600" />
+              <LucideIcons.ChevronRight className="w-4 h-4 text-gray-700" />
             </button>
 
             {/* Contenedor del slider */}
             <div 
               id="categorySlider"
-              className="flex gap-6 overflow-x-auto scroll-smooth px-12 py-4 scrollbar-hide"
+              className="flex gap-8 overflow-x-auto scroll-smooth px-12 py-6"
               style={{
                 scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
+                msOverflowStyle: 'none',
+                WebkitScrollbar: { display: 'none' }
               }}
             >
               {/* Todas las empresas */}
               <Link href="/directorio">
                 <div className="flex-shrink-0 group cursor-pointer">
-                  <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 min-w-[140px] text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <LucideIcons.Building className="w-8 h-8 text-white" />
+                  <div className="text-center min-w-[100px]">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-sm border-2 border-gray-200">
+                      <LucideIcons.Building className="w-8 h-8 text-orange-500" />
                     </div>
-                    <h4 className="font-semibold text-gray-800 text-sm">Todas</h4>
-                    <p className="text-xs text-gray-500 mt-1">Ver todo</p>
+                    <h4 className="font-medium text-gray-800 text-sm">Todas</h4>
                   </div>
                 </div>
               </Link>
@@ -397,12 +397,11 @@ export default function Home() {
                   href={`/directorio?categoryId=${category.id}`}
                 >
                   <div className="flex-shrink-0 group cursor-pointer">
-                    <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 min-w-[140px] text-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                        <CategoryIcon category={category} className="w-8 h-8 text-white" />
+                    <div className="text-center min-w-[100px]">
+                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-sm border-2 border-gray-200">
+                        <CategoryIcon category={category} className="w-8 h-8 text-orange-500" />
                       </div>
-                      <h4 className="font-semibold text-gray-800 text-sm leading-tight">{category.nombreCategoria}</h4>
-                      <p className="text-xs text-gray-500 mt-1">Explorar</p>
+                      <h4 className="font-medium text-gray-800 text-sm leading-tight">{category.nombreCategoria}</h4>
                     </div>
                   </div>
                 </Link>
