@@ -64,7 +64,7 @@ export default function PublicMemberships() {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-blue-800/50"></div>
         
         {/* Contenido del Hero */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-20">
           <div className="max-w-2xl">
             <h1 className="hero-title text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">
               Directorio de
