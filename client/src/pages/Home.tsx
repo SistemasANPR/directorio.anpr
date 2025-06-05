@@ -65,13 +65,10 @@ function CompanyCard({ company }: { company: any }) {
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
-                width: "60px",
-                height: "60px",
+                width: "80px",
+                height: "80px",
                 background: `url(${company.logotipoUrl}) center/contain no-repeat`,
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                borderRadius: "8px",
-                padding: "8px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))",
               }}
             />
           )}
