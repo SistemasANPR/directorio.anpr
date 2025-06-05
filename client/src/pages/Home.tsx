@@ -3,6 +3,13 @@ import { useState, useRef } from "react";
 import { Link } from "wouter";
 import * as LucideIcons from "lucide-react";
 
+// Función para limpiar HTML tags
+function stripHtml(html: string): string {
+  const tmp = document.createElement("DIV");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+}
+
 function CategoryIcon({ category, className = "w-5 h-5" }: { category: any; className?: string }) {
   // Si hay una URL de icono personalizado, usarla
   if (category.iconoUrl) {
@@ -451,23 +458,7 @@ export default function Home() {
                           : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                         position: "relative"
                       }}>
-                        {/* Badge de categoría en la imagen */}
-                        <div style={{
-                          position: "absolute",
-                          top: "1rem",
-                          left: "1rem",
-                          backgroundColor: "#0f2161",
-                          color: "white",
-                          padding: "0.5rem 1rem",
-                          borderRadius: "20px",
-                          fontSize: "0.8rem",
-                          fontWeight: "600",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem"
-                        }}>
-                          <CategoryIcon category={category} /> {category.nombreCategoria}
-                        </div>
+
                         
                         {!categoryCompany.imagenPortada && !categoryCompany.logotipoUrl && (
                           <div style={{
@@ -520,7 +511,7 @@ export default function Home() {
                             WebkitBoxOrient: "vertical",
                             overflow: "hidden"
                           }}>
-                            {categoryCompany.descripcionEmpresa || "Empresa especializada en soluciones innovadoras"}
+                            {categoryCompany.descripcionEmpresa ? stripHtml(categoryCompany.descripcionEmpresa) : "Empresa especializada en soluciones innovadoras"}
                           </div>
                           
                           {/* Información de contacto */}
