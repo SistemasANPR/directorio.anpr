@@ -451,16 +451,15 @@ export default function Home() {
                       {/* Imagen del producto */}
                       <div style={{
                         width: "50%",
-                        background: categoryCompany.imagenPortada
+                        background: categoryCompany.galeriaProductosUrls && categoryCompany.galeriaProductosUrls.length > 0
+                          ? `url(${categoryCompany.galeriaProductosUrls[0]}) center/cover`
+                          : categoryCompany.imagenPortada
                           ? `url(${categoryCompany.imagenPortada}) center/cover`
-                          : categoryCompany.logotipoUrl
-                          ? `url(${categoryCompany.logotipoUrl}) center/contain no-repeat #f8fafc`
                           : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                         position: "relative"
                       }}>
-
                         
-                        {!categoryCompany.imagenPortada && !categoryCompany.logotipoUrl && (
+                        {!categoryCompany.galeriaProductosUrls?.length && !categoryCompany.imagenPortada && (
                           <div style={{
                             position: "absolute",
                             top: "50%",
