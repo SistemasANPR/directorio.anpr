@@ -862,7 +862,7 @@ export default function CompanyDetails() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Building className="h-5 w-5 mr-2" />
-                  Empresas Relacionadas
+                  Explorar otras empresas
                 </CardTitle>
               </CardHeader>
               <CardContent>
