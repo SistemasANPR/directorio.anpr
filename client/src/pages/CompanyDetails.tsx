@@ -586,7 +586,7 @@ export default function CompanyDetails() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <MapPin className="h-5 w-5 mr-2" />
-                    Dirección o Descripción
+                    Dirección
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
