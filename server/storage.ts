@@ -118,6 +118,24 @@ export interface IStorage {
   // System Settings
   getSystemSettings(): Promise<SystemSettings>;
   updateSystemSettings(settings: Partial<InsertSystemSettings>): Promise<SystemSettings>;
+
+  // Projects
+  getProject(id: number): Promise<ProjectWithDetails | undefined>;
+  getAllProjects(options?: {
+    companyId?: number;
+    categoryId?: number;
+    estado?: string;
+    estadoModeracion?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ projects: ProjectWithDetails[]; total: number }>;
+  createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
+  deleteProject(id: number): Promise<boolean>;
+  getProjectsByCompany(companyId: number): Promise<ProjectWithDetails[]>;
+  incrementProjectViews(id: number): Promise<void>;
+  incrementProjectConsultas(id: number): Promise<void>;
+  moderateProject(id: number, estado: string): Promise<Project | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {

@@ -151,6 +151,30 @@ export const systemSettings = pgTable("system_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }).notNull(),
+  nombreProyecto: text("nombre_proyecto").notNull(),
+  descripcionProyecto: text("descripcion_proyecto"),
+  categoryId: integer("category_id").references(() => categories.id),
+  fechaInicio: date("fecha_inicio"),
+  fechaFinalizacion: date("fecha_finalizacion"),
+  ubicacionPais: text("ubicacion_pais"),
+  ubicacionEstado: text("ubicacion_estado"),
+  ubicacionCiudad: text("ubicacion_ciudad"),
+  clienteContratante: text("cliente_contratante"),
+  areaSuperficie: text("area_superficie"),
+  serviciosProductos: text("servicios_productos").array(),
+  galeriaImagenes: text("galeria_imagenes").array(),
+  videoUrl: text("video_url"),
+  estado: text("estado").default("borrador"), // borrador, publicado, archivado
+  estadoModeracion: text("estado_moderacion").default("pendiente"), // pendiente, aprobado, rechazado
+  vistas: integer("vistas").default(0),
+  consultas: integer("consultas").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -214,6 +238,14 @@ export const insertSystemSettingsSchema = createInsertSchema(systemSettings).omi
   updatedAt: true,
 });
 
+export const insertProjectSchema = createInsertSchema(projects).omit({
+  id: true,
+  vistas: true,
+  consultas: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -242,6 +274,9 @@ export type InsertMembershipPayment = z.infer<typeof insertMembershipPaymentSche
 export type SystemSettings = typeof systemSettings.$inferSelect;
 export type InsertSystemSettings = z.infer<typeof insertSystemSettingsSchema>;
 
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   companies: many(companies),
@@ -259,6 +294,7 @@ export const companiesRelations = relations(companies, ({ one, many }) => ({
     references: [membershipTypes.id],
   }),
   opinions: many(opinions),
+  projects: many(projects),
 }));
 
 export const membershipTypesRelations = relations(membershipTypes, ({ many }) => ({
@@ -281,10 +317,27 @@ export const opinionsRelations = relations(opinions, ({ one }) => ({
   }),
 }));
 
+export const projectsRelations = relations(projects, ({ one }) => ({
+  company: one(companies, {
+    fields: [projects.companyId],
+    references: [companies.id],
+  }),
+  category: one(categories, {
+    fields: [projects.categoryId],
+    references: [categories.id],
+  }),
+}));
+
 // Extended types for API responses
 export type CompanyWithDetails = Company & {
   categories?: Category[];
   membershipType?: MembershipType;
   user?: User;
   certificates?: Certificate[];
+  projects?: ProjectWithDetails[];
+};
+
+export type ProjectWithDetails = Project & {
+  company?: Company;
+  category?: Category;
 };
