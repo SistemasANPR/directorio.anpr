@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
-import { ArrowLeft, MapPin, Phone, Mail, Globe, Video, FileText, Award, Star, MessageSquare, Calculator, Building, Grid3x3, Facebook, Linkedin, Twitter, Instagram, Heart, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, Globe, Video, FileText, Award, Star, MessageSquare, Calculator, Building, Grid3x3, Facebook, Linkedin, Twitter, Instagram, Heart, X, ChevronLeft, ChevronRight, FolderOpen, Plus, Calendar, User, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import CompanyLocationMap from "@/components/CompanyLocationMap";
 import ReviewModal from "@/components/ReviewModal";
 import QuotationModal from "@/components/QuotationModal";
-import type { CompanyWithDetails } from "@/../../shared/schema";
+import AddProjectModal from "@/components/AddProjectModal";
+import type { CompanyWithDetails, ProjectWithDetails } from "@/../../shared/schema";
 
 export default function CompanyDetails() {
   const { id } = useParams();

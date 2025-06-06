@@ -7,7 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema } from "@shared/schema";
+import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema } from "@shared/schema";
 import { z } from "zod";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -961,6 +961,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const settings = await storage.updateSystemSettings(req.body);
       res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Projects API routes
+  app.get("/api/projects", async (req, res) => {
+    try {
+      const { companyId, categoryId, estado, estadoModeracion, limit, offset } = req.query;
+      
+      const options = {
+        companyId: companyId ? parseInt(companyId as string) : undefined,
+        categoryId: categoryId ? parseInt(categoryId as string) : undefined,
+        estado: estado as string,
+        estadoModeracion: estadoModeracion as string,
+        limit: limit ? parseInt(limit as string) : 20,
+        offset: offset ? parseInt(offset as string) : 0,
+      };
+
+      const result = await storage.getAllProjects(options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const project = await storage.getProject(id);
+      
+      if (!project) {
+        return res.status(404).json({ error: "Proyecto no encontrado" });
+      }
+
+      // Incrementar vistas
+      await storage.incrementProjectViews(id);
+      
+      res.json(project);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/companies/:companyId/projects", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId);
+      const projects = await storage.getProjectsByCompany(companyId);
+      res.json(projects);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/projects", upload.array('galeriaImagenes', 4), async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "No autenticado" });
+      }
+
+      // Verificar límite de proyectos por empresa
+      const existingProjects = await storage.getProjectsByCompany(parseInt(req.body.companyId));
+      if (existingProjects.length >= 5) {
+        return res.status(400).json({ error: "Límite de 5 proyectos por empresa alcanzado" });
+      }
+
+      // Procesar imágenes subidas
+      const files = req.files as Express.Multer.File[];
+      const imageUrls = files ? files.map(file => `/uploads/images/${file.filename}`) : [];
+
+      const projectData = {
+        ...req.body,
+        galeriaImagenes: imageUrls,
+        serviciosProductos: req.body.serviciosProductos ? JSON.parse(req.body.serviciosProductos) : [],
+      };
+
+      const validatedData = insertProjectSchema.parse(projectData);
+      const project = await storage.createProject(validatedData);
+      
+      res.status(201).json(project);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/projects/:id", upload.array('galeriaImagenes', 4), async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "No autenticado" });
+      }
+
+      const id = parseInt(req.params.id);
+      const existingProject = await storage.getProject(id);
+      
+      if (!existingProject) {
+        return res.status(404).json({ error: "Proyecto no encontrado" });
+      }
+
+      // Procesar nuevas imágenes si las hay
+      const files = req.files as Express.Multer.File[];
+      let updateData = { ...req.body };
+      
+      if (files && files.length > 0) {
+        const newImageUrls = files.map(file => `/uploads/images/${file.filename}`);
+        updateData.galeriaImagenes = newImageUrls;
+      }
+
+      if (req.body.serviciosProductos) {
+        updateData.serviciosProductos = JSON.parse(req.body.serviciosProductos);
+      }
+
+      const validatedData = insertProjectSchema.partial().parse(updateData);
+      const project = await storage.updateProject(id, validatedData);
+      
+      res.json(project);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/projects/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "No autenticado" });
+      }
+
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteProject(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Proyecto no encontrado" });
+      }
+      
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/projects/:id/consulta", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.incrementProjectConsultas(id);
+      res.status(200).json({ message: "Consulta registrada" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Admin routes for project moderation
+  app.patch("/api/admin/projects/:id/moderate", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "No autenticado" });
+      }
+
+      // TODO: Add admin role verification here
+
+      const id = parseInt(req.params.id);
+      const { estadoModeracion } = req.body;
+      
+      if (!['pendiente', 'aprobado', 'rechazado'].includes(estadoModeracion)) {
+        return res.status(400).json({ error: "Estado de moderación inválido" });
+      }
+
+      const project = await storage.moderateProject(id, estadoModeracion);
+      
+      if (!project) {
+        return res.status(404).json({ error: "Proyecto no encontrado" });
+      }
+      
+      res.json(project);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

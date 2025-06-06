@@ -7,6 +7,8 @@ import {
   roles,
   opinions,
   membershipPayments,
+  systemSettings,
+  projects,
   type User, 
   type Company, 
   type Category, 
@@ -14,6 +16,7 @@ import {
   type Certificate,
   type Role,
   type Opinion,
+  type Project,
   type InsertUser,
   type InsertCompany,
   type InsertCategory,
@@ -21,12 +24,13 @@ import {
   type InsertCertificate,
   type InsertRole,
   type InsertOpinion,
+  type InsertProject,
   type MembershipPayment,
   type InsertMembershipPayment,
-  type CompanyWithDetails,
-  systemSettings,
   type SystemSettings,
-  type InsertSystemSettings
+  type InsertSystemSettings,
+  type CompanyWithDetails,
+  type ProjectWithDetails
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, sql, and, or } from "drizzle-orm";
@@ -684,6 +688,142 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updatedSettings;
+  }
+
+  // Projects methods
+  async getProject(id: number): Promise<ProjectWithDetails | undefined> {
+    const [project] = await db.select()
+      .from(projects)
+      .leftJoin(companies, eq(projects.companyId, companies.id))
+      .leftJoin(categories, eq(projects.categoryId, categories.id))
+      .where(eq(projects.id, id));
+
+    if (!project) return undefined;
+
+    return {
+      ...project.projects,
+      company: project.companies || undefined,
+      category: project.categories || undefined,
+    };
+  }
+
+  async getAllProjects(options: {
+    companyId?: number;
+    categoryId?: number;
+    estado?: string;
+    estadoModeracion?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ projects: ProjectWithDetails[]; total: number }> {
+    const conditions = [];
+
+    if (options.companyId) {
+      conditions.push(eq(projects.companyId, options.companyId));
+    }
+    if (options.categoryId) {
+      conditions.push(eq(projects.categoryId, options.categoryId));
+    }
+    if (options.estado) {
+      conditions.push(eq(projects.estado, options.estado));
+    }
+    if (options.estadoModeracion) {
+      conditions.push(eq(projects.estadoModeracion, options.estadoModeracion));
+    }
+
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total count
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(projects)
+      .where(whereCondition);
+
+    // Get projects with relationships
+    const projectsData = await db.select()
+      .from(projects)
+      .leftJoin(companies, eq(projects.companyId, companies.id))
+      .leftJoin(categories, eq(projects.categoryId, categories.id))
+      .where(whereCondition)
+      .limit(options.limit || 20)
+      .offset(options.offset || 0)
+      .orderBy(projects.createdAt);
+
+    const projectsWithDetails: ProjectWithDetails[] = projectsData.map(item => ({
+      ...item.projects,
+      company: item.companies || undefined,
+      category: item.categories || undefined,
+    }));
+
+    return {
+      projects: projectsWithDetails,
+      total: count,
+    };
+  }
+
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const [project] = await db
+      .insert(projects)
+      .values(insertProject)
+      .returning();
+    return project;
+  }
+
+  async updateProject(id: number, projectData: Partial<InsertProject>): Promise<Project | undefined> {
+    const [project] = await db
+      .update(projects)
+      .set({ ...projectData, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return project || undefined;
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    const result = await db.delete(projects).where(eq(projects.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getProjectsByCompany(companyId: number): Promise<ProjectWithDetails[]> {
+    const projectsData = await db.select()
+      .from(projects)
+      .leftJoin(companies, eq(projects.companyId, companies.id))
+      .leftJoin(categories, eq(projects.categoryId, categories.id))
+      .where(eq(projects.companyId, companyId))
+      .orderBy(projects.createdAt);
+
+    return projectsData.map(item => ({
+      ...item.projects,
+      company: item.companies || undefined,
+      category: item.categories || undefined,
+    }));
+  }
+
+  async incrementProjectViews(id: number): Promise<void> {
+    await db
+      .update(projects)
+      .set({ 
+        vistas: sql`${projects.vistas} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(projects.id, id));
+  }
+
+  async incrementProjectConsultas(id: number): Promise<void> {
+    await db
+      .update(projects)
+      .set({ 
+        consultas: sql`${projects.consultas} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(projects.id, id));
+  }
+
+  async moderateProject(id: number, estadoModeracion: string): Promise<Project | undefined> {
+    const [project] = await db
+      .update(projects)
+      .set({ estadoModeracion, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return project || undefined;
   }
 }
 
