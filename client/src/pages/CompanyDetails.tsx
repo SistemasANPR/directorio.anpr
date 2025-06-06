@@ -59,8 +59,6 @@ export default function CompanyDetails() {
     return match ? match[1] : null;
   };
 
-  // Process videos from company data - moved to avoid duplicate declaration
-
   // Function to open video modal
   const openVideoModal = (videoUrl: string) => {
     setCurrentVideoUrl(videoUrl);
@@ -723,6 +721,54 @@ export default function CompanyDetails() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Videos Empresariales */}
+            {videos.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Play className="h-5 w-5 mr-2" />
+                    Videos Empresariales
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {videos.map((videoUrl: string, index: number) => {
+                      const videoId = getYouTubeVideoId(videoUrl);
+                      const thumbnailUrl = videoId 
+                        ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+                        : '/api/placeholder/300/200';
+                      
+                      return (
+                        <div key={index} className="relative group">
+                          <div className="relative overflow-hidden rounded-lg bg-gray-100">
+                            <img 
+                              src={thumbnailUrl}
+                              alt={`Video ${index + 1}`}
+                              className="w-full h-24 object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/api/placeholder/300/200';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Play className="h-8 w-8 text-white" />
+                            </div>
+                          </div>
+                          <Button
+                            onClick={() => openVideoModal(videoUrl)}
+                            className="w-full mt-2 bg-[#bcce16] hover:bg-[#a8b814] text-black font-semibold"
+                          >
+                            <Play className="h-4 w-4 mr-2" />
+                            Ver Video {index + 1}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Categorías */}
             {company.categories && company.categories.length > 0 && (
