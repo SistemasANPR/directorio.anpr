@@ -130,7 +130,7 @@ export default function CompanyDetails() {
             </div>
 
             {/* Nombre de la empresa */}
-            <h1 className="text-4xl font-bold mb-8 drop-shadow-lg">{company.nombreEmpresa}</h1>
+            <h1 className="text-4xl font-bold mb-8 drop-shadow-lg text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: 'white' }}>{company.nombreEmpresa}</h1>
 
 
 
@@ -356,7 +356,7 @@ export default function CompanyDetails() {
             <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
               <CardContent className="p-8 text-center">
                 <Calculator className="h-12 w-12 mx-auto mb-4 text-blue-200" />
-                <h3 className="text-2xl font-bold mb-4">¿Interesado en nuestros servicios?</h3>
+                <h3 className="text-2xl font-bold mb-4 text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: 'white' }}>¿Interesado en nuestros servicios?</h3>
                 <p className="text-blue-100 mb-6 text-lg">
                   Obtén una cotización personalizada para tu proyecto. Nuestro equipo está listo para ayudarte.
                 </p>
