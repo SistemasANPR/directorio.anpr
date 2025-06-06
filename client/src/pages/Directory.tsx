@@ -26,6 +26,17 @@ const stripHtml = (html: string): string => {
 
 // Función para renderizar iconos de categorías
 const CategoryIcon = ({ category }: { category: Category }) => {
+  if (category.iconoUrl) {
+    return (
+      <img 
+        src={category.iconoUrl} 
+        alt={category.nombreCategoria}
+        className="w-5 h-5 object-contain"
+      />
+    );
+  }
+
+  // Fallback a iconos por defecto si no hay icono en la BD
   const iconProps = {
     size: 20,
     className: "text-gray-600"
