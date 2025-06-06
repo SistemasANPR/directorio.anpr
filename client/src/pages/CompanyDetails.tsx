@@ -10,10 +10,12 @@ import CompanyLocationMap from "@/components/CompanyLocationMap";
 import ReviewModal from "@/components/ReviewModal";
 import QuotationModal from "@/components/QuotationModal";
 import AddProjectModal from "@/components/AddProjectModal";
+import { useAuth } from "@/hooks/useAuth";
 import type { CompanyWithDetails, ProjectWithDetails } from "@/../../shared/schema";
 
 export default function CompanyDetails() {
   const { id } = useParams();
+  const { user, isAdmin } = useAuth();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [quotationModalOpen, setQuotationModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -29,6 +31,24 @@ export default function CompanyDetails() {
       return response.json();
     },
   });
+
+  // Function to check if user can manage projects for this company
+  const canManageProjects = () => {
+    if (!user || !company) return false;
+    
+    // Admin can manage all projects
+    if (isAdmin) return true;
+    
+    // Company owner can manage their own projects
+    if (company.userId === user.id) return true;
+    
+    // Sales representatives can manage projects
+    if (company.representantesVentas && Array.isArray(company.representantesVentas)) {
+      return company.representantesVentas.includes(user.id);
+    }
+    
+    return false;
+  };
 
   // Query para certificados
   const { data: certificates = [] } = useQuery({
@@ -269,15 +289,17 @@ export default function CompanyDetails() {
                     <FolderOpen className="h-5 w-5 mr-2" />
                     Portafolio de Proyectos
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setProjectModalOpen(true)}
-                    className="gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Agregar Proyecto
-                  </Button>
+                  {canManageProjects() && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setProjectModalOpen(true)}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Agregar Proyecto
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
