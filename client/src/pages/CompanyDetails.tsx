@@ -499,6 +499,44 @@ export default function CompanyDetails() {
               </CardContent>
             </Card>
 
+            {/* Categorías */}
+            {company.categories && company.categories.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Grid3x3 className="h-5 w-5 mr-2" />
+                    Categorías de Servicios
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-3">
+                    {company.categories.map((category: any) => (
+                      <div key={category.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex-shrink-0">
+                          {category.iconoUrl ? (
+                            <img 
+                              src={category.iconoUrl} 
+                              alt={category.nombreCategoria}
+                              className="w-8 h-8 object-contain"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Grid3x3 className="h-4 w-4 text-blue-600" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {category.nombreCategoria}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Dirección del Mapa */}
             {company.ubicacionGeografica?.address && (
               <Card>
