@@ -16,6 +16,7 @@ export default function CompanyDetails() {
   const { id } = useParams();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [quotationModalOpen, setQuotationModalOpen] = useState(false);
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [, setLocation] = useLocation();
@@ -32,6 +33,18 @@ export default function CompanyDetails() {
   // Query para certificados
   const { data: certificates = [] } = useQuery({
     queryKey: ["/api/certificates"],
+  });
+
+  // Query para proyectos de la empresa
+  const { data: projects = [] } = useQuery({
+    queryKey: ["/api/companies", id, "projects"],
+    queryFn: async () => {
+      if (!id) return [];
+      const response = await fetch(`/api/companies/${id}/projects`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!id,
   });
 
   // Query para empresas relacionadas
@@ -243,6 +256,155 @@ export default function CompanyDetails() {
                   <div className="text-center py-8">
                     <Grid3x3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500">Galería de productos próximamente disponible</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Portafolio de Proyectos */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <FolderOpen className="h-5 w-5 mr-2" />
+                    Portafolio de Proyectos
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setProjectModalOpen(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Agregar Proyecto
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {projects && projects.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {projects.map((project: ProjectWithDetails) => (
+                      <div key={project.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-lg mb-1">{project.nombreProyecto}</h4>
+                            {project.category && (
+                              <Badge variant="secondary" className="mb-2">
+                                {project.category.nombreCategoria}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Eye className="h-4 w-4 mr-1" />
+                            {project.vistas || 0}
+                          </div>
+                        </div>
+
+                        {project.descripcionProyecto && (
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                            {project.descripcionProyecto}
+                          </p>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                          {project.clienteContratante && (
+                            <div className="flex items-center">
+                              <User className="h-4 w-4 mr-1 text-gray-400" />
+                              <span className="truncate">{project.clienteContratante}</span>
+                            </div>
+                          )}
+                          {project.fechaInicio && (
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                              <span>{new Date(project.fechaInicio).getFullYear()}</span>
+                            </div>
+                          )}
+                          {project.ubicacionCiudad && (
+                            <div className="flex items-center col-span-2">
+                              <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                              <span className="truncate">
+                                {project.ubicacionCiudad}
+                                {project.ubicacionEstado && `, ${project.ubicacionEstado}`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {project.galeriaImagenes && project.galeriaImagenes.length > 0 && (
+                          <div className="mb-3">
+                            <div className="grid grid-cols-2 gap-2">
+                              {project.galeriaImagenes.slice(0, 2).map((imagen, imgIndex) => (
+                                <img
+                                  key={imgIndex}
+                                  src={imagen}
+                                  alt={`${project.nombreProyecto} - Imagen ${imgIndex + 1}`}
+                                  className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => {
+                                    // Aquí podrías implementar un lightbox específico para proyectos
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            {project.galeriaImagenes.length > 2 && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                +{project.galeriaImagenes.length - 2} imágenes más
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {project.serviciosProductos && project.serviciosProductos.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-500 mb-1">Servicios utilizados:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {project.serviciosProductos.slice(0, 3).map((servicio, sIndex) => (
+                                <Badge key={sIndex} variant="outline" className="text-xs">
+                                  {servicio}
+                                </Badge>
+                              ))}
+                              {project.serviciosProductos.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{project.serviciosProductos.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant={project.estado === 'publicado' ? 'default' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {project.estado === 'publicado' ? 'Publicado' : 
+                               project.estado === 'borrador' ? 'Borrador' : 'Archivado'}
+                            </Badge>
+                            {project.areaSuperficie && (
+                              <span className="text-xs text-gray-500">
+                                {project.areaSuperficie}
+                              </span>
+                            )}
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            Ver Detalles
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">Aún no hay proyectos registrados</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setProjectModalOpen(true)}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Agregar Primer Proyecto
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -788,6 +950,16 @@ export default function CompanyDetails() {
         onOpenChange={setQuotationModalOpen}
         companyEmail={company?.email1 || ""}
         companyName={company?.nombreEmpresa || ""}
+      />
+
+      {/* Modal de Proyectos */}
+      <AddProjectModal
+        open={projectModalOpen}
+        onOpenChange={setProjectModalOpen}
+        companyId={parseInt(id || "0")}
+        onSuccess={() => {
+          // Refrescar la lista de proyectos
+        }}
       />
 
       {/* Lightbox Modal */}
