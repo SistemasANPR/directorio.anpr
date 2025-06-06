@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
-import { ArrowLeft, MapPin, Phone, Mail, Globe, Video, FileText, Award, Star, MessageSquare, Calculator, Building, Grid3x3, Facebook, Linkedin, Twitter, Instagram, Heart } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, Globe, Video, FileText, Award, Star, MessageSquare, Calculator, Building, Grid3x3, Facebook, Linkedin, Twitter, Instagram, Heart, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ export default function CompanyDetails() {
   const { id } = useParams();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [quotationModalOpen, setQuotationModalOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [, setLocation] = useLocation();
 
   const { data: company, isLoading } = useQuery({
@@ -76,6 +78,24 @@ export default function CompanyDetails() {
   const videos = company.videosUrls || [];
   const representantes = company.representantesVentas || [];
   const redesSociales = company.redesSociales || [];
+
+  // Funciones para el lightbox
+  const openLightbox = (index: number) => {
+    setCurrentImageIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % galeria.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + galeria.length) % galeria.length);
+  };;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -213,6 +233,7 @@ export default function CompanyDetails() {
                           alt={`${company.nombreEmpresa} - Producto ${index + 1}`}
                           className="w-full rounded-lg hover:scale-105 transition-transform cursor-pointer shadow-md"
                           style={{ aspectRatio: 'auto' }}
+                          onClick={() => openLightbox(index)}
                         />
                       </div>
                     ))}
@@ -767,6 +788,65 @@ export default function CompanyDetails() {
         companyEmail={company?.email1 || ""}
         companyName={company?.nombreEmpresa || ""}
       />
+
+      {/* Lightbox Modal */}
+      {lightboxOpen && galeria.length > 0 && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          <div className="relative max-w-4xl max-h-full p-4">
+            {/* Botón cerrar */}
+            <button
+              onClick={closeLightbox}
+              className="absolute top-4 right-4 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70 transition-all"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            {/* Navegación anterior */}
+            {galeria.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevImage();
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70 transition-all"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+            )}
+
+            {/* Navegación siguiente */}
+            {galeria.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextImage();
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70 transition-all"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            )}
+
+            {/* Imagen principal */}
+            <img
+              src={galeria[currentImageIndex]}
+              alt={`${company?.nombreEmpresa} - Producto ${currentImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Indicador de posición */}
+            {galeria.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                {currentImageIndex + 1} / {galeria.length}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
