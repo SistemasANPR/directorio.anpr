@@ -21,6 +21,8 @@ export default function CompanyDetails() {
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [, setLocation] = useLocation();
 
   const { data: company, isLoading } = useQuery({
@@ -48,6 +50,21 @@ export default function CompanyDetails() {
     }
     
     return false;
+  };
+
+  // Function to get video ID from YouTube URLs
+  const getYouTubeVideoId = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
+  // Process videos from company data - moved to avoid duplicate declaration
+
+  // Function to open video modal
+  const openVideoModal = (videoUrl: string) => {
+    setCurrentVideoUrl(videoUrl);
+    setVideoModalOpen(true);
   };
 
   // Query para certificados
