@@ -18,6 +18,37 @@ import {
 import DirectoryMap from "@/components/DirectoryMap";
 import type { CompanyWithDetails, Category } from "@/../../shared/schema";
 
+// Función para limpiar HTML
+const stripHtml = (html: string): string => {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || "";
+};
+
+// Función para renderizar iconos de categorías
+const CategoryIcon = ({ category }: { category: Category }) => {
+  const iconProps = {
+    size: 20,
+    className: "text-gray-600"
+  };
+
+  switch (category.nombreCategoria?.toLowerCase()) {
+    case 'mobiliario urbano':
+      return <Grid3X3 {...iconProps} />;
+    case 'iluminación':
+      return <Building2 {...iconProps} />;
+    case 'señalización':
+      return <MapPin {...iconProps} />;
+    case 'jardinería':
+      return <Building2 {...iconProps} />;
+    case 'pavimentación':
+      return <Grid3X3 {...iconProps} />;
+    case 'seguridad':
+      return <Building2 {...iconProps} />;
+    default:
+      return <Building2 {...iconProps} />;
+  }
+};
+
 export default function Directory() {
   const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,7 +123,7 @@ export default function Directory() {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-7xl mx-auto px-4 py-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900 }}>
             Directorio de Empresas
           </h1>
           <p className="text-xl text-blue-100 max-w-3xl leading-relaxed">
@@ -197,20 +228,7 @@ export default function Directory() {
                     <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                       {company.nombreEmpresa}
                     </CardTitle>
-                    {company.categories && company.categories.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {company.categories.slice(0, 2).map((category: Category) => (
-                          <Badge key={category.id} variant="secondary" className="text-xs">
-                            {category.nombreCategoria}
-                          </Badge>
-                        ))}
-                        {company.categories.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{company.categories.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+
                   </div>
                 </div>
               </CardHeader>
@@ -218,7 +236,7 @@ export default function Directory() {
               <CardContent className="pt-0">
                 {company.descripcionEmpresa && (
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {company.descripcionEmpresa}
+                    {stripHtml(company.descripcionEmpresa)}
                   </p>
                 )}
                 
@@ -235,7 +253,7 @@ export default function Directory() {
                       <span className="truncate">{company.email1}</span>
                     </div>
                   )}
-                  {company.estadosPresencia && company.estadosPresencia.length > 0 && (
+                  {Array.isArray(company.estadosPresencia) && company.estadosPresencia.length > 0 && (
                     <div className="flex items-center text-sm text-gray-500">
                       <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                       <span>
@@ -245,13 +263,31 @@ export default function Directory() {
                     </div>
                   )}
                 </div>
+
+                {/* Iconos de categorías */}
+                {Array.isArray(company.categories) && company.categories.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {company.categories.slice(0, 4).map((category: Category) => (
+                      <div key={category.id} className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title={category.nombreCategoria}>
+                        <CategoryIcon category={category} />
+                      </div>
+                    ))}
+                    {company.categories.length > 4 && (
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full text-xs text-gray-600">
+                        +{company.categories.length - 4}
+                      </div>
+                    )}
+                  </div>
+                )}
                 
-                <Link href={`/empresa/${company.id}`}>
-                  <Button className="w-full" size="sm">
-                    Ver Detalles
-                    <ExternalLink className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
+                <div className="flex justify-center mt-4">
+                  <Link href={`/empresa/${company.id}`}>
+                    <Button className="w-full" size="sm">
+                      Ver Detalles
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           ))}
