@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,17 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertProjectSchema } from "@shared/schema";
 import type { ProjectWithDetails, Category } from "@shared/schema";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import ListItem from '@tiptap/extension-list-item';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import { Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, GripVertical, X, Upload } from "lucide-react";
 
 const projectFormSchema = insertProjectSchema.extend({
   galeriaImagenes: z.array(z.instanceof(File)).max(4, "Máximo 4 imágenes").optional(),
@@ -39,11 +50,73 @@ export default function AddProjectModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      TextStyle,
+      Color,
+      BulletList,
+      OrderedList,
+      ListItem,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Placeholder.configure({
+        placeholder: 'Describe los detalles del proyecto...',
+      }),
+    ],
+    content: project?.descripcionProyecto || '',
+    onUpdate: ({ editor }) => {
+      form.setValue('descripcionProyecto', editor.getHTML());
+    },
+  });
 
   const { data: categories } = useQuery({
     queryKey: ["/api/categories"],
     enabled: open,
   });
+
+  // Funciones para drag and drop de imágenes
+  const handleImageUpload = useCallback((files: FileList | null) => {
+    if (!files) return;
+    
+    const newFiles = Array.from(files).slice(0, 4 - imageFiles.length);
+    setImageFiles(prev => [...prev, ...newFiles]);
+  }, [imageFiles.length]);
+
+  const removeImage = useCallback((index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null) return;
+
+    const newImages = [...imageFiles];
+    const draggedItem = newImages[draggedIndex];
+    newImages.splice(draggedIndex, 1);
+    newImages.splice(dropIndex, 0, draggedItem);
+    
+    setImageFiles(newImages);
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
 
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
@@ -187,11 +260,79 @@ export default function AddProjectModal({
                     <FormItem>
                       <FormLabel>Descripción del Proyecto</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          {...field} 
-                          placeholder="Describe los detalles del proyecto..."
-                          rows={4}
-                        />
+                        <div className="border rounded-md">
+                          {/* Editor Toolbar */}
+                          <div className="border-b p-2 flex flex-wrap gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleBold().run()}
+                              className={editor?.isActive('bold') ? 'bg-gray-200' : ''}
+                            >
+                              <Bold className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleItalic().run()}
+                              className={editor?.isActive('italic') ? 'bg-gray-200' : ''}
+                            >
+                              <Italic className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                              className={editor?.isActive('bulletList') ? 'bg-gray-200' : ''}
+                            >
+                              <List className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                              className={editor?.isActive('orderedList') ? 'bg-gray-200' : ''}
+                            >
+                              <ListOrdered className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                              className={editor?.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}
+                            >
+                              <AlignLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                              className={editor?.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}
+                            >
+                              <AlignCenter className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                              className={editor?.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}
+                            >
+                              <AlignRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {/* Editor Content */}
+                          <EditorContent 
+                            editor={editor} 
+                            className="prose prose-sm max-w-none p-3 min-h-[120px] focus-within:outline-none"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -390,20 +531,92 @@ export default function AddProjectModal({
               <h3 className="text-lg font-semibold">Contenido Multimedia</h3>
               
               <div>
-                <Label htmlFor="images">Galería de Imágenes (máximo 4)</Label>
-                <Input
-                  id="images"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                  className="mt-1"
-                />
-                {imageFiles.length > 0 && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    {imageFiles.length} imagen(es) seleccionada(s)
-                  </p>
-                )}
+                <Label>Galería de Imágenes (máximo 4)</Label>
+                <div className="space-y-4 mt-2">
+                  {/* Upload Area */}
+                  <div 
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                      handleImageUpload(e.dataTransfer.files);
+                    }}
+                  >
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Arrastra imágenes aquí o haz clic para seleccionar
+                    </p>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleImageUpload(e.target.files)}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                      disabled={imageFiles.length >= 4}
+                    >
+                      Seleccionar Imágenes
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {imageFiles.length}/4 imágenes
+                    </p>
+                  </div>
+
+                  {/* Image Preview with Drag and Drop */}
+                  {imageFiles.length > 0 && (
+                    <div className="grid grid-cols-2 gap-4">
+                      {imageFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className={`relative group border rounded-lg overflow-hidden ${
+                            draggedIndex === index ? 'opacity-50' : ''
+                          }`}
+                          draggable
+                          onDragStart={() => handleDragStart(index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 flex gap-2">
+                              <GripVertical className="h-4 w-4 text-white cursor-move" />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeImage(index)}
+                                className="h-6 w-6 p-0 text-white hover:bg-red-500"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <FormField
