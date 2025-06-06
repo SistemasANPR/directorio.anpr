@@ -419,14 +419,16 @@ export default function CompanyDetails() {
                   <div className="text-center py-8">
                     <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 mb-4">Aún no hay proyectos registrados</p>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setProjectModalOpen(true)}
-                      className="gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Agregar Primer Proyecto
-                    </Button>
+                    {canManageProjects() && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setProjectModalOpen(true)}
+                        className="gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Agregar Primer Proyecto
+                      </Button>
+                    )}
                   </div>
                 )}
               </CardContent>
