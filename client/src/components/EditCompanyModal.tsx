@@ -46,7 +46,7 @@ const companySchema = z.object({
   email2: z.string().email("Email inválido").optional().or(z.literal("")),
   logotipoUrl: z.string().optional().or(z.literal("")),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
-  videosUrls: z.array(z.string().url("URL inválida").optional().or(z.literal(""))).optional(),
+
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   direccionFisica: z.string().optional(),
   galeriaProductosUrls: z.array(z.string()).optional(),
@@ -386,6 +386,14 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
       setDireccionesPorCiudad({});
       setGaleriaImagenes((company.galeriaProductosUrls as string[]) || []);
       
+      // Cargar videos promocionales en el estado
+      const videos = (company.videosUrls as string[]) || [];
+      setVideosUrls([
+        videos[0] || "",
+        videos[1] || "",
+        videos[2] || ""
+      ]);
+      
       // La ubicación se cargará después cuando se actualicen las ciudades
 
       // Cargar datos en el formulario
@@ -397,7 +405,6 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
         email1: company.email1,
         email2: company.email2 || "",
         sitioWeb: company.sitioWeb || "",
-        videosUrls: (company.videosUrls as string[]) || [],
         paisesPresencia: (company.paisesPresencia as string[]) || [],
         estadosPresencia: (company.estadosPresencia as string[]) || [],
         ciudadesPresencia: (company.ciudadesPresencia as string[]) || [],
@@ -793,24 +800,21 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
                     Videos Promocionales
                   </FormLabel>
                   {[0, 1, 2].map((index) => (
-                    <FormField
-                      key={index}
-                      control={form.control}
-                      name={`videosUrls.${index}` as const}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Video Promocional {index + 1}</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="https://youtube.com/watch?v=..." 
-                              {...field}
-                              value={field.value || ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div key={index} className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Video Promocional {index + 1}
+                      </label>
+                      <Input 
+                        placeholder="https://youtube.com/watch?v=..." 
+                        value={videosUrls[index] || ""}
+                        onChange={(e) => {
+                          const newVideos = [...videosUrls];
+                          newVideos[index] = e.target.value;
+                          setVideosUrls(newVideos);
+                        }}
+                        type="url"
+                      />
+                    </div>
                   ))}
                 </div>
 
