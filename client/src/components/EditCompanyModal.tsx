@@ -47,7 +47,7 @@ const companySchema = z.object({
   logotipoUrl: z.string().optional().or(z.literal("")),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   videosUrls: z.array(z.string()).optional(),
-  catalogoDigitalUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   direccionFisica: z.string().optional(),
   galeriaProductosUrls: z.array(z.string()).optional(),
   paisesPresencia: z.array(z.string()).min(1, "Selecciona al menos un país"),
