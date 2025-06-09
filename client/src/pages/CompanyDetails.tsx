@@ -838,27 +838,7 @@ export default function CompanyDetails() {
               </Card>
             )}
 
-            {/* Dirección del Mapa */}
-            {company.ubicacionGeografica?.address && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Ubicación del Mapa
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">{company.ubicacionGeografica.address}</p>
-                    {company.ubicacionGeografica.lat && company.ubicacionGeografica.lng && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Coordenadas: {company.ubicacionGeografica.lat.toFixed(6)}, {company.ubicacionGeografica.lng.toFixed(6)}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
 
             {/* Dirección */}
             {company.direccionFisica && (

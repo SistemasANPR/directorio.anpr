@@ -1240,41 +1240,7 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
                   />
                 )}
 
-                {/* Ubicación Principal - Solo cuando hay múltiples ciudades */}
-                {selectedCiudades.length > 1 && (
-                  <div className="md:col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="ubicacionPrincipal"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            Ubicación Principal
-                          </FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecciona la ciudad principal de operaciones" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {selectedCiudades.map((ciudad) => (
-                                <SelectItem key={ciudad} value={ciudad}>
-                                  {ciudad}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Esta será la ubicación principal mostrada en el directorio y utilizada como referencia principal.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
+
 
                 {/* Descripción */}
                 <FormField
