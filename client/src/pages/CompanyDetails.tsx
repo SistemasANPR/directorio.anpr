@@ -24,6 +24,7 @@ export default function CompanyDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
+  const [selectedProject, setSelectedProject] = useState<ProjectWithDetails | null>(null);
   const [, setLocation] = useLocation();
 
   const { data: company, isLoading } = useQuery({
@@ -322,109 +323,62 @@ export default function CompanyDetails() {
                 {projects && projects.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {projects.map((project: ProjectWithDetails) => (
-                      <div key={project.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-lg mb-1">{project.nombreProyecto}</h4>
-                            {project.category && (
-                              <Badge variant="secondary" className="mb-2">
-                                {project.category.nombreCategoria}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Eye className="h-4 w-4 mr-1" />
-                            {project.vistas || 0}
-                          </div>
-                        </div>
-
-                        {project.descripcionProyecto && (
-                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                            {project.descripcionProyecto}
-                          </p>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                          {project.clienteContratante && (
-                            <div className="flex items-center">
-                              <User className="h-4 w-4 mr-1 text-gray-400" />
-                              <span className="truncate">{project.clienteContratante}</span>
-                            </div>
-                          )}
-                          {project.fechaInicio && (
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                              <span>{new Date(project.fechaInicio).getFullYear()}</span>
-                            </div>
-                          )}
-                          {project.ubicacionCiudad && (
-                            <div className="flex items-center col-span-2">
-                              <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                              <span className="truncate">
-                                {project.ubicacionCiudad}
-                                {project.ubicacionEstado && `, ${project.ubicacionEstado}`}
-                              </span>
+                      <div key={project.id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow bg-white">
+                        {/* Imagen de portada */}
+                        <div 
+                          className="h-48 bg-gradient-to-br from-yellow-400 to-yellow-500 relative"
+                          style={{
+                            backgroundImage: project.galeriaImagenes && project.galeriaImagenes.length > 0 
+                              ? `url(${project.galeriaImagenes[0]})`
+                              : undefined,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          }}
+                        >
+                          {(!project.galeriaImagenes || project.galeriaImagenes.length === 0) && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <FolderOpen className="h-16 w-16 text-white/20" />
                             </div>
                           )}
                         </div>
 
-                        {project.galeriaImagenes && project.galeriaImagenes.length > 0 && (
-                          <div className="mb-3">
-                            <div className="grid grid-cols-2 gap-2">
-                              {project.galeriaImagenes.slice(0, 2).map((imagen, imgIndex) => (
-                                <img
-                                  key={imgIndex}
-                                  src={imagen}
-                                  alt={`${project.nombreProyecto} - Imagen ${imgIndex + 1}`}
-                                  className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                                  onClick={() => {
-                                    // Aquí podrías implementar un lightbox específico para proyectos
-                                  }}
-                                />
-                              ))}
-                            </div>
-                            {project.galeriaImagenes.length > 2 && (
-                              <p className="text-xs text-gray-500 mt-1">
-                                +{project.galeriaImagenes.length - 2} imágenes más
-                              </p>
+                        {/* Contenido de la tarjeta */}
+                        <div className="p-4">
+                          <h4 className="font-semibold text-lg mb-2 line-clamp-2">{project.nombreProyecto}</h4>
+                          
+                          {/* Descripción sin HTML */}
+                          {project.descripcionProyecto && (
+                            <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                              {project.descripcionProyecto.replace(/<[^>]*>/g, '')}
+                            </p>
+                          )}
+
+                          {/* Información adicional */}
+                          <div className="space-y-2 mb-4">
+                            {project.clienteContratante && (
+                              <div className="flex items-center text-sm text-gray-500">
+                                <User className="h-4 w-4 mr-2 flex-shrink-0" />
+                                <span className="truncate">{project.clienteContratante}</span>
+                              </div>
+                            )}
+                            {project.ubicacionCiudad && (
+                              <div className="flex items-center text-sm text-gray-500">
+                                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                                <span className="truncate">
+                                  {project.ubicacionCiudad}
+                                  {project.ubicacionEstado && `, ${project.ubicacionEstado}`}
+                                </span>
+                              </div>
                             )}
                           </div>
-                        )}
 
-                        {project.serviciosProductos && project.serviciosProductos.length > 0 && (
-                          <div className="mb-3">
-                            <p className="text-xs text-gray-500 mb-1">Servicios utilizados:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {project.serviciosProductos.slice(0, 3).map((servicio, sIndex) => (
-                                <Badge key={sIndex} variant="outline" className="text-xs">
-                                  {servicio}
-                                </Badge>
-                              ))}
-                              {project.serviciosProductos.length > 3 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{project.serviciosProductos.length - 3}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              variant={project.estado === 'publicado' ? 'default' : 'secondary'}
-                              className="text-xs"
-                            >
-                              {project.estado === 'publicado' ? 'Publicado' : 
-                               project.estado === 'borrador' ? 'Borrador' : 'Archivado'}
-                            </Badge>
-                            {project.areaSuperficie && (
-                              <span className="text-xs text-gray-500">
-                                {project.areaSuperficie}
-                              </span>
-                            )}
-                          </div>
-                          <Button variant="ghost" size="sm">
+                          {/* Botón Ver Detalles */}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => setSelectedProject(project)}
+                          >
                             Ver Detalles
                           </Button>
                         </div>
@@ -1139,6 +1093,137 @@ export default function CompanyDetails() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Modal de Detalles del Proyecto */}
+      {selectedProject && (
+        <Dialog open={!!selectedProject} onOpenChange={() => setSelectedProject(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">
+                {selectedProject.nombreProyecto}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Imagen principal */}
+              {selectedProject.galeriaImagenes && selectedProject.galeriaImagenes.length > 0 && (
+                <div className="w-full h-64 rounded-lg overflow-hidden">
+                  <img
+                    src={selectedProject.galeriaImagenes[0]}
+                    alt={selectedProject.nombreProyecto}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Información básica */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedProject.clienteContratante && (
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">
+                      <strong>Cliente:</strong> {selectedProject.clienteContratante}
+                    </span>
+                  </div>
+                )}
+                
+                {selectedProject.fechaInicio && (
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">
+                      <strong>Fecha:</strong> {new Date(selectedProject.fechaInicio).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                
+                {selectedProject.ubicacionCiudad && (
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">
+                      <strong>Ubicación:</strong> {selectedProject.ubicacionCiudad}
+                      {selectedProject.ubicacionEstado && `, ${selectedProject.ubicacionEstado}`}
+                    </span>
+                  </div>
+                )}
+                
+                {selectedProject.areaSuperficie && (
+                  <div className="flex items-center space-x-2">
+                    <Building className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">
+                      <strong>Área:</strong> {selectedProject.areaSuperficie}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Descripción */}
+              {selectedProject.descripcionProyecto && (
+                <div>
+                  <h3 className="font-semibold mb-2">Descripción del Proyecto</h3>
+                  <div 
+                    className="text-sm text-gray-700 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: selectedProject.descripcionProyecto }}
+                  />
+                </div>
+              )}
+
+              {/* Servicios/Productos */}
+              {selectedProject.serviciosProductos && selectedProject.serviciosProductos.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Servicios y Productos Utilizados</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProject.serviciosProductos.map((servicio, index) => (
+                      <Badge key={index} variant="outline">
+                        {servicio}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Galería de imágenes */}
+              {selectedProject.galeriaImagenes && selectedProject.galeriaImagenes.length > 1 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Galería del Proyecto</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedProject.galeriaImagenes.map((imagen, index) => (
+                      <img
+                        key={index}
+                        src={imagen}
+                        alt={`${selectedProject.nombreProyecto} - Imagen ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                          // Aquí se podría implementar un lightbox
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Videos del proyecto */}
+              {selectedProject.videosUrls && selectedProject.videosUrls.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Videos del Proyecto</h3>
+                  <div className="space-y-2">
+                    {selectedProject.videosUrls.map((videoUrl, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => window.open(videoUrl, '_blank')}
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Ver Video {index + 1}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
