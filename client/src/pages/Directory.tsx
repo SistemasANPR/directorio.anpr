@@ -72,13 +72,8 @@ export default function Directory() {
     const params = new URLSearchParams(window.location.search);
     const categoryId = params.get('categoria');
     
-    console.log('Current URL:', window.location.href);
-    console.log('Search params:', window.location.search);
-    console.log('Category ID from URL:', categoryId);
-    
     if (categoryId) {
       setSelectedCategory(categoryId);
-      console.log('Setting selected category to:', categoryId);
     } else {
       // Reset category if no URL parameter
       setSelectedCategory("");
@@ -115,14 +110,6 @@ export default function Directory() {
     const matchesState = !selectedState || selectedState === "all" || 
                         (company.estadosPresencia && Array.isArray(company.estadosPresencia) && 
                          company.estadosPresencia.includes(selectedState));
-    
-    // Debug logging for category filtering
-    if (selectedCategory && selectedCategory !== "all") {
-      console.log(`Company: ${company.nombreEmpresa}`);
-      console.log(`Selected Category ID: ${selectedCategory}`);
-      console.log(`Company Categories:`, company.categories);
-      console.log(`Matches Category: ${matchesCategory}`);
-    }
     
     return matchesSearch && matchesCategory && matchesState;
   });

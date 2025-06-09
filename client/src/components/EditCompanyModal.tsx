@@ -46,7 +46,7 @@ const companySchema = z.object({
   email2: z.string().email("Email inválido").optional().or(z.literal("")),
   logotipoUrl: z.string().optional().or(z.literal("")),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
-  videosUrls: z.array(z.string()).optional(),
+  videosUrls: z.array(z.string().url("URL inválida").optional().or(z.literal(""))).optional(),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   direccionFisica: z.string().optional(),
   galeriaProductosUrls: z.array(z.string()).optional(),
