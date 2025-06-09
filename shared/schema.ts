@@ -89,6 +89,7 @@ export const roles = pgTable("roles", {
   nombre: text("nombre").notNull().unique(),
   descripcion: text("descripcion"),
   permisos: jsonb("permisos"), // Array of permissions
+  esRolSistema: boolean("es_rol_sistema").notNull().default(false), // Prevents deletion of system roles
   estado: text("estado").notNull().default("activo"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

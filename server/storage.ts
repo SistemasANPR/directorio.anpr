@@ -493,6 +493,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRole(id: number): Promise<boolean> {
+    // Check if role is a system role
+    const [role] = await db.select().from(roles).where(eq(roles.id, id));
+    if (!role) {
+      return false;
+    }
+    
+    if (role.esRolSistema) {
+      throw new Error("No se puede eliminar un rol del sistema");
+    }
+
     const result = await db.delete(roles).where(eq(roles.id, id));
     return result.rowCount !== null && result.rowCount > 0;
   }
