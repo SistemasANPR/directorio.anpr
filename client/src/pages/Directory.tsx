@@ -69,7 +69,7 @@ export default function Directory() {
   // Parse URL parameters and set initial filter states
   useEffect(() => {
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
-    const categoryId = urlParams.get('categoryId');
+    const categoryId = urlParams.get('categoria');
     
     if (categoryId) {
       setSelectedCategory(categoryId);

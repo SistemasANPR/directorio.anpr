@@ -737,7 +737,11 @@ export default function CompanyDetails() {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
                     {company.categories.map((category: any) => (
-                      <div key={category.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div 
+                        key={category.id} 
+                        className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+                        onClick={() => setLocation(`/directorio?categoria=${category.id}`)}
+                      >
                         <div className="flex-shrink-0">
                           {category.iconoUrl ? (
                             <img 
@@ -746,13 +750,13 @@ export default function CompanyDetails() {
                               className="w-8 h-8 object-contain"
                             />
                           ) : (
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                               <Grid3x3 className="h-4 w-4 text-blue-600" />
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                             {category.nombreCategoria}
                           </p>
                         </div>
