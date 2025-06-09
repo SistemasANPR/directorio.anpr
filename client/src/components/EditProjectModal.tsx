@@ -1,33 +1,35 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { ProjectWithDetails } from "@shared/schema";
+import { insertProjectSchema } from "@shared/schema";
+import type { ProjectWithDetails, Category } from "@shared/schema";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import ListItem from '@tiptap/extension-list-item';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import { Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, GripVertical, X, Upload } from "lucide-react";
 
-const projectSchema = z.object({
-  nombreProyecto: z.string().min(1, "El nombre del proyecto es requerido"),
-  descripcionProyecto: z.string().min(1, "La descripción del proyecto es requerida"),
-  categoryId: z.number().min(1, "La categoría es requerida"),
-  clienteContratante: z.string().optional(),
-  ubicacionPais: z.string().optional(),
-  ubicacionEstado: z.string().optional(),
-  ubicacionCiudad: z.string().optional(),
-  fechaInicio: z.string().optional(),
-  fechaFinalizacion: z.string().optional(),
-  areaSuperficie: z.string().optional(),
-  videoUrl: z.string().optional(),
+const projectFormSchema = insertProjectSchema.extend({
+  galeriaImagenes: z.array(z.instanceof(File)).max(4, "Máximo 4 imágenes").optional(),
 });
 
-type ProjectFormData = z.infer<typeof projectSchema>;
+type ProjectFormData = z.infer<typeof projectFormSchema>;
 
 interface EditProjectModalProps {
   open: boolean;
@@ -37,53 +39,147 @@ interface EditProjectModalProps {
   onSuccess?: () => void;
 }
 
-export default function EditProjectModal({
-  open,
-  onOpenChange,
-  project,
-  companyId,
-  onSuccess
+export default function EditProjectModal({ 
+  open, 
+  onOpenChange, 
+  project, 
+  companyId, 
+  onSuccess 
 }: EditProjectModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ["/api/categories"],
   });
 
-  const form = useForm<ProjectFormData>({
-    resolver: zodResolver(projectSchema),
-    defaultValues: {
-      nombreProyecto: project.nombreProyecto || "",
-      descripcionProyecto: project.descripcionProyecto || "",
-      categoryId: project.categoryId || 0,
-      clienteContratante: project.clienteContratante || "",
-      ubicacionPais: project.ubicacionPais || "",
-      ubicacionEstado: project.ubicacionEstado || "",
-      ubicacionCiudad: project.ubicacionCiudad || "",
-      fechaInicio: project.fechaInicio || "",
-      fechaFinalizacion: project.fechaFinalizacion || "",
-      areaSuperficie: project.areaSuperficie || "",
-      videoUrl: project.videoUrl || "",
-    }
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      TextStyle,
+      Color,
+      BulletList,
+      OrderedList,
+      ListItem,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Placeholder.configure({
+        placeholder: 'Describe los detalles del proyecto...',
+      }),
+    ],
+    content: project?.descripcionProyecto || '',
+    onUpdate: ({ editor }) => {
+      form.setValue('descripcionProyecto', editor.getHTML());
+    },
   });
 
-  const updateProjectMutation = useMutation({
+  // Funciones para drag and drop de imágenes
+  const handleImageUpload = useCallback((files: FileList | null) => {
+    if (!files) return;
+    
+    const newFiles = Array.from(files).slice(0, 4 - imageFiles.length);
+    setImageFiles(prev => [...prev, ...newFiles]);
+  }, [imageFiles.length]);
+
+  const removeImage = useCallback((index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null) return;
+
+    const newImages = [...imageFiles];
+    const draggedItem = newImages[draggedIndex];
+    newImages.splice(draggedIndex, 1);
+    newImages.splice(dropIndex, 0, draggedItem);
+    
+    setImageFiles(newImages);
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const form = useForm<ProjectFormData>({
+    resolver: zodResolver(projectFormSchema),
+    defaultValues: {
+      companyId,
+      nombreProyecto: project?.nombreProyecto || "",
+      descripcionProyecto: project?.descripcionProyecto || "",
+      ubicacionPais: project?.ubicacionPais || "",
+      ubicacionEstado: project?.ubicacionEstado || "",
+      ubicacionCiudad: project?.ubicacionCiudad || "",
+      clienteContratante: project?.clienteContratante || "",
+      areaSuperficie: project?.areaSuperficie || "",
+      serviciosProductos: project?.serviciosProductos || [],
+      videoUrl: project?.videoUrl || "",
+      estado: project?.estado || "borrador",
+      galeriaImagenes: [],
+    },
+  });
+
+  const mutation = useMutation({
     mutationFn: async (data: ProjectFormData) => {
-      const response = await apiRequest("PUT", `/api/projects/${project.id}`, data);
-      if (!response.ok) {
-        throw new Error("Error al actualizar el proyecto");
-      }
-      return response.json();
+      console.log("Form data being submitted:", data);
+      
+      const formData = new FormData();
+      
+      // Agregar companyId primero
+      formData.append('companyId', companyId.toString());
+      
+      // Agregar campos del proyecto
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'galeriaImagenes') return; // Se maneja por separado
+        if (key === 'serviciosProductos') {
+          formData.append(key, JSON.stringify(value || []));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Agregar imágenes
+      imageFiles.forEach((file) => {
+        formData.append('galeriaImagenes', file);
+      });
+
+      // Debug: Log FormData contents
+      console.log("FormData contents:");
+      Array.from(formData.entries()).forEach(([key, value]) => {
+        console.log(key, value);
+      });
+
+      const url = `/api/projects/${project.id}`;
+      const method = "PATCH";
+      
+      return apiRequest(method, url, formData);
     },
     onSuccess: () => {
       toast({
         title: "Proyecto actualizado",
-        description: "El proyecto se ha actualizado correctamente",
+        description: "El proyecto se ha actualizado exitosamente.",
       });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies", companyId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: [`/api/companies/${companyId}/projects`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/companies`, companyId.toString()] });
       onOpenChange(false);
+      form.reset();
+      setImageFiles([]);
       onSuccess?.();
     },
     onError: (error: any) => {
@@ -96,174 +192,377 @@ export default function EditProjectModal({
   });
 
   const onSubmit = (data: ProjectFormData) => {
-    updateProjectMutation.mutate(data);
+    mutation.mutate(data);
+  };
+
+  const addServiceProduct = () => {
+    const currentServices = form.getValues("serviciosProductos") || [];
+    form.setValue("serviciosProductos", [...currentServices, ""]);
+  };
+
+  const removeServiceProduct = (index: number) => {
+    const currentServices = form.getValues("serviciosProductos") || [];
+    form.setValue("serviciosProductos", currentServices.filter((_, i) => i !== index));
+  };
+
+  const updateServiceProduct = (index: number, value: string) => {
+    const currentServices = form.getValues("serviciosProductos") || [];
+    currentServices[index] = value;
+    form.setValue("serviciosProductos", currentServices);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Proyecto</DialogTitle>
+          <DialogDescription>
+            Modifica la información del proyecto.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="nombreProyecto"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del Proyecto *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Centro Comercial Plaza Norte" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoría *</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Información Básica */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Información Básica</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="nombreProyecto"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre del Proyecto *</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona una categoría" />
-                        </SelectTrigger>
+                        <Input {...field} placeholder="Ej: Modernización Plaza Central" />
                       </FormControl>
-                      <SelectContent>
-                        {categories?.map((category: any) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.nombreCategoria}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="descripcionProyecto"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descripción del Proyecto</FormLabel>
+                      <FormControl>
+                        <div className="border rounded-md">
+                          {/* Editor Toolbar */}
+                          <div className="border-b p-2 flex flex-wrap gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleBold().run()}
+                              className={editor?.isActive('bold') ? 'bg-gray-200' : ''}
+                            >
+                              <Bold className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleItalic().run()}
+                              className={editor?.isActive('italic') ? 'bg-gray-200' : ''}
+                            >
+                              <Italic className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                              className={editor?.isActive('bulletList') ? 'bg-gray-200' : ''}
+                            >
+                              <List className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                              className={editor?.isActive('orderedList') ? 'bg-gray-200' : ''}
+                            >
+                              <ListOrdered className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                              className={editor?.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}
+                            >
+                              <AlignLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                              className={editor?.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}
+                            >
+                              <AlignCenter className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                              className={editor?.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}
+                            >
+                              <AlignRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {/* Editor Content */}
+                          <EditorContent 
+                            editor={editor} 
+                            className="prose prose-sm max-w-none p-3 min-h-[120px] focus-within:outline-none"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Información de Ubicación y Cliente */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Ubicación y Cliente</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="clienteContratante"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cliente/Contratante</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nombre del cliente o empresa contratante" value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-3 gap-2">
+                  <FormField
+                    control={form.control}
+                    name="ubicacionPais"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>País</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="México" value={field.value || ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="ubicacionEstado"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ej: CDMX" value={field.value || ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="ubicacionCiudad"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ciudad</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ej: Benito Juárez" value={field.value || ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="areaSuperficie"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Área/Superficie</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ej: 5000 m², 2 hectáreas" value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="estado"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado del Proyecto</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="borrador">Borrador</SelectItem>
+                          <SelectItem value="publicado">Publicado</SelectItem>
+                          <SelectItem value="archivado">Archivado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="descripcionProyecto"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción del Proyecto *</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Describe los detalles del proyecto..."
-                      className="min-h-[120px]"
-                      {...field} 
+            {/* Servicios/Productos */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Servicios/Productos Utilizados</h3>
+                <Button type="button" variant="outline" onClick={addServiceProduct}>
+                  Agregar Servicio
+                </Button>
+              </div>
+              
+              {form.watch("serviciosProductos")?.map((service: string, index: number) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={service}
+                    onChange={(e) => updateServiceProduct(index, e.target.value)}
+                    placeholder="Ej: Mobiliario urbano, Iluminación LED..."
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => removeServiceProduct(index)}
+                  >
+                    Eliminar
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Multimedia */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Contenido Multimedia</h3>
+              
+              <div>
+                <Label>Galería de Imágenes (máximo 4)</Label>
+                <div className="space-y-4 mt-2">
+                  {/* Upload Area */}
+                  <div 
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                      handleImageUpload(e.dataTransfer.files);
+                    }}
+                  >
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Arrastra imágenes aquí o haz clic para seleccionar
+                    </p>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleImageUpload(e.target.files)}
+                      className="hidden"
+                      id="image-upload-edit"
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('image-upload-edit')?.click()}
+                      disabled={imageFiles.length >= 4}
+                    >
+                      Seleccionar Imágenes
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {imageFiles.length}/4 imágenes
+                    </p>
+                  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="clienteContratante"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cliente/Contratante</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Gobierno Municipal" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="areaSuperficie"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Área/Superficie</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: 5,000 m²" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="ubicacionPais"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>País</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: México" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="ubicacionEstado"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estado</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Ciudad de México" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  {/* Image Preview with Drag and Drop */}
+                  {imageFiles.length > 0 && (
+                    <div className="grid grid-cols-2 gap-4">
+                      {imageFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className={`relative group border rounded-lg overflow-hidden ${
+                            draggedIndex === index ? 'opacity-50' : ''
+                          }`}
+                          draggable
+                          onDragStart={() => handleDragStart(index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 flex gap-2">
+                              <GripVertical className="h-4 w-4 text-white cursor-move" />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeImage(index)}
+                                className="h-6 w-6 p-0 text-white hover:bg-red-500"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <FormField
                 control={form.control}
-                name="ubicacionCiudad"
+                name="videoUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ciudad</FormLabel>
+                    <FormLabel>URL del Video (YouTube/Vimeo)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej: Polanco" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="fechaInicio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Inicio</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="fechaFinalizacion"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Finalización</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} value={field.value || ""} />
+                      <Input 
+                        {...field} 
+                        placeholder="https://www.youtube.com/watch?v=..." 
+                        type="url"
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -271,41 +570,17 @@ export default function EditProjectModal({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="videoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL del Video (YouTube/Vimeo)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="https://youtube.com/watch?v=..." 
-                      type="url" 
-                      {...field} 
-                      value={field.value || ""} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end gap-2 pt-4 border-t">
+            <div className="flex gap-4 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={updateProjectMutation.isPending}
+                disabled={mutation.isPending}
               >
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                disabled={updateProjectMutation.isPending}
-                style={{ backgroundColor: '#bcce16' }}
-                className="hover:bg-[#a8b814]"
-              >
-                {updateProjectMutation.isPending ? "Actualizando..." : "Actualizar Proyecto"}
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Actualizando..." : "Actualizar Proyecto"}
               </Button>
             </div>
           </form>
