@@ -1404,7 +1404,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                             <MapPin className="h-4 w-4" />
                             Ubicación Principal
                           </FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Selecciona la ciudad principal de operaciones" />
