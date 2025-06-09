@@ -68,10 +68,12 @@ export default function Directory() {
 
   // Parse URL parameters and set initial filter states
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
-    const categoryId = urlParams.get('categoria');
+    // Extract search parameters from current URL
+    const params = new URLSearchParams(window.location.search);
+    const categoryId = params.get('categoria');
     
-    console.log('URL location:', location);
+    console.log('Current URL:', window.location.href);
+    console.log('Search params:', window.location.search);
     console.log('Category ID from URL:', categoryId);
     
     if (categoryId) {
