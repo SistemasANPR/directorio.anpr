@@ -242,6 +242,9 @@ export const insertSystemSettingsSchema = createInsertSchema(systemSettings).omi
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
+  categoryId: true,
+  fechaInicio: true,
+  fechaFinalizacion: true,
   vistas: true,
   consultas: true,
   createdAt: true,

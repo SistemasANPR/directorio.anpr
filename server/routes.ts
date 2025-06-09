@@ -1066,6 +1066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const projectData = {
         ...req.body,
+        companyId: parseInt(req.body.companyId),
         galeriaImagenes: imageUrls,
         serviciosProductos: req.body.serviciosProductos ? JSON.parse(req.body.serviciosProductos) : [],
       };
