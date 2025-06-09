@@ -71,8 +71,15 @@ export default function Directory() {
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
     const categoryId = urlParams.get('categoria');
     
+    console.log('URL location:', location);
+    console.log('Category ID from URL:', categoryId);
+    
     if (categoryId) {
       setSelectedCategory(categoryId);
+      console.log('Setting selected category to:', categoryId);
+    } else {
+      // Reset category if no URL parameter
+      setSelectedCategory("");
     }
   }, [location]);
 
@@ -106,6 +113,14 @@ export default function Directory() {
     const matchesState = !selectedState || selectedState === "all" || 
                         (company.estadosPresencia && Array.isArray(company.estadosPresencia) && 
                          company.estadosPresencia.includes(selectedState));
+    
+    // Debug logging for category filtering
+    if (selectedCategory && selectedCategory !== "all") {
+      console.log(`Company: ${company.nombreEmpresa}`);
+      console.log(`Selected Category ID: ${selectedCategory}`);
+      console.log(`Company Categories:`, company.categories);
+      console.log(`Matches Category: ${matchesCategory}`);
+    }
     
     return matchesSearch && matchesCategory && matchesState;
   });
