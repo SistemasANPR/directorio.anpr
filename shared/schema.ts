@@ -47,6 +47,7 @@ export const companies = pgTable("companies", {
   paisesPresencia: jsonb("paises_presencia"), // Array of strings
   estadosPresencia: jsonb("estados_presencia"), // Array of strings
   ciudadesPresencia: jsonb("ciudades_presencia"), // Array of strings
+  ubicacionPrincipal: text("ubicacion_principal"), // Primary city when multiple locations exist
   direccionFisica: text("direccion_fisica"),
   ubicacionGeografica: jsonb("ubicacion_geografica"), // {lat: number, lng: number}
   representantesVentas: jsonb("representantes_ventas"), // Array of user IDs

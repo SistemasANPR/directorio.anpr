@@ -310,6 +310,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         // Convertir membershipTypeId a null si es undefined o string vacío
         membershipTypeId: data.membershipTypeId && data.membershipTypeId !== "" ? Number(data.membershipTypeId) : null,
         videosUrls: videosValidos,
+        ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
         ubicacionGeografica: ubicacionPrincipal,
         direccionFisica: direccionCompleta,
         // Agregar emails y teléfonos adicionales
@@ -1388,6 +1389,42 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     </Button>
                   )}
                 </div>
+
+                {/* Ubicación Principal - Solo cuando hay múltiples ciudades */}
+                {selectedCiudades.length > 1 && (
+                  <div className="md:col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="ubicacionPrincipal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            Ubicación Principal
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona la ciudad principal de operaciones" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {selectedCiudades.map((ciudad) => (
+                                <SelectItem key={ciudad} value={ciudad}>
+                                  {ciudad}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Esta será la ubicación principal mostrada en el directorio y utilizada como referencia principal.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
                 {/* Direcciones por ciudad */}
                 {selectedCiudades.length > 0 && (
