@@ -26,7 +26,11 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, GripVertical, X, Upload } from "lucide-react";
 
-const projectFormSchema = insertProjectSchema.extend({
+const projectFormSchema = insertProjectSchema.omit({
+  categoryId: true,
+  fechaInicio: true,
+  fechaFinalizacion: true,
+}).extend({
   galeriaImagenes: z.array(z.instanceof(File)).max(4, "Máximo 4 imágenes").optional(),
 });
 
@@ -76,10 +80,7 @@ export default function AddProjectModal({
     },
   });
 
-  const { data: categories } = useQuery({
-    queryKey: ["/api/categories"],
-    enabled: open,
-  });
+
 
   // Funciones para drag and drop de imágenes
   const handleImageUpload = useCallback((files: FileList | null) => {
@@ -124,9 +125,6 @@ export default function AddProjectModal({
       companyId,
       nombreProyecto: project?.nombreProyecto || "",
       descripcionProyecto: project?.descripcionProyecto || "",
-      categoryId: project?.categoryId || undefined,
-      fechaInicio: project?.fechaInicio || "",
-      fechaFinalizacion: project?.fechaFinalizacion || "",
       ubicacionPais: project?.ubicacionPais || "",
       ubicacionEstado: project?.ubicacionEstado || "",
       ubicacionCiudad: project?.ubicacionCiudad || "",
@@ -339,63 +337,7 @@ export default function AddProjectModal({
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="categoryId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Categoría</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona una categoría" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categories?.map((category: Category) => (
-                            <SelectItem key={category.id} value={category.id.toString()}>
-                              {category.nombre}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="fechaInicio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fecha de Inicio</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="fechaFinalizacion"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fecha de Finalización</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
 
               {/* Información de Ubicación y Cliente */}
