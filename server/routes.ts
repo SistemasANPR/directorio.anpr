@@ -1056,8 +1056,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Request body:", req.body);
 
+      // Validar que companyId esté presente y sea válido
+      if (!req.body.companyId || isNaN(parseInt(req.body.companyId))) {
+        return res.status(400).json({ error: "Company ID es requerido y debe ser un número válido" });
+      }
+
+      const companyId = parseInt(req.body.companyId);
+
       // Verificar límite de proyectos por empresa
-      const existingProjects = await storage.getProjectsByCompany(parseInt(req.body.companyId));
+      const existingProjects = await storage.getProjectsByCompany(companyId);
       if (existingProjects.length >= 5) {
         return res.status(400).json({ error: "Límite de 5 proyectos por empresa alcanzado" });
       }

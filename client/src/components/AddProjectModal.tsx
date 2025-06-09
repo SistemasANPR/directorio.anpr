@@ -135,7 +135,12 @@ export default function AddProjectModal({
 
   const mutation = useMutation({
     mutationFn: async (data: ProjectFormData) => {
+      console.log("Form data being submitted:", data);
+      
       const formData = new FormData();
+      
+      // Agregar companyId primero
+      formData.append('companyId', companyId.toString());
       
       // Agregar campos del proyecto
       Object.entries(data).forEach(([key, value]) => {
@@ -151,6 +156,12 @@ export default function AddProjectModal({
       imageFiles.forEach((file) => {
         formData.append('galeriaImagenes', file);
       });
+
+      // Debug: Log FormData contents
+      console.log("FormData contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
 
       const url = project ? `/api/projects/${project.id}` : "/api/projects";
       const method = project ? "PATCH" : "POST";
