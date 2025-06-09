@@ -100,8 +100,8 @@ export default function Directory() {
                          (company.descripcionEmpresa && company.descripcionEmpresa.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = !selectedCategory || selectedCategory === "all" || 
-                           (company.categoriesIds && Array.isArray(company.categoriesIds) && 
-                            company.categoriesIds.includes(parseInt(selectedCategory)));
+                           (company.categories && Array.isArray(company.categories) && 
+                            company.categories.some((cat: any) => cat.id === parseInt(selectedCategory)));
     
     const matchesState = !selectedState || selectedState === "all" || 
                         (company.estadosPresencia && Array.isArray(company.estadosPresencia) && 
