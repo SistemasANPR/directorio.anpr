@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +51,7 @@ const companySchema = insertCompanySchema.extend({
   paisesPresencia: z.array(z.string()).optional(),
   estadosPresencia: z.array(z.string()).optional(),
   ciudadesPresencia: z.array(z.string()).optional(),
+  ubicacionPrincipal: z.string().optional().nullable(),
   categoriesIds: z.array(z.number()).min(1, "Selecciona al menos una categoría"),
   certificateIds: z.array(z.number()).optional(),
   redesSociales: z.array(z.object({
@@ -134,7 +136,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       email1: "",
       telefono1: "",
       sitioWeb: "",
-      videoUrl1: "",
+      videosUrls: [],
       descripcionEmpresa: "",
       direccionFisica: "",
       paisesPresencia: [],
@@ -161,7 +163,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         email1: "",
         telefono1: "",
         sitioWeb: "",
-        videoUrl1: "",
+        videosUrls: [],
         descripcionEmpresa: "",
         direccionFisica: "",
         paisesPresencia: [],
@@ -325,7 +327,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         // Agregar galería de imágenes
         galeriaImagenes: galeriaPreviews,
         // Agregar redes sociales
-        redesSociales: redesSociales.length > 0 ? JSON.stringify(redesSociales) : null,
+        redesSociales: redesSociales,
         // Agregar logo si existe
         logotipoUrl: logoPreview || null,
       };
