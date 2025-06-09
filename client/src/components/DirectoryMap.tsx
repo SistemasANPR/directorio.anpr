@@ -41,74 +41,84 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
       mapInstanceRef.current = null;
     }
 
-    // Coordenadas de México como centro por defecto
-    const defaultCenter: [number, number] = [19.4326, -99.1332];
-    const defaultZoom = 6;
+    // Usar setTimeout para asegurar que el DOM esté listo
+    const timer = setTimeout(() => {
+      if (!mapRef.current) return;
 
-    // Crear el mapa
-    const map = L.map(mapRef.current).setView(defaultCenter, defaultZoom);
-
-    // Agregar capa de tiles de OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Crear grupo de marcadores para ajustar el zoom automáticamente
-    const markersGroup = L.featureGroup();
-
-    // Agregar marcadores para cada empresa
-    companiesWithLocation.forEach(company => {
-      const ubicacion = company.ubicacionGeografica as { lat: number; lng: number; address?: string };
-      
-      // Crear el contenido del popup
-      const popupContent = `
-        <div style="text-align: center; min-width: 200px; max-width: 250px;">
-          <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937; font-size: 16px;">${company.nombreEmpresa}</h3>
-          ${company.direccionFisica ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">${company.direccionFisica}</p>` : ''}
-          ${company.categories && company.categories.length > 0 ? 
-            `<p style="margin: 0 0 4px 0; font-size: 12px; color: #9ca3af;">
-              ${company.categories.map(cat => cat.nombre).join(', ')}
-            </p>` : ''
-          }
-          ${company.telefono1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #059669;">📞 ${company.telefono1}</p>` : ''}
-          ${company.email1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #0284c7;">✉️ ${company.email1}</p>` : ''}
-          ${ubicacion.address ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">${ubicacion.address}</p>` : ''}
-          <button 
-            onclick="window.open('/company/${company.id}', '_blank')" 
-            style="margin-top: 8px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
-          >
-            Ver detalles
-          </button>
-        </div>
-      `;
-
-      // Crear marcador
-      const marker = L.marker([ubicacion.lat, ubicacion.lng])
-        .bindPopup(popupContent);
-
-      // Agregar al grupo de marcadores
-      markersGroup.addLayer(marker);
-    });
-
-    // Agregar grupo de marcadores al mapa
-    markersGroup.addTo(map);
-
-    // Ajustar zoom para mostrar todos los marcadores
-    if (companiesWithLocation.length > 0) {
       try {
-        map.fitBounds(markersGroup.getBounds(), {
-          padding: [20, 20],
-          maxZoom: 15
-        });
-      } catch (error) {
-        // Si hay error al calcular bounds, usar vista por defecto
-        map.setView(defaultCenter, defaultZoom);
-      }
-    }
+        // Coordenadas de México como centro por defecto
+        const defaultCenter: [number, number] = [19.4326, -99.1332];
+        const defaultZoom = 6;
 
-    mapInstanceRef.current = map;
+        // Crear el mapa
+        const map = L.map(mapRef.current).setView(defaultCenter, defaultZoom);
+
+        // Agregar capa de tiles de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Crear grupo de marcadores para ajustar el zoom automáticamente
+        const markersGroup = L.featureGroup();
+
+        // Agregar marcadores para cada empresa
+        companiesWithLocation.forEach(company => {
+          const ubicacion = company.ubicacionGeografica as { lat: number; lng: number; address?: string };
+          
+          // Crear el contenido del popup
+          const popupContent = `
+            <div style="text-align: center; min-width: 200px; max-width: 250px;">
+              <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937; font-size: 16px;">${company.nombreEmpresa}</h3>
+              ${company.direccionFisica ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">${company.direccionFisica}</p>` : ''}
+              ${company.categories && company.categories.length > 0 ? 
+                `<p style="margin: 0 0 4px 0; font-size: 12px; color: #9ca3af;">
+                  ${company.categories.map(cat => cat.nombreCategoria).join(', ')}
+                </p>` : ''
+              }
+              ${company.telefono1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #059669;">📞 ${company.telefono1}</p>` : ''}
+              ${company.email1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #0284c7;">✉️ ${company.email1}</p>` : ''}
+              ${ubicacion.address ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">${ubicacion.address}</p>` : ''}
+              <button 
+                onclick="window.open('/company/${company.id}', '_blank')" 
+                style="margin-top: 8px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
+              >
+                Ver detalles
+              </button>
+            </div>
+          `;
+
+          // Crear marcador
+          const marker = L.marker([ubicacion.lat, ubicacion.lng])
+            .bindPopup(popupContent);
+
+          // Agregar al grupo de marcadores
+          markersGroup.addLayer(marker);
+        });
+
+        // Agregar grupo de marcadores al mapa
+        markersGroup.addTo(map);
+
+        // Ajustar zoom para mostrar todos los marcadores
+        if (companiesWithLocation.length > 0) {
+          try {
+            map.fitBounds(markersGroup.getBounds(), {
+              padding: [20, 20],
+              maxZoom: 15
+            });
+          } catch (error) {
+            // Si hay error al calcular bounds, usar vista por defecto
+            map.setView(defaultCenter, defaultZoom);
+          }
+        }
+
+        mapInstanceRef.current = map;
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
