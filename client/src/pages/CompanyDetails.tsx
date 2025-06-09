@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
 import { ArrowLeft, MapPin, Phone, Mail, Globe, Video, FileText, Award, Star, MessageSquare, Calculator, Building, Grid3x3, Facebook, Linkedin, Twitter, Instagram, Heart, X, ChevronLeft, ChevronRight, FolderOpen, Plus, Calendar, User, Eye, Play, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,17 @@ import CompanyLocationMap from "@/components/CompanyLocationMap";
 import ReviewModal from "@/components/ReviewModal";
 import QuotationModal from "@/components/QuotationModal";
 import AddProjectModal from "@/components/AddProjectModal";
+import EditProjectModal from "@/components/EditProjectModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { CompanyWithDetails, ProjectWithDetails } from "@/../../shared/schema";
 
 export default function CompanyDetails() {
   const { id } = useParams();
   const { user, isAdmin } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [quotationModalOpen, setQuotationModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -25,6 +30,8 @@ export default function CompanyDetails() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [selectedProject, setSelectedProject] = useState<ProjectWithDetails | null>(null);
+  const [editProjectModalOpen, setEditProjectModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<ProjectWithDetails | null>(null);
   const [, setLocation] = useLocation();
 
   const { data: company, isLoading } = useQuery({
@@ -94,6 +101,43 @@ export default function CompanyDetails() {
       return data.companies.filter((c: any) => c.id !== parseInt(id || "0"));
     },
   });
+
+  // Delete project mutation
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (projectId: number) => {
+      const response = await apiRequest("DELETE", `/api/projects/${projectId}`);
+      if (!response.ok) {
+        throw new Error("Error al eliminar el proyecto");
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Proyecto eliminado",
+        description: "El proyecto se ha eliminado correctamente",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/companies/${id}/projects`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/companies`, id] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Error al eliminar el proyecto",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper functions for project management
+  const handleEditProject = (project: ProjectWithDetails) => {
+    setEditingProject(project);
+    setEditProjectModalOpen(true);
+  };
+
+  const handleDeleteProject = async (project: ProjectWithDetails) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar el proyecto "${project.nombreProyecto}"?`)) {
+      deleteProjectMutation.mutate(project.id);
+    }
+  };
 
 
 
