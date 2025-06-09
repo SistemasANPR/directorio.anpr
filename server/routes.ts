@@ -33,7 +33,7 @@ const storage_config = multer.diskStorage({
   }
 });
 
-const upload = multer({
+const uploadImage = multer({
   storage: storage_config,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB
@@ -47,6 +47,30 @@ const upload = multer({
   }
 });
 
+const uploadDocument = multer({
+  storage: storage_config,
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB for documents
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos PDF, Word o imágenes'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Servir archivos estáticos desde la carpeta uploads
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -55,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
 
   // Ruta para subir una sola imagen
-  app.post("/api/upload-image", upload.single('image'), async (req, res) => {
+  app.post("/api/upload-image", uploadImage.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No se recibió ningún archivo" });
@@ -74,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Ruta para subir múltiples imágenes
-  app.post("/api/upload-images", upload.array('images', 10), async (req, res) => {
+  app.post("/api/upload-images", uploadImage.array('images', 10), async (req, res) => {
     try {
       if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
         return res.status(400).json({ error: "No se recibieron archivos" });
@@ -96,16 +120,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Ruta para subir documentos PDF
-  app.post("/api/upload-document", upload.single('document'), async (req, res) => {
+  app.post("/api/upload-document", uploadDocument.single('document'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No se recibió ningún archivo" });
       }
       
-      // Verificar que sea un archivo PDF
-      if (req.file.mimetype !== 'application/pdf') {
-        return res.status(400).json({ error: "Solo se permiten archivos PDF" });
-      }
+
       
       const documentUrl = `/uploads/documents/${req.file.filename}`;
       res.json({ 
@@ -1018,7 +1039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects", upload.array('galeriaImagenes', 4), async (req, res) => {
+  app.post("/api/projects", uploadImage.array('galeriaImagenes', 4), async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "No autenticado" });
@@ -1052,7 +1073,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id", upload.array('galeriaImagenes', 4), async (req, res) => {
+  app.patch("/api/projects/:id", uploadImage.array('galeriaImagenes', 4), async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "No autenticado" });
