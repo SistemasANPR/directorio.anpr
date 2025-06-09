@@ -521,10 +521,7 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
         ubicacionGeografica: ubicacionPrincipal
       };
       
-      console.log("Datos con ubicación a enviar:", {
-        ubicacionGeografica: ubicacionPrincipal,
-        ciudadesSeleccionadas: Object.keys(ubicacionesPorCiudad)
-      });
+
       
       updateMutation.mutate(companyData);
     } catch (error) {
