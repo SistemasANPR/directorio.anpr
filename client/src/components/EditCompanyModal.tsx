@@ -401,6 +401,7 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
         paisesPresencia: (company.paisesPresencia as string[]) || [],
         estadosPresencia: (company.estadosPresencia as string[]) || [],
         ciudadesPresencia: (company.ciudadesPresencia as string[]) || [],
+        ubicacionPrincipal: company.ubicacionPrincipal || "",
         direccionFisica: company.direccionFisica || "",
         descripcionEmpresa: company.descripcionEmpresa || "",
         catalogoDigitalUrl: company.catalogoDigitalUrl || "",
@@ -447,6 +448,7 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
           ...data,
           // Convertir membershipTypeId a null si es undefined o string vacío
           membershipTypeId: data.membershipTypeId && data.membershipTypeId !== "" ? Number(data.membershipTypeId) : null,
+          ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
           redesSociales: redesSocialesLimpias,
           representantesVentas: representantes.filter(r => r.trim() !== ""),
           galeriaProductosUrls: galeriaImagenes.filter(img => img.trim() !== ""),
@@ -1259,6 +1261,42 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
                       </FormItem>
                     )}
                   />
+                )}
+
+                {/* Ubicación Principal - Solo cuando hay múltiples ciudades */}
+                {selectedCiudades.length > 1 && (
+                  <div className="md:col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="ubicacionPrincipal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            Ubicación Principal
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona la ciudad principal de operaciones" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {selectedCiudades.map((ciudad) => (
+                                <SelectItem key={ciudad} value={ciudad}>
+                                  {ciudad}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Esta será la ubicación principal mostrada en el directorio y utilizada como referencia principal.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 )}
 
                 {/* Descripción */}
