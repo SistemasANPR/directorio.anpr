@@ -857,17 +857,28 @@ export default function CompanyDetails() {
                   <CardTitle>Catálogo Digital</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <a
-                    href={company.catalogoDigitalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
+                  <Button 
+                    className="w-full"
+                    onClick={() => {
+                      // Try to open in new tab first
+                      const newWindow = window.open(company.catalogoDigitalUrl, '_blank', 'noopener,noreferrer');
+                      
+                      // If popup blocked, create a temporary link and click it
+                      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                        const link = document.createElement('a');
+                        link.href = company.catalogoDigitalUrl;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.download = `catalogo-${company.nombreEmpresa}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }
+                    }}
                   >
-                    <Button className="w-full">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Ver Catálogo
-                    </Button>
-                  </a>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Ver Catálogo
+                  </Button>
                 </CardContent>
               </Card>
             )}

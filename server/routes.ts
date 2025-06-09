@@ -17,11 +17,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
 
-// Configuración de multer para manejo de archivos
-const storage_config = multer.diskStorage({
+// Configuración de multer para imágenes
+const imageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(process.cwd(), 'uploads', 'images');
-    // Crear directorio si no existe
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${uuidv4()}_${Date.now()}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+// Configuración de multer para documentos
+const documentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(process.cwd(), 'uploads', 'documents');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -34,7 +48,7 @@ const storage_config = multer.diskStorage({
 });
 
 const uploadImage = multer({
-  storage: storage_config,
+  storage: imageStorage,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB
   },
@@ -48,7 +62,7 @@ const uploadImage = multer({
 });
 
 const uploadDocument = multer({
-  storage: storage_config,
+  storage: documentStorage,
   limits: {
     fileSize: 20 * 1024 * 1024, // 20MB for documents
   },
