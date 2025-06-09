@@ -26,11 +26,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, GripVertical, X, Upload } from "lucide-react";
 
-const projectFormSchema = insertProjectSchema.omit({
-  categoryId: true,
-  fechaInicio: true,
-  fechaFinalizacion: true,
-}).extend({
+const projectFormSchema = insertProjectSchema.extend({
   galeriaImagenes: z.array(z.instanceof(File)).max(4, "Máximo 4 imágenes").optional(),
 });
 
@@ -133,6 +129,7 @@ export default function AddProjectModal({
       serviciosProductos: project?.serviciosProductos || [],
       videoUrl: project?.videoUrl || "",
       estado: project?.estado || "borrador",
+      galeriaImagenes: [],
     },
   });
 

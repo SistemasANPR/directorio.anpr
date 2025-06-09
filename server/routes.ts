@@ -1054,6 +1054,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Skip authentication check for now - allow project creation
       // TODO: Implement proper authentication middleware
 
+      console.log("Request body:", req.body);
+
       // Verificar límite de proyectos por empresa
       const existingProjects = await storage.getProjectsByCompany(parseInt(req.body.companyId));
       if (existingProjects.length >= 5) {
@@ -1064,18 +1066,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       const imageUrls = files ? files.map(file => `/uploads/images/${file.filename}`) : [];
 
+      // Clean up and filter the project data, excluding removed fields
+      const allowedFields = [
+        'companyId', 'nombreProyecto', 'descripcionProyecto', 'ubicacionPais', 
+        'ubicacionEstado', 'ubicacionCiudad', 'clienteContratante', 
+        'areaSuperficie', 'serviciosProductos', 'videoUrl', 'estado', 'estadoModeracion'
+      ];
+
+      const filteredBody = Object.fromEntries(
+        Object.entries(req.body).filter(([key, value]) => 
+          allowedFields.includes(key) && value !== undefined && value !== null && value !== ""
+        )
+      );
+
       const projectData = {
-        ...req.body,
+        ...filteredBody,
         companyId: parseInt(req.body.companyId),
         galeriaImagenes: imageUrls,
         serviciosProductos: req.body.serviciosProductos ? JSON.parse(req.body.serviciosProductos) : [],
       };
 
+      console.log("Processed project data:", projectData);
+
       const validatedData = insertProjectSchema.parse(projectData);
+      console.log("Validated data:", validatedData);
+      
       const project = await storage.createProject(validatedData);
       
       res.status(201).json(project);
     } catch (error: any) {
+      console.error("Project creation error:", error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ error: "Datos inválidos", details: error.errors });
       }
