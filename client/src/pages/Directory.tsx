@@ -136,9 +136,22 @@ export default function Directory() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: 'white' }}>
+      <div className="relative overflow-hidden text-white">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/attached_assets/fondo_header_directorio.png"
+            alt="Fondo directorio"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-slate-900/50"></div>
+        
+        {/* Content */}
+        <div className="relative max-w-7xl mx-auto px-4 py-16">
+          <h1 className="text-4xl md:text-5xl mb-4 text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700 }}>
             Directorio de Empresas
           </h1>
           <p className="text-xl text-blue-100 max-w-3xl leading-relaxed">

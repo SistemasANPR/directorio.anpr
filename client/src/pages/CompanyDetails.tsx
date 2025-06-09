@@ -245,7 +245,7 @@ export default function CompanyDetails() {
             </div>
 
             {/* Nombre de la empresa */}
-            <h1 className="text-4xl font-bold mb-8 drop-shadow-lg text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: 'white' }}>{company.nombreEmpresa}</h1>
+            <h1 className="text-4xl mb-8 drop-shadow-lg text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700 }}>{company.nombreEmpresa}</h1>
 
 
 
