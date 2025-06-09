@@ -56,18 +56,46 @@ export default function CompanyLocationMap({
         mapInstanceRef.current = null;
       }
 
-      // Solo mostrar la ubicación principal si existe
+      // Geocodificar todas las ubicaciones
       const locations = [];
       
-      // Agregar únicamente la ubicación principal si existe
+      // Agregar ubicación principal si existe
       if (ubicacionGeografica?.lat && ubicacionGeografica?.lng) {
         locations.push({
           lat: ubicacionGeografica.lat,
           lng: ubicacionGeografica.lng,
-          name: nombreEmpresa,
+          name: 'Oficina Principal',
           address: direccionFisica || ubicacionGeografica.address || '',
           isMain: true
         });
+      }
+
+      // Geocodificar ciudades de presencia (máximo 10 para evitar sobrecarga)
+      if (ciudadesPresencia && ciudadesPresencia.length > 0) {
+        const ciudadesAGeocod = ciudadesPresencia.slice(0, 10);
+        for (const ciudad of ciudadesAGeocod) {
+          const location = await geocodeCity(ciudad);
+          if (location) {
+            // Evitar duplicados muy cercanos a la oficina principal (más de 5km de distancia)
+            const isDuplicate = locations.some(loc => {
+              const distance = Math.sqrt(
+                Math.pow((loc.lat - location.lat) * 111000, 2) + 
+                Math.pow((loc.lng - location.lng) * 111000 * Math.cos(location.lat * Math.PI / 180), 2)
+              );
+              return distance < 5000; // 5km en metros
+            });
+            
+            if (!isDuplicate) {
+              locations.push({
+                lat: location.lat,
+                lng: location.lng,
+                name: ciudad,
+                address: location.display_name,
+                isMain: false
+              });
+            }
+          }
+        }
       }
 
       // Si no hay ubicaciones, no mostrar mapa
