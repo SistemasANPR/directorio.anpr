@@ -1055,6 +1055,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // TODO: Implement proper authentication middleware
 
       console.log("Request body:", req.body);
+      console.log("Request files:", req.files);
+      console.log("Content-Type:", req.headers['content-type']);
 
       // Validar que companyId esté presente y sea válido
       if (!req.body.companyId || isNaN(parseInt(req.body.companyId))) {

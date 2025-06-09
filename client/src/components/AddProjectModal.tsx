@@ -159,9 +159,9 @@ export default function AddProjectModal({
 
       // Debug: Log FormData contents
       console.log("FormData contents:");
-      for (let [key, value] of formData.entries()) {
+      Array.from(formData.entries()).forEach(([key, value]) => {
         console.log(key, value);
-      }
+      });
 
       const url = project ? `/api/projects/${project.id}` : "/api/projects";
       const method = project ? "PATCH" : "POST";
