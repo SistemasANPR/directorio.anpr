@@ -631,7 +631,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Role not found" });
       }
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "No se puede eliminar un rol del sistema") {
+        return res.status(400).json({ error: error.message });
+      }
       res.status(500).json({ error: "Failed to delete role" });
     }
   });

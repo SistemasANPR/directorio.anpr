@@ -129,7 +129,8 @@ export default function Roles() {
     mutationFn: async (id: number) => {
       const response = await apiRequest(`/api/roles/${id}`, "DELETE");
       if (!response.ok) {
-        throw new Error("Error al eliminar el rol");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al eliminar el rol");
       }
     },
     onSuccess: () => {
@@ -139,10 +140,10 @@ export default function Roles() {
         description: "Rol eliminado correctamente",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "No se pudo eliminar el rol",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -167,9 +168,18 @@ export default function Roles() {
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (role: Role) => {
+    if (role.esRolSistema) {
+      toast({
+        title: "Acción no permitida",
+        description: "No se pueden eliminar los roles del sistema",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (confirm("¿Estás seguro de que deseas eliminar este rol?")) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(role.id);
     }
   };
 
@@ -336,6 +346,11 @@ export default function Roles() {
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
                   {role.nombre}
+                  {role.esRolSistema && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      Sistema
+                    </Badge>
+                  )}
                 </CardTitle>
                 <Badge variant={role.estado === "activo" ? "default" : "secondary"}>
                   {role.estado}
@@ -374,15 +389,18 @@ export default function Roles() {
                     size="sm"
                     onClick={() => handleEdit(role)}
                     className="flex-1"
+                    disabled={role.esRolSistema}
                   >
                     <Edit className="h-4 w-4 mr-2" />
-                    Editar
+                    {role.esRolSistema ? "Solo lectura" : "Editar"}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDelete(role.id)}
-                    className="text-red-600 hover:text-red-700"
+                    onClick={() => handleDelete(role)}
+                    className={role.esRolSistema ? "text-gray-400" : "text-red-600 hover:text-red-700"}
+                    disabled={role.esRolSistema}
+                    title={role.esRolSistema ? "No se pueden eliminar roles del sistema" : "Eliminar rol"}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
