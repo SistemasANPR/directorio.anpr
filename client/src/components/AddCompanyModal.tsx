@@ -310,7 +310,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       const companyData = {
         ...data,
         // Convertir membershipTypeId a null si es undefined o string vacío
-        membershipTypeId: data.membershipTypeId && data.membershipTypeId !== "" ? Number(data.membershipTypeId) : null,
+        membershipTypeId: data.membershipTypeId && typeof data.membershipTypeId === 'number' ? data.membershipTypeId : null,
         videosUrls: videosValidos,
         ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
         ubicacionGeografica: ubicacionPrincipal,

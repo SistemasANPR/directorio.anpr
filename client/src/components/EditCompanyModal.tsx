@@ -53,6 +53,7 @@ const companySchema = z.object({
   paisesPresencia: z.array(z.string()).min(1, "Selecciona al menos un país"),
   estadosPresencia: z.array(z.string()).min(1, "Selecciona al menos un estado"),
   ciudadesPresencia: z.array(z.string()).min(1, "Selecciona al menos una ciudad"),
+  ubicacionPrincipal: z.string().optional().nullable(),
   descripcionEmpresa: z.string().optional(),
   categoriesIds: z.array(z.number()).min(1, "Selecciona al menos una categoría"),
   certificateIds: z.array(z.number()).optional(),
@@ -289,10 +290,11 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
       email1: "",
       telefono1: "",
       sitioWeb: "",
-      videoUrl1: "",
+      videosUrls: [],
       paisesPresencia: [],
       estadosPresencia: [],
       ciudadesPresencia: [],
+      ubicacionPrincipal: "",
       descripcionEmpresa: "",
       categoriesIds: [],
       certificateIds: [],
@@ -785,56 +787,32 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
                 />
 
                 {/* Videos Promocionales */}
-                <FormField
-                  control={form.control}
-                  name="videoUrl1"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Video className="h-4 w-4" />
-                        Video Promocional 1
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://youtube.com/watch?v=..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="videoUrl2"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Video className="h-4 w-4" />
-                        Video Promocional 2
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://youtube.com/watch?v=..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="videoUrl3"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Video className="h-4 w-4" />
-                        Video Promocional 3
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://youtube.com/watch?v=..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-4">
+                  <FormLabel className="flex items-center gap-2">
+                    <Video className="h-4 w-4" />
+                    Videos Promocionales
+                  </FormLabel>
+                  {[0, 1, 2].map((index) => (
+                    <FormField
+                      key={index}
+                      control={form.control}
+                      name={`videosUrls.${index}` as const}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Video Promocional {index + 1}</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://youtube.com/watch?v=..." 
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
 
                 {/* Catálogo Digital */}
                 <FormField
