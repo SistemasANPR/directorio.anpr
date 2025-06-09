@@ -416,15 +416,42 @@ export default function CompanyDetails() {
                             )}
                           </div>
 
-                          {/* Botón Ver Detalles */}
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => setSelectedProject(project)}
-                          >
-                            Ver Detalles
-                          </Button>
+                          {/* Botones de acción */}
+                          <div className="space-y-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full"
+                              onClick={() => setSelectedProject(project)}
+                            >
+                              Ver Detalles
+                            </Button>
+                            
+                            {/* Botones de editar/eliminar para usuarios autorizados */}
+                            {canManageProjects() && (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => handleEditProject(project)}
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Editar
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => handleDeleteProject(project)}
+                                  disabled={deleteProjectMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Eliminar
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1062,6 +1089,19 @@ export default function CompanyDetails() {
           // Refrescar la lista de proyectos
         }}
       />
+
+      {/* Modal de Edición de Proyectos */}
+      {editingProject && (
+        <EditProjectModal
+          open={editProjectModalOpen}
+          onOpenChange={setEditProjectModalOpen}
+          project={editingProject}
+          companyId={parseInt(id || "0")}
+          onSuccess={() => {
+            setEditingProject(null);
+          }}
+        />
+      )}
 
       {/* Modal de Video */}
       <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
