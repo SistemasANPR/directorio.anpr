@@ -26,6 +26,7 @@ interface CompanyTableProps {
   onEdit: (company: CompanyWithDetails) => void;
   onDelete: (companyId: number) => void;
   onView: (company: CompanyWithDetails) => void;
+  onImpersonate?: (company: CompanyWithDetails) => void;
 }
 
 const getMembershipBadgeColor = (membershipType?: string) => {
@@ -156,6 +157,12 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView }: Co
                         <DropdownMenuItem onClick={() => onEdit(company)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar
+                        </DropdownMenuItem>
+                      )}
+                      {isAdmin && onImpersonate && (
+                        <DropdownMenuItem onClick={() => onImpersonate(company)}>
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          Actuar como Representante
                         </DropdownMenuItem>
                       )}
                       {isAdmin && (

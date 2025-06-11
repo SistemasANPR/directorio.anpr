@@ -25,7 +25,7 @@ export default function Companies() {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, user, impersonateCompany } = useAuth();
 
   // Fetch companies with filters - use admin route to see all companies including inactive ones
   const { data: companiesData, isLoading: companiesLoading } = useQuery({
@@ -117,6 +117,14 @@ export default function Companies() {
     toast({
       title: "Ver empresa",
       description: `Mostrando detalles de ${company.nombreEmpresa}`,
+    });
+  };
+
+  const handleImpersonate = (company: CompanyWithDetails) => {
+    impersonateCompany(company);
+    toast({
+      title: "Modo representante activado",
+      description: `Ahora está actuando como representante de ${company.nombreEmpresa}`,
     });
   };
 
@@ -622,6 +630,7 @@ export default function Companies() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onView={handleView}
+                onImpersonate={isAdmin ? handleImpersonate : undefined}
               />
               
               {/* Pagination */}
