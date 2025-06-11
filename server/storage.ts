@@ -103,6 +103,8 @@ export interface IStorage {
   getAllOpinions(options?: {
     estado?: string;
     companyId?: number;
+    tipo?: string;
+    userId?: number;
     limit?: number;
     offset?: number;
   }): Promise<{ opinions: Opinion[]; total: number }>;
@@ -546,10 +548,12 @@ export class DatabaseStorage implements IStorage {
   async getAllOpinions(options: {
     estado?: string;
     companyId?: number;
+    tipo?: string;
+    userId?: number;
     limit?: number;
     offset?: number;
   } = {}): Promise<{ opinions: Opinion[]; total: number }> {
-    const { estado, companyId, limit = 50, offset = 0 } = options;
+    const { estado, companyId, tipo, userId, limit = 50, offset = 0 } = options;
     
     let query = db.select().from(opinions);
     let countQuery = db.select({ count: sql<number>`count(*)` }).from(opinions);
@@ -560,6 +564,12 @@ export class DatabaseStorage implements IStorage {
     }
     if (companyId) {
       conditions.push(eq(opinions.companyId, companyId));
+    }
+    if (tipo) {
+      conditions.push(eq(opinions.tipo, tipo));
+    }
+    if (userId) {
+      conditions.push(eq(opinions.userId, userId));
     }
     
     if (conditions.length > 0) {

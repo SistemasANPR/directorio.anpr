@@ -14,6 +14,8 @@ import Users from "@/pages/Users";
 import Certificates from "@/pages/Certificates";
 import Roles from "@/pages/Roles";
 import OpinionsAdmin from "@/pages/OpinionsAdmin";
+import Testimonials from "@/pages/Testimonials";
+import TestimonialsAdmin from "@/pages/TestimonialsAdmin";
 import Login from "@/pages/Login";
 import Home from "@/pages/Home";
 import CompanyDetails from "@/pages/CompanyDetails";

@@ -726,7 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Opinions API
   app.get("/api/opinions", async (req, res) => {
     try {
-      const { estado, companyId, page = "1", limit = "50" } = req.query;
+      const { estado, companyId, tipo, userId, page = "1", limit = "50" } = req.query;
       const pageNum = parseInt(page as string);
       const limitNum = parseInt(limit as string);
       const offset = (pageNum - 1) * limitNum;
@@ -734,6 +734,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const options = {
         estado: estado as string,
         companyId: companyId ? parseInt(companyId as string) : undefined,
+        tipo: tipo as string,
+        userId: userId ? parseInt(userId as string) : undefined,
         limit: limitNum,
         offset,
       };
@@ -801,10 +803,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/opinions/:id/approve", async (req, res) => {
+  app.put("/api/opinions/:id/approve", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { approvedBy } = req.body;
+      const approvedBy = req.user?.id || 1; // Default to admin user
       const opinion = await storage.approveOpinion(id, approvedBy);
       if (!opinion) {
         return res.status(404).json({ error: "Opinion not found" });
@@ -815,10 +817,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/opinions/:id/reject", async (req, res) => {
+  app.put("/api/opinions/:id/reject", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { approvedBy } = req.body;
+      const approvedBy = req.user?.id || 1; // Default to admin user
       const opinion = await storage.rejectOpinion(id, approvedBy);
       if (!opinion) {
         return res.status(404).json({ error: "Opinion not found" });
