@@ -155,8 +155,30 @@ export default function Home() {
     queryKey: ["/api/categories"],
   });
 
+  // Separate query for "Empresas líderes" slider - all companies, random selection
+  const {
+    data: allCompaniesResponse,
+    isLoading: allCompaniesLoading,
+  } = useQuery({
+    queryKey: ["/api/companies", { allCompanies: true }],
+    queryFn: () => fetch("/api/companies?limit=100").then(res => res.json()),
+  });
+
   const companies = (companiesResponse as any)?.companies || [];
   const categories = (categoriesResponse as any) || [];
+  const allCompanies = (allCompaniesResponse as any)?.companies || [];
+  
+  // Random selection of up to 15 companies for "Empresas líderes" slider
+  const shuffleArray = (array: any[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+  
+  const leaderCompanies = shuffleArray(allCompanies).slice(0, 15);
   
   // Obtener estados únicos de las empresas registradas
   const allStates: string[] = [];
@@ -447,14 +469,11 @@ export default function Home() {
                 msOverflowStyle: "none",
                 WebkitOverflowScrolling: "touch"
               }}>
-              {categories.slice(0, 6).map((category: any, index: number) => {
-                // Asignar una empresa aleatoria de la lista para mostrar variedad
-                const categoryCompany = companies[index % companies.length];
-                
+              {leaderCompanies.map((categoryCompany: any, index: number) => {
                 if (!categoryCompany) return null;
                 
                 return (
-                  <div key={category.id} className="min-w-[320px] md:min-w-[500px] lg:min-w-[600px] max-w-[320px] md:max-w-[500px] lg:max-w-[600px] flex-shrink-0">
+                  <div key={categoryCompany.id} className="min-w-[320px] md:min-w-[500px] lg:min-w-[600px] max-w-[320px] md:max-w-[500px] lg:max-w-[600px] flex-shrink-0">
                     <div className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row h-auto md:h-72">
                       {/* Imagen del producto */}
                       <div style={{
