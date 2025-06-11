@@ -157,15 +157,20 @@ export default function Home() {
   const companies = (companiesResponse as any)?.companies || [];
   const categories = (categoriesResponse as any) || [];
   
-  // Lista de estados mexicanos para el selector de ubicaciones
-  const mexicanStates = [
-    "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", 
-    "Chiapas", "Chihuahua", "Coahuila", "Colima", "Ciudad de México", 
-    "Durango", "Estado de México", "Guanajuato", "Guerrero", "Hidalgo", 
-    "Jalisco", "Michoacán", "Morelos", "Nayarit", "Nuevo León", "Oaxaca", 
-    "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", "Sinaloa", 
-    "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"
-  ];
+  // Obtener estados únicos de las empresas registradas
+  const allStates: string[] = [];
+  companies.forEach((company: any) => {
+    if (company.estadosPresencia && Array.isArray(company.estadosPresencia) && company.estadosPresencia.length > 0) {
+      company.estadosPresencia.forEach((estado: string) => {
+        if (estado && estado.trim() !== "" && !allStates.includes(estado)) {
+          allStates.push(estado);
+        }
+      });
+    }
+  });
+  
+  const mexicanStates = allStates.sort();
+  const hasValidStates = mexicanStates.length > 0;
 
   const searchResults = companies.filter((company: any) => {
     const matchesSearch = searchTerm.trim() === "" || 
@@ -292,28 +297,30 @@ export default function Home() {
                 </select>
               </div>
               
-              {/* Filtro de ubicación */}
-              <div className="flex-1">
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
-                  style={{
-                    height: "52px",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(10px)",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <option value="">Todas las ubicaciones</option>
-                  {mexicanStates.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Filtro de ubicación - solo mostrar si hay estados registrados */}
+              {hasValidStates && (
+                <div className="flex-1">
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
+                    style={{
+                      height: "52px",
+                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                      backgroundColor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <option value="">Todas las ubicaciones</option>
+                    {mexicanStates.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         </div>
