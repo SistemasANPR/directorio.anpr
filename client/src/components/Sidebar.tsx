@@ -65,6 +65,16 @@ const navigationItems = [
         href: "/opiniones",
         requireAdmin: true,
       },
+      {
+        name: "Testimonios",
+        href: "/testimonios",
+        requireAdmin: false,
+      },
+      {
+        name: "Administrar Testimonios",
+        href: "/testimonios-admin",
+        requireAdmin: true,
+      },
     ],
   },
   {

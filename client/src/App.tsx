@@ -128,6 +128,22 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/testimonios">
+        <ProtectedRoute>
+          <AppLayout>
+            <Testimonials />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/testimonios-admin">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <TestimonialsAdmin />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/configuracion">
         <ProtectedRoute requireAdmin>
           <AppLayout>

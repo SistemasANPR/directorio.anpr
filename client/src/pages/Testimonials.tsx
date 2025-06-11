@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, MessageSquare, CheckCircle, Clock, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const testimonialSchema = z.object({
@@ -27,9 +28,7 @@ export default function Testimonials() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
 
-  const { data: user } = useQuery({
-    queryKey: ["/api/user/profile"],
-  });
+  const { user } = useAuth();
 
   const { data: testimonials, isLoading } = useQuery({
     queryKey: ["/api/opinions", { tipo: "plataforma", userId: user?.id }],
@@ -53,7 +52,7 @@ export default function Testimonials() {
       return apiRequest("POST", "/api/opinions", {
         ...data,
         tipo: "plataforma",
-        userId: user?.id,
+        userId: user?.id || null,
       });
     },
     onSuccess: () => {
