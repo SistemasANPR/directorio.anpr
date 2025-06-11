@@ -186,11 +186,10 @@ export default function HomeClean() {
     }
   });
   
-  // Debug logging
-  console.log("Companies data:", companies);
-  console.log("Extracted states:", allStates);
-  
   const uniqueLocations = allStates.sort();
+  
+  // Si no hay estados registrados en las empresas, no mostrar ninguna ubicación
+  const hasValidStates = uniqueLocations.length > 0;
 
   const searchResults = companies.filter((company: any) => {
     const matchesSearch = searchTerm.trim() === "" || 
@@ -330,29 +329,31 @@ export default function HomeClean() {
                 </Select>
               </div>
               
-              {/* Filtro de ubicación */}
-              <div className="flex-1">
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger 
-                    className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer text-gray-700"
-                    style={{
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                      backgroundColor: "rgba(255,255,255,0.95)",
-                      backdropFilter: "blur(10px)",
-                    }}
-                  >
-                    <SelectValue placeholder="Todas las ubicaciones" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todas las ubicaciones</SelectItem>
-                    {uniqueLocations.map((location: any) => (
-                      <SelectItem key={location} value={location}>
-                        {location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Filtro de ubicación - solo mostrar si hay estados registrados */}
+              {hasValidStates && (
+                <div className="flex-1">
+                  <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                    <SelectTrigger 
+                      className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer text-gray-700"
+                      style={{
+                        boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                        backgroundColor: "rgba(255,255,255,0.95)",
+                        backdropFilter: "blur(10px)",
+                      }}
+                    >
+                      <SelectValue placeholder="Todas las ubicaciones" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todas las ubicaciones</SelectItem>
+                      {uniqueLocations.map((location: string) => (
+                        <SelectItem key={location} value={location}>
+                          {location}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
         </div>
