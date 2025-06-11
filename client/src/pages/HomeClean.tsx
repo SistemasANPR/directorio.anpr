@@ -174,18 +174,18 @@ export default function HomeClean() {
   const companies = (companiesResponse as any)?.companies || [];
   const categories = (categoriesResponse as any) || [];
   
-  // Obtener ubicaciones únicas de las ciudades de presencia de las empresas
-  const allLocations: string[] = [];
+  // Obtener estados únicos de las empresas registradas
+  const allStates: string[] = [];
   companies.forEach((company: any) => {
-    if (company.ciudadesPresencia && Array.isArray(company.ciudadesPresencia)) {
-      company.ciudadesPresencia.forEach((ciudad: string) => {
-        if (ciudad && !allLocations.includes(ciudad)) {
-          allLocations.push(ciudad);
+    if (company.estadosPresencia && Array.isArray(company.estadosPresencia)) {
+      company.estadosPresencia.forEach((estado: string) => {
+        if (estado && !allStates.includes(estado)) {
+          allStates.push(estado);
         }
       });
     }
   });
-  const uniqueLocations = allLocations.sort();
+  const uniqueLocations = allStates.sort();
 
   const searchResults = companies.filter((company: any) => {
     const matchesSearch = searchTerm.trim() === "" || 
@@ -197,8 +197,8 @@ export default function HomeClean() {
       company.categories?.some((cat: any) => cat.id?.toString() === selectedCategory);
     
     const matchesLocation = selectedLocation === "" || 
-      (company.ciudadesPresencia && Array.isArray(company.ciudadesPresencia) && 
-       company.ciudadesPresencia.includes(selectedLocation));
+      (company.estadosPresencia && Array.isArray(company.estadosPresencia) && 
+       company.estadosPresencia.includes(selectedLocation));
     
     return matchesSearch && matchesCategory && matchesLocation;
   });
