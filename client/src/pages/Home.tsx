@@ -144,7 +144,8 @@ export default function Home() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["/api/companies"],
+    queryKey: ["/api/companies", { premiumOnly: true }],
+    queryFn: () => fetch("/api/companies?premiumOnly=true").then(res => res.json()),
   });
 
   const {

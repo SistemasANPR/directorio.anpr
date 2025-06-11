@@ -253,18 +253,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Companies API
   app.get("/api/companies", async (req, res) => {
     try {
-      const { search, categoryId, membershipTypeId, estado, page = "1", limit = "10" } = req.query;
+      const { search, categoryId, membershipTypeId, estado, page = "1", limit = "10", premiumOnly } = req.query;
       
       const pageNum = parseInt(page as string);
       const limitNum = parseInt(limit as string);
       const offset = (pageNum - 1) * limitNum;
 
-      console.log("Fetching companies with params:", { search, categoryId, membershipTypeId, estado, pageNum, limitNum, offset });
+      console.log("Fetching companies with params:", { search, categoryId, membershipTypeId, estado, pageNum, limitNum, offset, premiumOnly });
+
+      // If premiumOnly is true, we need to filter for premium and enterprise memberships
+      let effectiveMembershipTypeId = membershipTypeId ? parseInt(membershipTypeId as string) : undefined;
+      
+      if (premiumOnly === 'true') {
+        // Get all membership types to find premium and enterprise IDs
+        const membershipTypes = await storage.getAllMembershipTypes();
+        const premiumTypes = membershipTypes.filter(mt => 
+          mt.nombrePlan?.toLowerCase().includes('premium') || 
+          mt.nombrePlan?.toLowerCase().includes('empresarial') ||
+          mt.nombrePlan?.toLowerCase().includes('enterprise')
+        );
+        
+        if (premiumTypes.length > 0) {
+          // For now, we'll need to handle multiple membership types in the storage layer
+          // or make multiple queries. Let's modify the approach.
+          const allResults = await Promise.all(
+            premiumTypes.map(pt => storage.getAllCompanies({
+              search: search as string,
+              categoryId: categoryId ? parseInt(categoryId as string) : undefined,
+              membershipTypeId: pt.id,
+              estado: estado as string,
+              limit: 1000, // Get all for filtering
+              offset: 0
+            }))
+          );
+          
+          // Combine and deduplicate results
+          const allCompanies = allResults.reduce((acc, result) => {
+            result.companies.forEach(company => {
+              if (!acc.find(c => c.id === company.id)) {
+                acc.push(company);
+              }
+            });
+            return acc;
+          }, []);
+          
+          // Apply pagination to combined results
+          const total = allCompanies.length;
+          const paginatedCompanies = allCompanies.slice(offset, offset + limitNum);
+          
+          return res.json({
+            companies: paginatedCompanies,
+            total: total,
+            page: pageNum,
+            totalPages: Math.ceil(total / limitNum)
+          });
+        }
+      }
 
       const result = await storage.getAllCompanies({
         search: search as string,
         categoryId: categoryId ? parseInt(categoryId as string) : undefined,
-        membershipTypeId: membershipTypeId ? parseInt(membershipTypeId as string) : undefined,
+        membershipTypeId: effectiveMembershipTypeId,
         estado: estado as string,
         limit: limitNum,
         offset
