@@ -174,9 +174,18 @@ export default function HomeClean() {
   const companies = (companiesResponse as any)?.companies || [];
   const categories = (categoriesResponse as any) || [];
   
-  // Obtener ubicaciones únicas de las empresas
-  const locations = companies.map((company: any) => company.ciudad).filter(Boolean);
-  const uniqueLocations = locations.filter((location, index) => locations.indexOf(location) === index);
+  // Obtener ubicaciones únicas de las ciudades de presencia de las empresas
+  const allLocations: string[] = [];
+  companies.forEach((company: any) => {
+    if (company.ciudadesPresencia && Array.isArray(company.ciudadesPresencia)) {
+      company.ciudadesPresencia.forEach((ciudad: string) => {
+        if (ciudad && !allLocations.includes(ciudad)) {
+          allLocations.push(ciudad);
+        }
+      });
+    }
+  });
+  const uniqueLocations = allLocations.sort();
 
   const searchResults = companies.filter((company: any) => {
     const matchesSearch = searchTerm.trim() === "" || 
@@ -188,7 +197,8 @@ export default function HomeClean() {
       company.categories?.some((cat: any) => cat.id?.toString() === selectedCategory);
     
     const matchesLocation = selectedLocation === "" || 
-      company.ciudad === selectedLocation;
+      (company.ciudadesPresencia && Array.isArray(company.ciudadesPresencia) && 
+       company.ciudadesPresencia.includes(selectedLocation));
     
     return matchesSearch && matchesCategory && matchesLocation;
   });
