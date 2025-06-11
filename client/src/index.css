@@ -86,6 +86,58 @@
     color: #4a4a49;
   }
 
+  /* Ensure dropdown options have proper color with high specificity */
+  select option,
+  select[class*="rounded-full"] option,
+  .hero select option,
+  div select option {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+    font-weight: normal !important;
+  }
+
+  /* Fix select element text color with high specificity */
+  select,
+  select[class*="rounded-full"],
+  .hero select,
+  div select {
+    color: #374151 !important;
+  }
+
+  /* Override any white text in hero section for form elements */
+  .hero-section select,
+  .hero-section select option,
+  .hero-search-section select,
+  .hero-search-section select option,
+  [style*="background"] select,
+  [style*="background"] select option {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Specific targeting for hero dropdowns with webkit support */
+  .hero-search-section .flex select {
+    color: #374151 !important;
+    -webkit-text-fill-color: #374151 !important;
+  }
+
+  .hero-search-section .flex select option {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #374151 !important;
+  }
+
+  /* Additional webkit specific styling */
+  select option:checked {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Force color on all select elements in hero */
+  .hero-search-section select::-webkit-list-button {
+    color: #374151 !important;
+  }
+
   /* White text on colored backgrounds */
   .bg-blue-900 *, 
   .bg-blue-800 *, 

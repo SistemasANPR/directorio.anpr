@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { Link } from "wouter";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function getCategoryIcon(categoryName: string): string {
   const iconMap: { [key: string]: string } = {
@@ -220,7 +221,7 @@ export default function HomeClean() {
     <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc" }}>
       {/* Header */}
       <div
-        className="relative text-center text-white"
+        className="relative text-center text-white hero-search-section"
         style={{
           background: `linear-gradient(rgba(15, 33, 97, 0.9), rgba(15, 33, 97, 0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
           backgroundSize: "cover",
@@ -292,24 +293,26 @@ export default function HomeClean() {
               
               {/* Filtro de categoría */}
               <div className="flex-1">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer"
-                  style={{
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(10px)",
-                    color: "#374151",
-                  }}
-                >
-                  <option value="" style={{ color: "#374151", backgroundColor: "#ffffff" }}>Todas las categorías</option>
-                  {categories.map((category: any) => (
-                    <option key={category.id} value={category.id} style={{ color: "#374151", backgroundColor: "#ffffff" }}>
-                      {category.nombreCategoria}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger 
+                    className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer text-gray-700"
+                    style={{
+                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                      backgroundColor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <SelectValue placeholder="Todas las categorías" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas las categorías</SelectItem>
+                    {categories.map((category: any) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.nombreCategoria}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Filtro de ubicación */}
