@@ -177,14 +177,19 @@ export default function HomeClean() {
   // Obtener estados únicos de las empresas registradas
   const allStates: string[] = [];
   companies.forEach((company: any) => {
-    if (company.estadosPresencia && Array.isArray(company.estadosPresencia)) {
+    if (company.estadosPresencia && Array.isArray(company.estadosPresencia) && company.estadosPresencia.length > 0) {
       company.estadosPresencia.forEach((estado: string) => {
-        if (estado && !allStates.includes(estado)) {
+        if (estado && estado.trim() !== "" && !allStates.includes(estado)) {
           allStates.push(estado);
         }
       });
     }
   });
+  
+  // Debug logging
+  console.log("Companies data:", companies);
+  console.log("Extracted states:", allStates);
+  
   const uniqueLocations = allStates.sort();
 
   const searchResults = companies.filter((company: any) => {
