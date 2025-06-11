@@ -295,16 +295,17 @@ export default function HomeClean() {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none text-gray-700 cursor-pointer"
+                  className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer"
                   style={{
                     boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
                     backgroundColor: "rgba(255,255,255,0.95)",
                     backdropFilter: "blur(10px)",
+                    color: "#374151",
                   }}
                 >
-                  <option value="">Todas las categorías</option>
+                  <option value="" style={{ color: "#374151", backgroundColor: "#ffffff" }}>Todas las categorías</option>
                   {categories.map((category: any) => (
-                    <option key={category.id} value={category.id}>
+                    <option key={category.id} value={category.id} style={{ color: "#374151", backgroundColor: "#ffffff" }}>
                       {category.nombreCategoria}
                     </option>
                   ))}
@@ -316,16 +317,17 @@ export default function HomeClean() {
                 <select
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none text-gray-700 cursor-pointer"
+                  className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer"
                   style={{
                     boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
                     backgroundColor: "rgba(255,255,255,0.95)",
                     backdropFilter: "blur(10px)",
+                    color: "#374151",
                   }}
                 >
-                  <option value="">Todas las ubicaciones</option>
+                  <option value="" style={{ color: "#374151", backgroundColor: "#ffffff" }}>Todas las ubicaciones</option>
                   {uniqueLocations.map((location: any) => (
-                    <option key={location} value={location}>
+                    <option key={location} value={location} style={{ color: "#374151", backgroundColor: "#ffffff" }}>
                       {location}
                     </option>
                   ))}
