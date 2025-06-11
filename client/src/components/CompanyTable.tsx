@@ -59,7 +59,7 @@ const getCategoryBadgeColor = (category?: string) => {
   }
 };
 
-export default function CompanyTable({ companies, onEdit, onDelete, onView }: CompanyTableProps) {
+export default function CompanyTable({ companies, onEdit, onDelete, onView, onImpersonate }: CompanyTableProps) {
   const { isAdmin, user } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -118,10 +118,19 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView }: Co
                   </div>
                 </TableCell>
                 <TableCell className="py-4 px-4">
-                  {company.category && (
-                    <Badge className={getCategoryBadgeColor(company.category.nombreCategoria)}>
-                      {company.category.nombreCategoria}
-                    </Badge>
+                  {company.categories && company.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {company.categories.slice(0, 2).map((category) => (
+                        <Badge key={category.id} className={getCategoryBadgeColor(category.nombreCategoria)}>
+                          {category.nombreCategoria}
+                        </Badge>
+                      ))}
+                      {company.categories.length > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{company.categories.length - 2}
+                        </Badge>
+                      )}
+                    </div>
                   )}
                 </TableCell>
                 <TableCell className="py-4 px-4 text-gray-600">
