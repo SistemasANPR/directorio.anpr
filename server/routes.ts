@@ -1204,6 +1204,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Home Configuration Routes
+  app.get("/api/home-config", async (req, res) => {
+    try {
+      const { seccion } = req.query;
+      const configs = await storage.getHomeConfiguration(seccion as string);
+      res.json(configs);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/home-config/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const config = await storage.getHomeConfigurationBySection(id.toString());
+      if (!config) {
+        return res.status(404).json({ error: "Configuración no encontrada" });
+      }
+      res.json(config);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/home-config", async (req, res) => {
+    try {
+      const validatedData = insertHomeConfigurationSchema.parse(req.body);
+      const config = await storage.createHomeConfiguration(validatedData);
+      res.status(201).json(config);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/home-config/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertHomeConfigurationSchema.partial().parse(req.body);
+      const config = await storage.updateHomeConfiguration(id, validatedData);
+      if (!config) {
+        return res.status(404).json({ error: "Configuración no encontrada" });
+      }
+      res.json(config);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/home-config/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteHomeConfiguration(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Configuración no encontrada" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Home Highlights Routes
+  app.get("/api/home-highlights", async (req, res) => {
+    try {
+      const highlights = await storage.getAllHomeHighlights();
+      res.json(highlights);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/home-highlights/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const highlight = await storage.getHomeHighlight(id);
+      if (!highlight) {
+        return res.status(404).json({ error: "Elemento destacado no encontrado" });
+      }
+      res.json(highlight);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/home-highlights", async (req, res) => {
+    try {
+      const validatedData = insertHomeHighlightsSchema.parse(req.body);
+      const highlight = await storage.createHomeHighlight(validatedData);
+      res.status(201).json(highlight);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/home-highlights/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertHomeHighlightsSchema.partial().parse(req.body);
+      const highlight = await storage.updateHomeHighlight(id, validatedData);
+      if (!highlight) {
+        return res.status(404).json({ error: "Elemento destacado no encontrado" });
+      }
+      res.json(highlight);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/home-highlights/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteHomeHighlight(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Elemento destacado no encontrado" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Home Banners Routes
+  app.get("/api/home-banners", async (req, res) => {
+    try {
+      const banners = await storage.getAllHomeBanners();
+      res.json(banners);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/home-banners/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const banner = await storage.getHomeBanner(id);
+      if (!banner) {
+        return res.status(404).json({ error: "Banner no encontrado" });
+      }
+      res.json(banner);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/home-banners", async (req, res) => {
+    try {
+      const validatedData = insertHomeBannersSchema.parse(req.body);
+      const banner = await storage.createHomeBanner(validatedData);
+      res.status(201).json(banner);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/home-banners/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertHomeBannersSchema.partial().parse(req.body);
+      const banner = await storage.updateHomeBanner(id, validatedData);
+      if (!banner) {
+        return res.status(404).json({ error: "Banner no encontrado" });
+      }
+      res.json(banner);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/home-banners/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteHomeBanner(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Banner no encontrado" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
