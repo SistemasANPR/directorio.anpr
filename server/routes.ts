@@ -388,6 +388,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/companies/by-user/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const companies = await storage.getCompaniesByUser(userId);
+      if (companies.length === 0) {
+        return res.status(404).json({ error: "No company found for this user" });
+      }
+      res.json(companies[0]); // Return the first company associated with the user
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user company" });
+    }
+  });
+
   app.post("/api/companies", async (req, res) => {
     try {
       const companyData = insertCompanySchema.parse(req.body);

@@ -37,7 +37,7 @@ interface AddCertificateModalProps {
 }
 
 const formSchema = insertCertificateSchema.extend({
-  fechaObtencion: z.string().optional(),
+  fechaEmision: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -49,12 +49,12 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombreCertificado: "",
+      imagenUrl: "",
       descripcion: "",
       entidadEmisora: "",
-      fechaObtencion: "",
+      fechaEmision: "",
       fechaVencimiento: "",
-      urlCertificado: "",
-      visibilidad: "publico",
+      estado: "activo",
     },
   });
 
@@ -62,7 +62,7 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
     mutationFn: async (data: FormData) => {
       const certificateData = {
         ...data,
-        fechaObtencion: data.fechaObtencion ? new Date(data.fechaObtencion).toISOString() : null,
+        fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString() : null,
         fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento).toISOString() : null,
       };
       return apiRequest("POST", "/api/certificates", certificateData);
@@ -158,10 +158,10 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="fechaObtencion"
+                name="fechaEmision"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fecha de Obtención</FormLabel>
+                    <FormLabel>Fecha de Emisión</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -195,16 +195,16 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
 
             <FormField
               control={form.control}
-              name="urlCertificado"
+              name="imagenUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL del Certificado</FormLabel>
+                  <FormLabel>URL de la Imagen del Certificado</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       value={field.value || ""}
                       type="url"
-                      placeholder="https://ejemplo.com/certificado.pdf"
+                      placeholder="https://ejemplo.com/certificado.jpg"
                     />
                   </FormControl>
                   <FormMessage />
@@ -214,19 +214,20 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
 
             <FormField
               control={form.control}
-              name="visibilidad"
+              name="estado"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Visibilidad</FormLabel>
+                  <FormLabel>Estado</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecciona la visibilidad" />
+                        <SelectValue placeholder="Selecciona el estado" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="publico">Público</SelectItem>
-                      <SelectItem value="privado">Privado</SelectItem>
+                      <SelectItem value="activo">Activo</SelectItem>
+                      <SelectItem value="inactivo">Inactivo</SelectItem>
+                      <SelectItem value="vencido">Vencido</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

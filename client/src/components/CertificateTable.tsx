@@ -88,8 +88,8 @@ export default function CertificateTable({ certificates, onEdit, onDelete }: Cer
                 </div>
               </TableCell>
               <TableCell className="py-4 px-4">
-                <Badge className={getVisibilityBadgeColor(certificate.visibilidad)}>
-                  {certificate.visibilidad?.charAt(0).toUpperCase() + certificate.visibilidad?.slice(1) || "Público"}
+                <Badge className={getVisibilityBadgeColor(certificate.estado)}>
+                  {certificate.estado?.charAt(0).toUpperCase() + certificate.estado?.slice(1) || "Activo"}
                 </Badge>
               </TableCell>
               <TableCell className="py-4 px-4">
