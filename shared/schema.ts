@@ -307,6 +307,14 @@ export const insertHomeConfigurationSchema = createInsertSchema(homeConfiguratio
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  titulo: z.string().optional(),
+  subtitulo: z.string().optional(),
+  descripcion: z.string().optional(),
+  imagenUrl: z.string().optional(),
+  videoUrl: z.string().optional(),
+  enlaceBoton: z.string().optional(),
+  textoBoton: z.string().optional(),
 });
 
 export const insertHomeHighlightsSchema = createInsertSchema(homeHighlights).omit({

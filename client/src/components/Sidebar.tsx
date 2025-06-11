@@ -91,6 +91,12 @@ const navigationItems = [
     icon: Settings,
     requireAdmin: true,
   },
+  {
+    name: "Administración de Home",
+    href: "/home-admin",
+    icon: Settings,
+    requireAdmin: true,
+  },
 ];
 
 export default function Sidebar({ className = "" }: SidebarProps) {

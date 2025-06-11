@@ -56,7 +56,7 @@ export function HomeConfigForm({ config, onClose }: HomeConfigFormProps) {
       textoBoton: config?.textoBoton || "",
       orden: config?.orden || 0,
       activo: config?.activo ?? true,
-      configuracionJson: config?.configuracionJson || null,
+      configuracionJson: config?.configuracionJson || undefined,
     },
   });
 
