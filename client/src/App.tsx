@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Sidebar from "@/components/Sidebar";
 import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
+import MyCompany from "@/pages/MyCompany";
 import Categories from "@/pages/Categories";
 import MembershipsNew from "@/pages/MembershipsNew";
 import Users from "@/pages/Users";
@@ -76,6 +77,14 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <Companies />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/mi-empresa">
+        <ProtectedRoute>
+          <AppLayout>
+            <MyCompany />
           </AppLayout>
         </ProtectedRoute>
       </Route>
