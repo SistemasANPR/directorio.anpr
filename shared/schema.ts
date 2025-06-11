@@ -177,6 +177,58 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Configuración de secciones de la página Home
+export const homeConfiguration = pgTable("home_configuration", {
+  id: serial("id").primaryKey(),
+  seccion: varchar("seccion", { length: 100 }).notNull().unique(),
+  titulo: varchar("titulo", { length: 255 }),
+  subtitulo: text("subtitulo"),
+  descripcion: text("descripcion"),
+  imagenUrl: text("imagen_url"),
+  videoUrl: text("video_url"),
+  enlaceBoton: text("enlace_boton"),
+  textoBoton: varchar("texto_boton", { length: 100 }),
+  configuracionJson: jsonb("configuracion_json"), // configuraciones específicas por sección
+  orden: integer("orden").default(0),
+  activo: boolean("activo").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Elementos destacados en la home (empresas, categorías, proyectos)
+export const homeHighlights = pgTable("home_highlights", {
+  id: serial("id").primaryKey(),
+  tipo: varchar("tipo", { length: 50 }).notNull(), // company, category, project
+  entityId: integer("entity_id").notNull(),
+  titulo: varchar("titulo", { length: 255 }),
+  descripcion: text("descripcion"),
+  imagenUrl: text("imagen_url"),
+  orden: integer("orden").default(0),
+  fechaInicio: timestamp("fecha_inicio"),
+  fechaFin: timestamp("fecha_fin"),
+  activo: boolean("activo").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Banners y anuncios para la home
+export const homeBanners = pgTable("home_banners", {
+  id: serial("id").primaryKey(),
+  nombre: varchar("nombre", { length: 255 }).notNull(),
+  titulo: varchar("titulo", { length: 255 }),
+  subtitulo: text("subtitulo"),
+  imagenUrl: text("imagen_url").notNull(),
+  enlace: text("enlace"),
+  posicion: varchar("posicion", { length: 50 }).default("hero"), // hero, middle, bottom
+  tipoEnlace: varchar("tipo_enlace", { length: 50 }).default("interno"), // interno, externo
+  orden: integer("orden").default(0),
+  fechaInicio: timestamp("fecha_inicio"),
+  fechaFin: timestamp("fecha_fin"),
+  activo: boolean("activo").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -251,6 +303,24 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   updatedAt: true,
 });
 
+export const insertHomeConfigurationSchema = createInsertSchema(homeConfiguration).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHomeHighlightsSchema = createInsertSchema(homeHighlights).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHomeBannersSchema = createInsertSchema(homeBanners).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -281,6 +351,15 @@ export type InsertSystemSettings = z.infer<typeof insertSystemSettingsSchema>;
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
+
+export type HomeConfiguration = typeof homeConfiguration.$inferSelect;
+export type InsertHomeConfiguration = z.infer<typeof insertHomeConfigurationSchema>;
+
+export type HomeHighlights = typeof homeHighlights.$inferSelect;
+export type InsertHomeHighlights = z.infer<typeof insertHomeHighlightsSchema>;
+
+export type HomeBanners = typeof homeBanners.$inferSelect;
+export type InsertHomeBanners = z.infer<typeof insertHomeBannersSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

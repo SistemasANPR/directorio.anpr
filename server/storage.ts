@@ -9,6 +9,9 @@ import {
   membershipPayments,
   systemSettings,
   projects,
+  homeConfiguration,
+  homeHighlights,
+  homeBanners,
   type User, 
   type Company, 
   type Category, 
@@ -17,6 +20,9 @@ import {
   type Role,
   type Opinion,
   type Project,
+  type HomeConfiguration,
+  type HomeHighlights,
+  type HomeBanners,
   type InsertUser,
   type InsertCompany,
   type InsertCategory,
@@ -25,6 +31,9 @@ import {
   type InsertRole,
   type InsertOpinion,
   type InsertProject,
+  type InsertHomeConfiguration,
+  type InsertHomeHighlights,
+  type InsertHomeBanners,
   type MembershipPayment,
   type InsertMembershipPayment,
   type SystemSettings,
@@ -140,6 +149,27 @@ export interface IStorage {
   incrementProjectViews(id: number): Promise<void>;
   incrementProjectConsultas(id: number): Promise<void>;
   moderateProject(id: number, estado: string): Promise<Project | undefined>;
+
+  // Home Configuration
+  getHomeConfiguration(seccion?: string): Promise<HomeConfiguration[]>;
+  getHomeConfigurationBySection(seccion: string): Promise<HomeConfiguration | undefined>;
+  createHomeConfiguration(config: InsertHomeConfiguration): Promise<HomeConfiguration>;
+  updateHomeConfiguration(id: number, config: Partial<InsertHomeConfiguration>): Promise<HomeConfiguration | undefined>;
+  deleteHomeConfiguration(id: number): Promise<boolean>;
+
+  // Home Highlights
+  getAllHomeHighlights(): Promise<HomeHighlights[]>;
+  getHomeHighlight(id: number): Promise<HomeHighlights | undefined>;
+  createHomeHighlight(highlight: InsertHomeHighlights): Promise<HomeHighlights>;
+  updateHomeHighlight(id: number, highlight: Partial<InsertHomeHighlights>): Promise<HomeHighlights | undefined>;
+  deleteHomeHighlight(id: number): Promise<boolean>;
+
+  // Home Banners
+  getAllHomeBanners(): Promise<HomeBanners[]>;
+  getHomeBanner(id: number): Promise<HomeBanners | undefined>;
+  createHomeBanner(banner: InsertHomeBanners): Promise<HomeBanners>;
+  updateHomeBanner(id: number, banner: Partial<InsertHomeBanners>): Promise<HomeBanners | undefined>;
+  deleteHomeBanner(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -834,6 +864,125 @@ export class DatabaseStorage implements IStorage {
       .where(eq(projects.id, id))
       .returning();
     return project || undefined;
+  }
+
+  // Home Configuration methods
+  async getHomeConfiguration(seccion?: string): Promise<HomeConfiguration[]> {
+    let query = db.select().from(homeConfiguration);
+    
+    if (seccion) {
+      query = query.where(eq(homeConfiguration.seccion, seccion));
+    }
+    
+    return await query.orderBy(homeConfiguration.orden);
+  }
+
+  async getHomeConfigurationBySection(seccion: string): Promise<HomeConfiguration | undefined> {
+    const [config] = await db
+      .select()
+      .from(homeConfiguration)
+      .where(eq(homeConfiguration.seccion, seccion));
+    return config || undefined;
+  }
+
+  async createHomeConfiguration(insertConfig: InsertHomeConfiguration): Promise<HomeConfiguration> {
+    const [config] = await db
+      .insert(homeConfiguration)
+      .values(insertConfig)
+      .returning();
+    return config;
+  }
+
+  async updateHomeConfiguration(id: number, configData: Partial<InsertHomeConfiguration>): Promise<HomeConfiguration | undefined> {
+    const [config] = await db
+      .update(homeConfiguration)
+      .set({ ...configData, updatedAt: new Date() })
+      .where(eq(homeConfiguration.id, id))
+      .returning();
+    return config || undefined;
+  }
+
+  async deleteHomeConfiguration(id: number): Promise<boolean> {
+    const result = await db.delete(homeConfiguration).where(eq(homeConfiguration.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Home Highlights methods
+  async getAllHomeHighlights(): Promise<HomeHighlights[]> {
+    return await db
+      .select()
+      .from(homeHighlights)
+      .where(eq(homeHighlights.activo, true))
+      .orderBy(homeHighlights.orden);
+  }
+
+  async getHomeHighlight(id: number): Promise<HomeHighlights | undefined> {
+    const [highlight] = await db
+      .select()
+      .from(homeHighlights)
+      .where(eq(homeHighlights.id, id));
+    return highlight || undefined;
+  }
+
+  async createHomeHighlight(insertHighlight: InsertHomeHighlights): Promise<HomeHighlights> {
+    const [highlight] = await db
+      .insert(homeHighlights)
+      .values(insertHighlight)
+      .returning();
+    return highlight;
+  }
+
+  async updateHomeHighlight(id: number, highlightData: Partial<InsertHomeHighlights>): Promise<HomeHighlights | undefined> {
+    const [highlight] = await db
+      .update(homeHighlights)
+      .set({ ...highlightData, updatedAt: new Date() })
+      .where(eq(homeHighlights.id, id))
+      .returning();
+    return highlight || undefined;
+  }
+
+  async deleteHomeHighlight(id: number): Promise<boolean> {
+    const result = await db.delete(homeHighlights).where(eq(homeHighlights.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Home Banners methods
+  async getAllHomeBanners(): Promise<HomeBanners[]> {
+    return await db
+      .select()
+      .from(homeBanners)
+      .where(eq(homeBanners.activo, true))
+      .orderBy(homeBanners.orden);
+  }
+
+  async getHomeBanner(id: number): Promise<HomeBanners | undefined> {
+    const [banner] = await db
+      .select()
+      .from(homeBanners)
+      .where(eq(homeBanners.id, id));
+    return banner || undefined;
+  }
+
+  async createHomeBanner(insertBanner: InsertHomeBanners): Promise<HomeBanners> {
+    const [banner] = await db
+      .insert(homeBanners)
+      .values(insertBanner)
+      .returning();
+    return banner;
+  }
+
+  async updateHomeBanner(id: number, bannerData: Partial<InsertHomeBanners>): Promise<HomeBanners | undefined> {
+    const [banner] = await db
+      .update(homeBanners)
+      .set({ ...bannerData, updatedAt: new Date() })
+      .where(eq(homeBanners.id, id))
+      .returning();
+    return banner || undefined;
+  }
+
+  async deleteHomeBanner(id: number): Promise<boolean> {
+    const result = await db.delete(homeBanners).where(eq(homeBanners.id, id));
+    return (result.rowCount || 0) > 0;
   }
 }
 
