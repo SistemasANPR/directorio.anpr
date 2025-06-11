@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, Edit, Trash2, MoreHorizontal, Building } from "lucide-react";
+import { Eye, Edit, Trash2, MoreHorizontal, Building, UserCheck } from "lucide-react";
 import { CompanyWithDetails } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 

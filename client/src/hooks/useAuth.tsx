@@ -8,6 +8,10 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  impersonatedCompany: any | null;
+  isImpersonating: boolean;
+  impersonateCompany: (company: any) => void;
+  stopImpersonation: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +32,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [impersonatedCompany, setImpersonatedCompany] = useState<any | null>(null);
+  const [isImpersonating, setIsImpersonating] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
@@ -54,11 +60,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const isAdmin = user?.role === "admin";
 
+  const impersonateCompany = (company: any) => {
+    if (isAdmin) {
+      setImpersonatedCompany(company);
+      setIsImpersonating(true);
+    }
+  };
+
+  const stopImpersonation = () => {
+    setImpersonatedCompany(null);
+    setIsImpersonating(false);
+  };
+
   const value = {
     firebaseUser,
     user,
     loading,
     isAdmin,
+    impersonatedCompany,
+    isImpersonating,
+    impersonateCompany,
+    stopImpersonation,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

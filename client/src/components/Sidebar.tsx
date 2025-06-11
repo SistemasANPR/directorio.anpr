@@ -113,7 +113,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isImpersonating, impersonatedCompany, stopImpersonation } = useAuth();
 
   const handleSignOut = async () => {
     try {
@@ -123,8 +123,39 @@ export default function Sidebar({ className = "" }: SidebarProps) {
     }
   };
 
-  const filteredNavItems = navigationItems.filter(item => 
-    !item.requireAdmin || isAdmin
+  // Define limited navigation for company representatives
+  const representativeNavItems = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: BarChart3,
+      requireAdmin: false,
+    },
+    {
+      name: "Mi Empresa",
+      href: "/empresas",
+      icon: Building,
+      requireAdmin: false,
+      subItems: [
+        {
+          name: "Datos de la Empresa",
+          href: "/empresas",
+          requireAdmin: false,
+        },
+        {
+          name: "Testimonios",
+          href: "/testimonios",
+          requireAdmin: false,
+        },
+      ],
+    },
+  ];
+
+  // Use different navigation based on impersonation status
+  const currentNavItems = isImpersonating ? representativeNavItems : navigationItems;
+  
+  const filteredNavItems = currentNavItems.filter(item => 
+    !item.requireAdmin || (isAdmin && !isImpersonating)
   );
 
   const toggleExpanded = (itemName: string) => {
@@ -216,6 +247,31 @@ export default function Sidebar({ className = "" }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Impersonation Status */}
+      {isImpersonating && (
+        <div className="p-3 mx-3 mb-3 bg-orange-50 border border-orange-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-orange-800">
+                Modo Representante
+              </p>
+              <p className="text-xs text-orange-600 truncate">
+                {impersonatedCompany?.nombreEmpresa || "Empresa"}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={stopImpersonation}
+              className="p-1 text-orange-600 hover:text-orange-800"
+              title="Salir del modo representante"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* User Profile */}
       <div className="p-4 border-t border-gray-100">
