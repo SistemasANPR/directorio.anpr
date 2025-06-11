@@ -317,24 +317,26 @@ export default function HomeClean() {
               
               {/* Filtro de ubicación */}
               <div className="flex-1">
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer"
-                  style={{
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(10px)",
-                    color: "#374151",
-                  }}
-                >
-                  <option value="" style={{ color: "#374151", backgroundColor: "#ffffff" }}>Todas las ubicaciones</option>
-                  {uniqueLocations.map((location: any) => (
-                    <option key={location} value={location} style={{ color: "#374151", backgroundColor: "#ffffff" }}>
-                      {location}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger 
+                    className="w-full px-4 py-3 md:py-4 text-sm md:text-lg rounded-full border-none outline-none cursor-pointer text-gray-700"
+                    style={{
+                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                      backgroundColor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <SelectValue placeholder="Todas las ubicaciones" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas las ubicaciones</SelectItem>
+                    {uniqueLocations.map((location: any) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
