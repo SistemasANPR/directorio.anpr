@@ -100,8 +100,10 @@ export const opinions = pgTable("opinions", {
   id: serial("id").primaryKey(),
   companyId: integer("company_id").references(() => companies.id),
   userId: integer("user_id").references(() => users.id),
+  tipo: text("tipo").notNull().default("empresa"), // empresa, plataforma
   nombre: text("nombre").notNull(),
   email: text("email").notNull(),
+  cargo: text("cargo"), // Position/title for platform testimonials
   calificacion: integer("calificacion").notNull(), // 1-5 estrellas
   comentario: text("comentario").notNull(),
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
