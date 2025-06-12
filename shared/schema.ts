@@ -393,6 +393,9 @@ export type InsertHomeHighlights = z.infer<typeof insertHomeHighlightsSchema>;
 export type HomeBanners = typeof homeBanners.$inferSelect;
 export type InsertHomeBanners = z.infer<typeof insertHomeBannersSchema>;
 
+export type IntegrationSettings = typeof integrationSettings.$inferSelect;
+export type InsertIntegrationSettings = z.infer<typeof insertIntegrationSettingsSchema>;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   companies: many(companies),

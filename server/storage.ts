@@ -12,6 +12,7 @@ import {
   homeConfiguration,
   homeHighlights,
   homeBanners,
+  integrationSettings,
   type User, 
   type Company, 
   type Category, 
@@ -34,6 +35,8 @@ import {
   type InsertHomeConfiguration,
   type InsertHomeHighlights,
   type InsertHomeBanners,
+  type IntegrationSettings,
+  type InsertIntegrationSettings,
   type MembershipPayment,
   type InsertMembershipPayment,
   type SystemSettings,
@@ -172,6 +175,13 @@ export interface IStorage {
   createHomeBanner(banner: InsertHomeBanners): Promise<HomeBanners>;
   updateHomeBanner(id: number, banner: Partial<InsertHomeBanners>): Promise<HomeBanners | undefined>;
   deleteHomeBanner(id: number): Promise<boolean>;
+
+  // Integration Settings
+  getIntegrationSettings(): Promise<IntegrationSettings | undefined>;
+  createIntegrationSettings(settings: InsertIntegrationSettings): Promise<IntegrationSettings>;
+  updateIntegrationSettings(id: number, settings: Partial<InsertIntegrationSettings>): Promise<IntegrationSettings | undefined>;
+  testWordPressConnection(url: string, credentials: { apiKey: string; apiSecret: string }): Promise<{ success: boolean; message: string }>;
+  syncWordPressUsers(): Promise<{ syncedUsers: number; message: string }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -993,6 +1003,129 @@ export class DatabaseStorage implements IStorage {
   async deleteHomeBanner(id: number): Promise<boolean> {
     const result = await db.delete(homeBanners).where(eq(homeBanners.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  // Integration Settings
+  async getIntegrationSettings(): Promise<IntegrationSettings | undefined> {
+    const [settings] = await db.select().from(integrationSettings).limit(1);
+    return settings || undefined;
+  }
+
+  async createIntegrationSettings(insertSettings: InsertIntegrationSettings): Promise<IntegrationSettings> {
+    const [settings] = await db
+      .insert(integrationSettings)
+      .values(insertSettings)
+      .returning();
+    return settings;
+  }
+
+  async updateIntegrationSettings(id: number, settingsData: Partial<InsertIntegrationSettings>): Promise<IntegrationSettings | undefined> {
+    const [settings] = await db
+      .update(integrationSettings)
+      .set({ ...settingsData, updatedAt: new Date() })
+      .where(eq(integrationSettings.id, id))
+      .returning();
+    return settings || undefined;
+  }
+
+  async testWordPressConnection(url: string, credentials: { apiKey: string; apiSecret: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      // Basic validation
+      if (!url || !credentials.apiKey || !credentials.apiSecret) {
+        return { success: false, message: "URL y credenciales son requeridos" };
+      }
+
+      // Validate URL format
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(url)) {
+        return { success: false, message: "URL debe incluir http:// o https://" };
+      }
+
+      // Test connection with WordPress REST API
+      const testUrl = `${url.replace(/\/$/, '')}/wp-json/wp/v2/users/me`;
+      const authString = Buffer.from(`${credentials.apiKey}:${credentials.apiSecret}`).toString('base64');
+      
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      });
+
+      if (response.ok) {
+        return { success: true, message: "Conexión exitosa con WordPress" };
+      } else {
+        return { success: false, message: `Error de conexión: ${response.status} ${response.statusText}` };
+      }
+    } catch (error: any) {
+      return { success: false, message: `Error de conexión: ${error.message}` };
+    }
+  }
+
+  async syncWordPressUsers(): Promise<{ syncedUsers: number; message: string }> {
+    try {
+      const settings = await this.getIntegrationSettings();
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return { syncedUsers: 0, message: "Configuración de WordPress incompleta" };
+      }
+
+      if (!settings.syncEnabled) {
+        return { syncedUsers: 0, message: "Sincronización deshabilitada" };
+      }
+
+      const usersUrl = `${settings.wordpressUrl.replace(/\/$/, '')}/wp-json/wp/v2/users`;
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      
+      const response = await fetch(usersUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        return { syncedUsers: 0, message: `Error al obtener usuarios: ${response.status}` };
+      }
+
+      const wpUsers = await response.json();
+      let syncedCount = 0;
+
+      for (const wpUser of wpUsers) {
+        // Check if user already exists
+        const existingUser = await this.getUserByEmail(wpUser.email);
+        
+        if (!existingUser) {
+          // Create new user
+          try {
+            await this.createUser({
+              email: wpUser.email,
+              displayName: wpUser.name || wpUser.slug,
+              firebaseUid: `wp_${wpUser.id}`,
+              role: 'representative',
+              estado: 'activo',
+            });
+            syncedCount++;
+          } catch (error) {
+            console.error(`Error creating user ${wpUser.email}:`, error);
+          }
+        }
+      }
+
+      // Update last sync time
+      if (settings.id) {
+        await this.updateIntegrationSettings(settings.id, {
+          lastSync: new Date(),
+          syncStatus: 'success',
+        });
+      }
+
+      return { syncedUsers: syncedCount, message: `${syncedCount} usuarios sincronizados exitosamente` };
+    } catch (error: any) {
+      return { syncedUsers: 0, message: `Error de sincronización: ${error.message}` };
+    }
   }
 }
 
