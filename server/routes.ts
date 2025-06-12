@@ -1467,6 +1467,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // WordPress/MemberPress Integration API endpoints
+  app.get("/api/integration-settings", async (req, res) => {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      res.json(settings || {});
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/integration-settings", async (req, res) => {
+    try {
+      const validatedData = insertIntegrationSettingsSchema.parse(req.body);
+      const settings = await storage.createIntegrationSettings(validatedData);
+      res.status(201).json(settings);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/integration-settings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertIntegrationSettingsSchema.partial().parse(req.body);
+      const settings = await storage.updateIntegrationSettings(id, validatedData);
+      
+      if (!settings) {
+        return res.status(404).json({ error: "Configuración no encontrada" });
+      }
+      
+      res.json(settings);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/integration-settings/test-connection", async (req, res) => {
+    try {
+      const { wordpressUrl, apiKey, apiSecret } = req.body;
+      
+      if (!wordpressUrl || !apiKey || !apiSecret) {
+        return res.status(400).json({ error: "URL de WordPress y credenciales son requeridos" });
+      }
+
+      const result = await storage.testWordPressConnection(wordpressUrl, { apiKey, apiSecret });
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/integration-settings/sync-users", async (req, res) => {
+    try {
+      const result = await storage.syncWordPressUsers();
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

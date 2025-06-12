@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -73,21 +73,38 @@ export default function IntegrationSettings() {
   const form = useForm<IntegrationFormData>({
     resolver: zodResolver(integrationSchema),
     defaultValues: {
-      wordpressUrl: settings?.wordpressUrl || "",
-      apiKey: settings?.apiKey || "",
-      apiSecret: settings?.apiSecret || "",
-      authMethod: settings?.authMethod || "rest_api",
-      syncEnabled: settings?.syncEnabled ?? true,
-      syncFrequency: settings?.syncFrequency || "daily",
-      memberPressEnabled: settings?.memberPressEnabled ?? true,
-      allowedRoles: settings?.allowedRoles || ["subscriber", "member"],
+      wordpressUrl: "",
+      apiKey: "",
+      apiSecret: "",
+      authMethod: "rest_api",
+      syncEnabled: true,
+      syncFrequency: "daily",
+      memberPressEnabled: true,
+      allowedRoles: ["subscriber", "member"],
     },
   });
+
+  // Reset form when settings are loaded
+  useEffect(() => {
+    if (settings && typeof settings === 'object') {
+      form.reset({
+        wordpressUrl: (settings as any).wordpressUrl || "",
+        apiKey: (settings as any).apiKey || "",
+        apiSecret: (settings as any).apiSecret || "",
+        authMethod: (settings as any).authMethod || "rest_api",
+        syncEnabled: (settings as any).syncEnabled ?? true,
+        syncFrequency: (settings as any).syncFrequency || "daily",
+        memberPressEnabled: (settings as any).memberPressEnabled ?? true,
+        allowedRoles: (settings as any).allowedRoles || ["subscriber", "member"],
+      });
+      setLastSync((settings as any).lastSync ? new Date((settings as any).lastSync) : null);
+    }
+  }, [settings, form]);
 
   // Test connection mutation
   const testConnectionMutation = useMutation({
     mutationFn: async (data: IntegrationFormData) => {
-      return apiRequest("POST", "/api/integration/test-connection", data);
+      return apiRequest("POST", "/api/integration-settings/test-connection", data);
     },
     onMutate: () => {
       setConnectionStatus('testing');
