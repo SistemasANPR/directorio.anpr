@@ -878,12 +878,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Parse the cost string to extract numeric value
-      const costString = membershipType.costo || "0";
-      const amount = parseFloat(costString.replace(/[^0-9.]/g, '')) || 0;
+      // Extract the cost from pricing options
+      let amount = 0;
+      
+      if (membershipType.opcionesPrecios && Array.isArray(membershipType.opcionesPrecios) && membershipType.opcionesPrecios.length > 0) {
+        // Use the first pricing option or find annual pricing
+        const pricingOption = membershipType.opcionesPrecios.find((option: any) => 
+          option.periodicidad && option.periodicidad.toLowerCase() === 'anual'
+        ) || membershipType.opcionesPrecios[0];
+        
+        amount = parseFloat(pricingOption?.costo?.toString() || "0") || 0;
+      }
 
       if (amount <= 0) {
-        return res.status(400).json({ error: "Invalid membership cost" });
+        return res.status(400).json({ error: "Invalid membership cost configuration. No valid pricing found." });
       }
 
       // Prepare metadata
