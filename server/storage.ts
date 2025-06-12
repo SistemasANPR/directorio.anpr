@@ -1051,7 +1051,6 @@ export class DatabaseStorage implements IStorage {
           'Authorization': `Basic ${authString}`,
           'Content-Type': 'application/json',
         },
-        timeout: 10000,
       });
 
       if (response.ok) {
@@ -1105,7 +1104,6 @@ export class DatabaseStorage implements IStorage {
               displayName: wpUser.name || wpUser.slug,
               firebaseUid: `wp_${wpUser.id}`,
               role: 'representative',
-              estado: 'activo',
             });
             syncedCount++;
           } catch (error) {

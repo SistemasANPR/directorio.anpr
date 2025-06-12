@@ -152,13 +152,13 @@ export default function IntegrationSettings() {
   // Sync users mutation
   const syncUsersMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", "/api/integration/sync-users");
+      return apiRequest("POST", "/api/integration-settings/sync-users");
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       setLastSync(new Date());
       toast({
         title: "Sincronización completada",
-        description: `Se sincronizaron ${response.syncedUsers || 0} usuarios`,
+        description: `Se sincronizaron ${(response as any).syncedUsers || 0} usuarios`,
       });
     },
     onError: (error: any) => {
