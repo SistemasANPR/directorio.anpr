@@ -210,6 +210,12 @@ function Router() {
         </PublicLayout>
       </Route>
       
+      <Route path="/registro-exitoso">
+        <PublicLayout>
+          <RegistroExitoso />
+        </PublicLayout>
+      </Route>
+      
       <Route path="/login-representante">
         <PublicLayout>
           <RepresentativeLogin />
