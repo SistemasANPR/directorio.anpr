@@ -26,6 +26,8 @@ import MembershipCheckout from "@/pages/MembershipCheckout";
 import RepresentativeRegister from "@/pages/RepresentativeRegister";
 import RepresentativeLogin from "@/pages/RepresentativeLogin";
 import RepresentativeDashboard from "@/pages/RepresentativeDashboard";
+import RegisterAndPay from "@/pages/RegisterAndPay";
+import RegistroExitoso from "@/pages/RegistroExitoso";
 import SystemSettings from "@/pages/SystemSettings";
 import HomeAdmin from "@/pages/HomeAdmin";
 import IntegrationSettings from "@/pages/IntegrationSettings";
@@ -199,6 +201,12 @@ function Router() {
       <Route path="/registro-representante">
         <PublicLayout>
           <RepresentativeRegister />
+        </PublicLayout>
+      </Route>
+      
+      <Route path="/registro-y-pago">
+        <PublicLayout>
+          <RegisterAndPay />
         </PublicLayout>
       </Route>
       

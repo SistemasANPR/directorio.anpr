@@ -1541,6 +1541,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete registration endpoint
+  app.post("/api/complete-registration", async (req, res) => {
+    try {
+      const { userData, companyData, membershipTypeId, selectedPeriod, paymentIntentId } = req.body;
+
+      if (!userData || !companyData || !membershipTypeId || !paymentIntentId) {
+        return res.status(400).json({ error: "Missing required data" });
+      }
+
+      // Create user account
+      const user = await storage.createUser({
+        email: userData.email,
+        displayName: userData.nombre,
+        firebaseUid: `temp_${Date.now()}`, // Will be updated when Firebase auth is implemented
+        role: 'representative',
+      });
+
+      // Create company
+      const company = await storage.createCompany({
+        nombreEmpresa: companyData.nombreEmpresa,
+        email1: companyData.email1,
+        telefono1: companyData.telefono1,
+        direccionFisica: companyData.direccionFisica,
+        descripcionEmpresa: companyData.descripcionEmpresa,
+        sitioWeb: companyData.sitioWeb,
+        membershipTypeId: membershipTypeId,
+        membershipPeriodicidad: selectedPeriod,
+        formaPago: "tarjeta",
+        fechaInicioMembresia: new Date().toISOString().split('T')[0],
+        fechaFinMembresia: new Date(Date.now() + (selectedPeriod === 'anual' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        userId: user.id,
+        estado: "activo"
+      });
+
+      // Get membership type for amount
+      const membershipType = await storage.getMembershipType(membershipTypeId);
+      if (!membershipType) {
+        throw new Error("Membership type not found");
+      }
+
+      // Calculate amount
+      let amount = 0;
+      if (membershipType.opcionesPrecios && Array.isArray(membershipType.opcionesPrecios)) {
+        const pricingOption = membershipType.opcionesPrecios.find((option: any) => 
+          option.periodicidad && option.periodicidad.toLowerCase() === selectedPeriod.toLowerCase()
+        ) || membershipType.opcionesPrecios[0];
+        amount = parseFloat(pricingOption?.costo?.toString() || "0") || 0;
+      }
+
+      // Create payment record
+      await storage.createMembershipPayment({
+        userId: user.id,
+        companyId: company.id,
+        membershipTypeId: membershipTypeId,
+        stripePaymentIntentId: paymentIntentId,
+        amount: amount.toString(),
+        currency: "mxn",
+        status: "succeeded"
+      });
+
+      res.json({ 
+        success: true, 
+        user: { id: user.id, email: user.email },
+        company: { id: company.id, nombre: company.nombreEmpresa }
+      });
+    } catch (error: any) {
+      console.error("Error completing registration:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Representative dashboard data
+  app.get("/api/representative/dashboard/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Get user companies
+      const companies = await storage.getCompaniesByUser(userId);
+      
+      // Get payment history
+      const payments = await storage.getUserPayments(userId);
+      
+      // Get current membership info
+      let currentMembership = null;
+      if (companies.length > 0 && companies[0].membershipTypeId) {
+        currentMembership = await storage.getMembershipType(companies[0].membershipTypeId);
+      }
+
+      res.json({
+        companies,
+        payments,
+        currentMembership,
+        stats: {
+          totalCompanies: companies.length,
+          activePayments: payments.filter(p => p.status === 'succeeded').length,
+          nextRenewal: companies[0]?.fechaFinMembresia || null
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
