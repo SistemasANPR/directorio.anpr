@@ -28,6 +28,7 @@ import RepresentativeLogin from "@/pages/RepresentativeLogin";
 import RepresentativeDashboard from "@/pages/RepresentativeDashboard";
 import SystemSettings from "@/pages/SystemSettings";
 import HomeAdmin from "@/pages/HomeAdmin";
+import IntegrationSettings from "@/pages/IntegrationSettings";
 import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
@@ -165,6 +166,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <HomeAdmin />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/integracion">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <IntegrationSettings />
           </AppLayout>
         </ProtectedRoute>
       </Route>

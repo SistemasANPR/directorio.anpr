@@ -331,6 +331,28 @@ export const insertHomeBannersSchema = createInsertSchema(homeBanners).omit({
   updatedAt: true,
 });
 
+export const integrationSettings = pgTable("integration_settings", {
+  id: serial("id").primaryKey(),
+  wordpressUrl: text("wordpress_url"),
+  apiKey: text("api_key"),
+  apiSecret: text("api_secret"),
+  authMethod: text("auth_method").default("rest"),
+  syncEnabled: boolean("sync_enabled").default(false),
+  syncFrequency: text("sync_frequency").default("daily"),
+  memberPressEnabled: boolean("memberpress_enabled").default(false),
+  allowedRoles: text("allowed_roles").array().default([]),
+  lastSync: timestamp("last_sync"),
+  syncStatus: text("sync_status").default("never"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertIntegrationSettingsSchema = createInsertSchema(integrationSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;

@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Shield,
   MessageSquare,
-  Settings
+  Settings,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -105,6 +106,12 @@ const navigationItems = [
     name: "Administración de Home",
     href: "/home-admin",
     icon: Settings,
+    requireAdmin: true,
+  },
+  {
+    name: "Integración WordPress",
+    href: "/integracion",
+    icon: Globe,
     requireAdmin: true,
   },
 ];
