@@ -29,7 +29,11 @@ import {
   MapPin
 } from "lucide-react";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('VITE_STRIPE_PUBLIC_KEY no está configurada');
+}
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 // Schemas for each step
 const userSchema = z.object({
@@ -92,21 +96,30 @@ function PaymentForm({
     e.preventDefault();
 
     if (!stripe || !elements) {
+      onError("Sistema de pago no disponible. Por favor, recarga la página.");
       return;
     }
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/registro-exitoso`,
-      },
-      redirect: "if_required",
-    });
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/registro-exitoso`,
+        },
+        redirect: "if_required",
+      });
 
-    if (error) {
-      onError(error.message || "Error en el pago");
-    } else {
-      onSuccess();
+      if (error) {
+        console.error("Stripe payment error:", error);
+        onError(error.message || "Error en el proceso de pago");
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        onSuccess();
+      } else {
+        onError("El pago no se completó correctamente. Por favor, inténtalo de nuevo.");
+      }
+    } catch (err) {
+      console.error("Payment confirmation error:", err);
+      onError("Error inesperado durante el pago. Por favor, inténtalo de nuevo.");
     }
   };
 
@@ -194,13 +207,31 @@ export default function RegisterAndPay() {
         throw new Error("Datos incompletos");
       }
 
+      const paymentIntentId = clientSecret.includes('_secret_') 
+        ? clientSecret.split('_secret_')[0] 
+        : clientSecret;
+
+      console.log("Completing registration with:", {
+        userData,
+        companyData,
+        membershipTypeId: selectedMembership.id,
+        selectedPeriod,
+        paymentIntentId
+      });
+
       const response = await apiRequest("POST", "/api/complete-registration", {
         userData,
         companyData,
         membershipTypeId: selectedMembership.id,
         selectedPeriod,
-        paymentIntentId: clientSecret.split('_secret_')[0],
+        paymentIntentId,
       });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Error en el servidor: ${errorData}`);
+      }
+
       return response.json();
     },
     onSuccess: () => {
@@ -211,11 +242,13 @@ export default function RegisterAndPay() {
       });
     },
     onError: (error: any) => {
+      console.error("Registration error:", error);
       toast({
         title: "Error",
         description: error.message || "Error al completar el registro",
         variant: "destructive",
       });
+      setIsProcessing(false);
     },
   });
 
@@ -537,7 +570,7 @@ export default function RegisterAndPay() {
               </p>
             </div>
 
-            {clientSecret && (
+            {clientSecret ? (
               <Elements stripe={stripePromise} options={{ clientSecret }}>
                 <PaymentForm
                   clientSecret={clientSecret}
@@ -546,6 +579,11 @@ export default function RegisterAndPay() {
                   isProcessing={isProcessing}
                 />
               </Elements>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bcce16] mx-auto mb-4"></div>
+                <p className="text-gray-600">Preparando el sistema de pago...</p>
+              </div>
             )}
           </div>
         );
