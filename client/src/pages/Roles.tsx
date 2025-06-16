@@ -75,7 +75,7 @@ export default function Roles() {
 
   const createMutation = useMutation({
     mutationFn: async (data: RoleFormData) => {
-      const response = await apiRequest("/api/roles", "POST", data);
+      const response = await apiRequest("POST", "/api/roles", data);
       if (!response.ok) {
         throw new Error("Error al crear el rol");
       }
@@ -102,7 +102,7 @@ export default function Roles() {
   const updateMutation = useMutation({
     mutationFn: async (data: RoleFormData) => {
       if (!selectedRole) throw new Error("No role selected");
-      const response = await apiRequest(`/api/roles/${selectedRole.id}`, "PUT", data);
+      const response = await apiRequest("PUT", `/api/roles/${selectedRole.id}`, data);
       if (!response.ok) {
         throw new Error("Error al actualizar el rol");
       }
@@ -129,7 +129,7 @@ export default function Roles() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest(`/api/roles/${id}`, "DELETE");
+      const response = await apiRequest("DELETE", `/api/roles/${id}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Error al eliminar el rol");
