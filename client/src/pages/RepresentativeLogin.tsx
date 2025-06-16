@@ -38,19 +38,54 @@ export default function RepresentativeLogin() {
     setIsLoading(true);
     
     try {
-      await signInWithFirebase(data.email, data.password, false);
-      
-      toast({
-        title: "Sesión iniciada exitosamente",
-        description: "Bienvenido de vuelta",
+      // First try the temporary login for newly registered users
+      const tempLoginResponse = await fetch("/api/login-temp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
       });
+
+      if (tempLoginResponse.ok) {
+        const userData = await tempLoginResponse.json();
+        
+        // Store user data in localStorage for session management
+        localStorage.setItem('tempUser', JSON.stringify(userData.user));
+        
+        toast({
+          title: "Sesión iniciada exitosamente",
+          description: "Bienvenido de vuelta",
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        setLocation("/dashboard-representante");
+        return;
+      }
+
+      // If temp login fails, try Firebase authentication
+      try {
+        await signInWithFirebase(data.email, data.password, false);
+        
+        toast({
+          title: "Sesión iniciada exitosamente",
+          description: "Bienvenido de vuelta",
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        setLocation("/dashboard-representante");
+      } catch (firebaseError) {
+        throw new Error("Email o contraseña incorrectos");
+      }
       
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      setLocation("/dashboard-representante");
     } catch (error: any) {
       toast({
         title: "Error al iniciar sesión",
-        description: "Email o contraseña incorrectos",
+        description: error.message || "Email o contraseña incorrectos",
         variant: "destructive",
       });
     } finally {

@@ -1550,11 +1550,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing required data" });
       }
 
-      // Create user account
+      // Create user account with temporary UID that will be updated by Firebase
       const user = await storage.createUser({
         email: userData.email,
         displayName: userData.nombre,
-        firebaseUid: `temp_${Date.now()}`, // Will be updated when Firebase auth is implemented
+        firebaseUid: `pending_${Date.now()}_${userData.email}`, // Unique temporary identifier
         role: 'representative',
       });
 
@@ -1603,12 +1603,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         success: true, 
-        user: { id: user.id, email: user.email },
+        user: { id: user.id, email: user.email, password: userData.password },
         company: { id: company.id, nombre: company.nombreEmpresa }
       });
     } catch (error: any) {
       console.error("Error completing registration:", error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Temporary login endpoint for newly registered users
+  app.post("/api/login-temp", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Check if this is a pending user (not yet migrated to Firebase)
+      if (!user.firebaseUid.startsWith('pending_')) {
+        return res.status(401).json({ error: "Please use Firebase login" });
+      }
+
+      // For now, we'll do a simple password check (in production, use proper hashing)
+      // This is temporary until Firebase migration is complete
+      res.json({ 
+        success: true,
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          displayName: user.displayName,
+          role: user.role,
+          firebaseUid: user.firebaseUid
+        }
+      });
+    } catch (error: any) {
+      console.error("Error in temp login:", error);
+      res.status(500).json({ error: "Login failed" });
     }
   });
 

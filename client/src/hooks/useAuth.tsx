@@ -12,6 +12,7 @@ interface AuthContextType {
   isImpersonating: boolean;
   impersonateCompany: (company: any) => void;
   stopImpersonation: () => void;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,26 +37,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isImpersonating, setIsImpersonating] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+    const checkAuth = async () => {
       try {
-        setFirebaseUser(firebaseUser);
-        
-        if (firebaseUser) {
-          // Get or create user in our database
-          const dbUser = await getOrCreateUser(firebaseUser);
-          setUser(dbUser);
-        } else {
-          setUser(null);
+        // Check for temporary user first
+        const tempUserData = localStorage.getItem('tempUser');
+        if (tempUserData) {
+          const tempUser = JSON.parse(tempUserData);
+          setUser(tempUser);
+          setLoading(false);
+          return;
         }
+
+        // If no temp user, check Firebase auth
+        const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+          try {
+            setFirebaseUser(firebaseUser);
+            
+            if (firebaseUser) {
+              // Get or create user in our database
+              const dbUser = await getOrCreateUser(firebaseUser);
+              setUser(dbUser);
+            } else {
+              setUser(null);
+            }
+          } catch (error) {
+            console.error("Error handling auth state change:", error);
+            setUser(null);
+          } finally {
+            setLoading(false);
+          }
+        });
+
+        return unsubscribe;
       } catch (error) {
-        console.error("Error handling auth state change:", error);
-        setUser(null);
-      } finally {
+        console.error("Error checking auth:", error);
         setLoading(false);
       }
-    });
+    };
 
-    return unsubscribe;
+    checkAuth();
   }, []);
 
   const isAdmin = user?.role === "admin";
@@ -72,6 +92,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsImpersonating(false);
   };
 
+  const signOut = () => {
+    // Clear temporary user data
+    localStorage.removeItem('tempUser');
+    setUser(null);
+    setFirebaseUser(null);
+    // Also clear any Firebase auth if present
+    if (firebaseUser) {
+      import('@/lib/auth').then(({ signOutUser }) => signOutUser());
+    }
+  };
+
   const value = {
     firebaseUser,
     user,
@@ -81,6 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isImpersonating,
     impersonateCompany,
     stopImpersonation,
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
