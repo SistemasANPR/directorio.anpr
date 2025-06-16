@@ -182,7 +182,7 @@ export default function RegisterAndPay() {
   });
 
   // Effect para manejar plan preseleccionado
-  React.useEffect(() => {
+  useEffect(() => {
     if (preselectedPlanId && memberships.length > 0 && !selectedMembership) {
       const preselectedPlan = memberships.find((m: MembershipType) => m.id.toString() === preselectedPlanId);
       if (preselectedPlan) {
