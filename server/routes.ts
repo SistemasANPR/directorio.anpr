@@ -1658,12 +1658,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/representative/dashboard/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      console.log("Dashboard request for user:", userId);
       
       // Get user companies
       const companies = await storage.getCompaniesByUser(userId);
+      console.log("Found companies:", companies.length);
       
       // Get payment history
       const payments = await storage.getUserPayments(userId);
+      console.log("Found payments:", payments.length);
       
       // Get current membership info
       let currentMembership = null;
@@ -1671,17 +1674,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentMembership = await storage.getMembershipType(companies[0].membershipTypeId);
       }
 
-      res.json({
-        companies,
-        payments,
+      const dashboardData = {
+        companies: companies || [],
+        payments: payments || [],
         currentMembership,
         stats: {
-          totalCompanies: companies.length,
-          activePayments: payments.filter(p => p.status === 'succeeded').length,
+          totalCompanies: companies?.length || 0,
+          activePayments: payments?.filter(p => p.status === 'succeeded').length || 0,
           nextRenewal: companies[0]?.fechaFinMembresia || null
         }
-      });
+      };
+
+      console.log("Sending dashboard data:", JSON.stringify(dashboardData, null, 2));
+      res.json(dashboardData);
     } catch (error: any) {
+      console.error("Dashboard error:", error);
       res.status(500).json({ error: error.message });
     }
   });
