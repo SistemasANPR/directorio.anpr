@@ -48,6 +48,42 @@ export default function Login() {
         // Redirigir al dashboard después de crear cuenta
         setTimeout(() => setLocation("/dashboard"), 1000);
       } else {
+        // Try temporary login first (for newly registered users)
+        try {
+          const tempResponse = await fetch('/api/temp-login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              email: data.email,
+              password: data.password
+            })
+          });
+
+          if (tempResponse.ok) {
+            const userData = await tempResponse.json();
+            toast({
+              title: "Bienvenido",
+              description: data.rememberMe 
+                ? "Has iniciado sesión exitosamente. Tu sesión será recordada."
+                : "Has iniciado sesión exitosamente",
+            });
+            
+            // Redirect based on user role
+            if (userData.user.roleId === 2) { // Representative role
+              setTimeout(() => setLocation("/representative-dashboard"), 1000);
+            } else {
+              setTimeout(() => setLocation("/dashboard"), 1000);
+            }
+            return;
+          }
+        } catch (tempError) {
+          console.log('Temporary login failed, trying Firebase...');
+        }
+
+        // Fallback to Firebase authentication
         await signInWithEmail(data.email, data.password, data.rememberMe);
         toast({
           title: "Bienvenido",
@@ -71,6 +107,8 @@ export default function Login() {
         errorMessage = "La contraseña es muy débil";
       } else if (error.code === "auth/invalid-email") {
         errorMessage = "Email inválido";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       toast({
