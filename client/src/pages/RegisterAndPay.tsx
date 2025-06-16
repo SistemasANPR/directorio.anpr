@@ -692,10 +692,13 @@ export default function RegisterAndPay() {
                               ? 'border-[#bcce16] bg-green-100 scale-105 ring-2 ring-[#bcce16] ring-opacity-50' 
                               : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg'
                           }`}
-                          onClick={() => {
-                            if (opcion.periodicidad === "mensual" || opcion.periodicidad === "anual") {
-                              setSelectedPeriod(opcion.periodicidad);
-                            }
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Cambiando periodicidad a:', opcion.periodicidad, 'desde:', selectedPeriod);
+                            const newPeriod = opcion.periodicidad === "mensual" ? "mensual" : "anual";
+                            setSelectedPeriod(newPeriod);
+                            console.log('Nueva periodicidad establecida:', newPeriod);
                           }}
                           title={`Seleccionar pago ${opcion.periodicidad}`}
                         >
