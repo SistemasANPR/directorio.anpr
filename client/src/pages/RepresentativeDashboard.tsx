@@ -19,7 +19,11 @@ import {
   TrendingUp,
   DollarSign,
   Users,
-  Star
+  Star,
+  Award,
+  Settings,
+  History,
+  AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -181,11 +185,12 @@ export default function RepresentativeDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
           <TabsTrigger value="company">Mi Empresa</TabsTrigger>
-          <TabsTrigger value="payments">Historial de Pagos</TabsTrigger>
+          <TabsTrigger value="certificates">Certificados y Premios</TabsTrigger>
           <TabsTrigger value="membership">Plan de Membresía</TabsTrigger>
+          <TabsTrigger value="payments">Historial de Pagos</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -422,79 +427,211 @@ export default function RepresentativeDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Membership Tab */}
-        <TabsContent value="membership">
+        {/* Certificates Tab */}
+        <TabsContent value="certificates">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Crown className="h-5 w-5" />
-                Plan de Membresía Actual
+                <Award className="h-5 w-5" />
+                Certificados y Premios
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {currentMembership ? (
-                <div className="space-y-6">
-                  <div className="border-2 border-[#bcce16] rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-2xl font-bold flex items-center gap-2">
-                          <Crown className="h-6 w-6 text-[#bcce16]" />
-                          {currentMembership.nombrePlan}
-                        </h3>
-                        <p className="text-gray-600">{currentMembership.descripcionPlan}</p>
-                      </div>
-                      <div className="text-right">
-                        {currentMembership.opcionesPrecios.map((precio, idx) => (
-                          <div key={idx} className="mb-1">
-                            <span className="text-2xl font-bold text-[#bcce16]">
-                              ${precio.costo.toLocaleString()}
-                            </span>
-                            <span className="text-sm text-gray-600 ml-1">
-                              / {precio.periodicidad.toLowerCase()}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+              <div className="space-y-6">
+                {/* Add New Certificate Button */}
+                <div className="flex justify-end">
+                  <Button style={{ backgroundColor: '#bcce16' }}>
+                    <Award className="w-4 h-4 mr-2" />
+                    Agregar Certificado
+                  </Button>
+                </div>
+
+                {/* Certificates List - Only user's own certificates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Placeholder for user certificates */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <Award className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                    <h3 className="font-semibold text-gray-700 mb-2">Sin certificados</h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      Agrega certificados y premios para mostrar la credibilidad de tu empresa
+                    </p>
+                    <Button variant="outline" size="sm">
+                      Subir Certificado
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Info Section */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-blue-800 mb-1">Información importante</h4>
+                      <p className="text-blue-700 text-sm">
+                        Solo puedes ver y gestionar los certificados que has subido. Los certificados administrados por el sistema no aparecen aquí.
+                      </p>
                     </div>
-                    
-                    {currentMembership.beneficios && (
-                      <div>
-                        <h4 className="font-semibold mb-3">Beneficios Incluidos:</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {currentMembership.beneficios.split('\n').map((benefit, idx) => (
-                            <div key={idx} className="flex items-center gap-2 text-sm">
-                              <Star className="h-4 w-4 text-[#bcce16]" />
-                              {benefit}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Membership Tab */}
+        <TabsContent value="membership">
+          <div className="space-y-6">
+            {/* Current Plan Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  Plan de Membresía Actual
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {currentMembership ? (
+                  <div className="space-y-6">
+                    <div className="border-2 border-[#bcce16] rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-2xl font-bold flex items-center gap-2">
+                            <Crown className="h-6 w-6 text-[#bcce16]" />
+                            {currentMembership.nombrePlan}
+                          </h3>
+                          <p className="text-gray-600">{currentMembership.descripcionPlan}</p>
+                        </div>
+                        <div className="text-right">
+                          {currentMembership.opcionesPrecios?.map((precio, idx) => (
+                            <div key={idx} className="mb-1">
+                              <span className="text-2xl font-bold text-[#bcce16]">
+                                ${precio.costo?.toLocaleString()}
+                              </span>
+                              <span className="text-sm text-gray-600 ml-1">
+                                / {precio.periodicidad?.toLowerCase()}
+                              </span>
                             </div>
                           ))}
                         </div>
                       </div>
-                    )}
+                      
+                      {/* Membership Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-sm text-gray-600">Fecha de Inicio</p>
+                          <p className="font-semibold">
+                            {primaryCompany?.fechaInicioMembresia ? 
+                              format(new Date(primaryCompany.fechaInicioMembresia), 'dd/MM/yyyy', { locale: es }) : 
+                              'N/A'
+                            }
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-sm text-gray-600">Fecha de Vencimiento</p>
+                          <p className="font-semibold">
+                            {primaryCompany?.fechaFinMembresia ? 
+                              format(new Date(primaryCompany.fechaFinMembresia), 'dd/MM/yyyy', { locale: es }) : 
+                              'N/A'
+                            }
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-sm text-gray-600">Periodicidad</p>
+                          <p className="font-semibold capitalize">
+                            {primaryCompany?.membershipPeriodicidad || 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {currentMembership.beneficios && (
+                        <div>
+                          <h4 className="font-semibold mb-3">Beneficios Incluidos:</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {currentMembership.beneficios.split('\n').map((benefit, idx) => (
+                              <div key={idx} className="flex items-center gap-2 text-sm">
+                                <Star className="h-4 w-4 text-[#bcce16]" />
+                                {benefit}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Plan Management Actions */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Button style={{ backgroundColor: '#bcce16' }} className="w-full">
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Renovar Membresía
+                      </Button>
+                      <Button variant="outline" className="w-full">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Cambiar Plan
+                      </Button>
+                      <Button variant="destructive" className="w-full">
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Cancelar Plan
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <div className="flex gap-4">
+                ) : (
+                  <div className="text-center py-8">
+                    <Crown className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No hay plan activo</h3>
+                    <p className="text-gray-600 mb-4">Selecciona un plan de membresía para comenzar.</p>
                     <Button style={{ backgroundColor: '#bcce16' }}>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Renovar Membresía
-                    </Button>
-                    <Button variant="outline">
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      Cambiar a Plan Superior
+                      Ver Planes Disponibles
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Crown className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No hay plan activo</h3>
-                  <p className="text-gray-600 mb-4">Selecciona un plan de membresía para comenzar.</p>
-                  <Button style={{ backgroundColor: '#bcce16' }}>
-                    Ver Planes Disponibles
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Payment History within Membership Tab */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" />
+                  Historial de Pagos del Plan
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {payments.length > 0 ? (
+                  <div className="space-y-4">
+                    {payments.map((payment) => (
+                      <div key={payment.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-[#bcce16] bg-opacity-10 rounded-full flex items-center justify-center">
+                              <DollarSign className="w-6 h-6 text-[#bcce16]" />
+                            </div>
+                            <div>
+                              <p className="font-semibold">
+                                ${parseFloat(payment.amount).toLocaleString()} {payment.currency.toUpperCase()}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {format(new Date(payment.createdAt), 'dd/MM/yyyy HH:mm', { locale: es })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {getStatusBadge(payment.status)}
+                            <p className="text-xs text-gray-500 mt-1">ID: {payment.id}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <History className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No hay pagos registrados</h3>
+                    <p className="text-gray-600">Tus pagos de membresía aparecerán aquí.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

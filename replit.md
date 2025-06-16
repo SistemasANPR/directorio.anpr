@@ -141,6 +141,11 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 16, 2025: Enhanced representative dashboard with new sections and improved functionality
+- June 16, 2025: Added "Certificados y Premios" section for user-specific certificates management
+- June 16, 2025: Improved "Plan de Membresía" section with complete information, cancellation/change options, and integrated payment history
+- June 16, 2025: Implemented temporary authentication system for newly registered users
+- June 16, 2025: Fixed periodicidad selection functionality in registration flow
 - June 16, 2025: Fixed payment process flow - Step 3 verification now always shows
 - June 16, 2025: Added plan verification with pricing options selection
 - June 16, 2025: Implemented anti-autofill solution for company form fields
