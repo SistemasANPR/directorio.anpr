@@ -141,6 +141,8 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 16, 2025: Completed terminology change from "Planes de membresía" to "Planes" across entire system
+- June 16, 2025: Updated all components including RepresentativeDashboard, Memberships, MembershipsNew, AddCompanyModal, and Sidebar
 - June 16, 2025: Enhanced representative dashboard with new sections and improved functionality
 - June 16, 2025: Added "Certificados y Premios" section for user-specific certificates management
 - June 16, 2025: Improved "Plan de Membresía" section with complete information, cancellation/change options, and integrated payment history

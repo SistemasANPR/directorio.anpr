@@ -52,7 +52,7 @@ const navigationItems = [
         requireAdmin: false,
       },
       {
-        name: "Membresías",
+        name: "Planes",
         href: "/membresias",
         requireAdmin: false,
       },

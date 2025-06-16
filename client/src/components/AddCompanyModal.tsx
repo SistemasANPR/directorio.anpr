@@ -1440,7 +1440,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
             <div className="space-y-6">
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-primary">Información del Plan</h3>
-                <p className="text-sm text-gray-600">Configuración de la membresía y método de pago</p>
+                <p className="text-sm text-gray-600">Configuración del plan y método de pago</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1586,10 +1586,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   name="notasMembresia"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Notas de Membresía</FormLabel>
+                      <FormLabel>Notas del Plan</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Notas adicionales sobre la membresía, condiciones especiales, etc."
+                          placeholder="Notas adicionales sobre el plan, condiciones especiales, etc."
                           rows={3}
                           {...field} 
                         />
