@@ -87,7 +87,10 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
               Ubicación
             </TableHead>
             <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
-              Membresía
+              Plan
+            </TableHead>
+            <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
+              Representante
             </TableHead>
             <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
               Estado
@@ -143,6 +146,23 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
                     <Badge className={getMembershipBadgeColor(company.membershipType.nombrePlan)}>
                       {company.membershipType.nombrePlan}
                     </Badge>
+                  )}
+                </TableCell>
+                <TableCell className="py-4 px-4">
+                  {company.user ? (
+                    <div className="flex items-center space-x-2">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-xs">
+                          {company.user.username?.charAt(0).toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{company.user.username}</p>
+                        <p className="text-xs text-gray-500">{company.user.email}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-gray-400">Sin asignar</span>
                   )}
                 </TableCell>
                 <TableCell className="py-4 px-4">
