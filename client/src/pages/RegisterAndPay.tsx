@@ -687,23 +687,35 @@ export default function RegisterAndPay() {
                       {selectedMembership.opcionesPrecios.map((opcion, index) => (
                         <div 
                           key={index}
-                          className={`p-4 rounded-lg border-3 cursor-pointer transition-all shadow-md ${
+                          className={`p-4 rounded-lg border-3 cursor-pointer transition-all shadow-md hover:scale-102 ${
                             selectedPeriod === opcion.periodicidad 
-                              ? 'border-[#bcce16] bg-green-100 scale-105' 
-                              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                              ? 'border-[#bcce16] bg-green-100 scale-105 ring-2 ring-[#bcce16] ring-opacity-50' 
+                              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg'
                           }`}
                           onClick={() => {
                             if (opcion.periodicidad === "mensual" || opcion.periodicidad === "anual") {
                               setSelectedPeriod(opcion.periodicidad);
                             }
                           }}
+                          title={`Seleccionar pago ${opcion.periodicidad}`}
                         >
                           <div className="flex justify-between items-center">
-                            <div>
-                              <span className="font-bold text-lg capitalize">{opcion.periodicidad}</span>
-                              {opcion.periodicidad === "anual" && (
-                                <Badge variant="secondary" className="ml-2 bg-green-200 text-green-800">⭐ Recomendado</Badge>
-                              )}
+                            <div className="flex items-center gap-2">
+                              <div className={`w-4 h-4 rounded-full border-2 ${
+                                selectedPeriod === opcion.periodicidad 
+                                  ? 'bg-[#bcce16] border-[#bcce16]' 
+                                  : 'border-gray-400'
+                              }`}>
+                                {selectedPeriod === opcion.periodicidad && (
+                                  <div className="w-2 h-2 bg-white rounded-full m-auto mt-0.5"></div>
+                                )}
+                              </div>
+                              <div>
+                                <span className="font-bold text-lg capitalize">{opcion.periodicidad}</span>
+                                {opcion.periodicidad === "anual" && (
+                                  <Badge variant="secondary" className="ml-2 bg-green-200 text-green-800">⭐ Recomendado</Badge>
+                                )}
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="font-bold text-xl text-[#bcce16]">${opcion.costo.toLocaleString()} MXN</p>
