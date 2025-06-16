@@ -77,7 +77,7 @@ export default function Login() {
           // Redirect based on user role
           const userRole = tempResult.user.role?.id || tempResult.user.roleId;
           if (userRole === 2) { // Representative role
-            setTimeout(() => setLocation("/representative-dashboard"), 1000);
+            setTimeout(() => setLocation("/dashboard-representante"), 1000);
           } else {
             setTimeout(() => setLocation("/dashboard"), 1000);
           }

@@ -1638,6 +1638,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // For temp users, skip password validation for now (in production, use proper hashing)
       console.log("Login successful for temp user:", user.id);
+      
+      // Convert role string to roleId for consistency
+      let roleId = 1; // Default to user role
+      if (user.role === "admin") roleId = 1;
+      else if (user.role === "representante") roleId = 2;
+      
       res.json({ 
         success: true,
         user: { 
@@ -1645,6 +1651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email, 
           displayName: user.displayName,
           role: user.role,
+          roleId: roleId,
           firebaseUid: user.firebaseUid
         }
       });
