@@ -528,9 +528,16 @@ export default function RegisterAndPay() {
                       <Textarea 
                         placeholder="Describe tu empresa, servicios o productos..." 
                         rows={4}
-                        autoComplete="off"
-                        data-form-type="other"
-                        {...field} 
+                        autoComplete="nope"
+                        readOnly
+                        onFocus={(e) => {
+                          e.target.removeAttribute('readonly');
+                          if (e.target.value && e.target.value !== '') {
+                            e.target.value = '';
+                            field.onChange('');
+                          }
+                        }}
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -547,9 +554,16 @@ export default function RegisterAndPay() {
                     <FormControl>
                       <Input 
                         placeholder="https://www.empresa.com" 
-                        autoComplete="off"
-                        data-form-type="other"
-                        {...field} 
+                        autoComplete="nope"
+                        readOnly
+                        onFocus={(e) => {
+                          e.target.removeAttribute('readonly');
+                          if (e.target.value && e.target.value !== '') {
+                            e.target.value = '';
+                            field.onChange('');
+                          }
+                        }}
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
