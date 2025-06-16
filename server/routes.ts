@@ -1642,7 +1642,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Convert role string to roleId for consistency
       let roleId = 1; // Default to user role
       if (user.role === "admin") roleId = 1;
-      else if (user.role === "representante") roleId = 2;
+      else if (user.role === "representative" || user.role === "representante") roleId = 2;
       
       res.json({ 
         success: true,
