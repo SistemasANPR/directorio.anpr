@@ -161,19 +161,9 @@ export default function Sidebar({ className = "" }: SidebarProps) {
   // Use different navigation based on impersonation status
   const currentNavItems = isImpersonating ? representativeNavItems : navigationItems;
   
-  console.log("Sidebar - user:", user);
-  console.log("Sidebar - isAdmin:", isAdmin);
-  console.log("Sidebar - isImpersonating:", isImpersonating);
-  console.log("Sidebar - currentNavItems:", currentNavItems);
-  
-  const filteredNavItems = currentNavItems.filter(item => {
-    const shouldShow = !item.requireAdmin || (isAdmin && !isImpersonating);
-    console.log(`Item "${item.name}" - requireAdmin: ${item.requireAdmin}, shouldShow: ${shouldShow}`);
-    return shouldShow;
-  });
-  
-  console.log("Sidebar - filteredNavItems count:", filteredNavItems.length);
-  console.log("Sidebar - admin items should show:", isAdmin && !isImpersonating);
+  const filteredNavItems = currentNavItems.filter(item => 
+    !item.requireAdmin || (isAdmin && !isImpersonating)
+  );
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems(prev => 

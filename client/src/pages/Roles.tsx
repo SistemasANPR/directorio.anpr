@@ -43,7 +43,9 @@ const availablePermissions = [
 export default function Roles() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -178,8 +180,15 @@ export default function Roles() {
       return;
     }
     
-    if (confirm("¿Estás seguro de que deseas eliminar este rol?")) {
-      deleteMutation.mutate(role.id);
+    setRoleToDelete(role);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (roleToDelete) {
+      deleteMutation.mutate(roleToDelete.id);
+      setIsDeleteModalOpen(false);
+      setRoleToDelete(null);
     }
   };
 
@@ -534,6 +543,37 @@ export default function Roles() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar eliminación</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar el rol "{roleToDelete?.nombre}"? 
+              Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setRoleToDelete(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Eliminando..." : "Eliminar"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

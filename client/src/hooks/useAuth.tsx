@@ -79,9 +79,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const isAdmin = user?.role === "admin" || (typeof user?.role === 'object' && (user?.role as any)?.nombre === "admin");
-  
-  console.log("useAuth - user:", user);
-  console.log("useAuth - isAdmin calculation:", isAdmin);
 
   const impersonateCompany = (company: any) => {
     if (isAdmin) {
