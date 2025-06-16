@@ -49,50 +49,60 @@ export default function Login() {
         setTimeout(() => setLocation("/dashboard"), 1000);
       } else {
         // Try temporary login first (for newly registered users)
-        try {
-          const tempResponse = await fetch('/api/temp-login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              email: data.email,
-              password: data.password
-            })
-          });
+        const tempResponse = await fetch('/api/login-temp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password
+          })
+        });
 
-          if (tempResponse.ok) {
-            const userData = await tempResponse.json();
+        const tempResult = await tempResponse.json();
+
+        if (tempResponse.ok && tempResult.success) {
+          // Store user data for session management
+          localStorage.setItem('tempUser', JSON.stringify(tempResult.user));
+          
+          toast({
+            title: "Bienvenido",
+            description: data.rememberMe 
+              ? "Has iniciado sesión exitosamente. Tu sesión será recordada."
+              : "Has iniciado sesión exitosamente",
+          });
+          
+          // Redirect based on user role
+          const userRole = tempResult.user.role?.id || tempResult.user.roleId;
+          if (userRole === 2) { // Representative role
+            setTimeout(() => setLocation("/representative-dashboard"), 1000);
+          } else {
+            setTimeout(() => setLocation("/dashboard"), 1000);
+          }
+          return;
+        }
+
+        // If temporary login failed, check error type
+        if (tempResult.error === "Please use Firebase login") {
+          try {
+            await signInWithEmail(data.email, data.password, data.rememberMe);
             toast({
               title: "Bienvenido",
               description: data.rememberMe 
                 ? "Has iniciado sesión exitosamente. Tu sesión será recordada."
                 : "Has iniciado sesión exitosamente",
             });
-            
-            // Redirect based on user role
-            if (userData.user.roleId === 2) { // Representative role
-              setTimeout(() => setLocation("/representative-dashboard"), 1000);
-            } else {
-              setTimeout(() => setLocation("/dashboard"), 1000);
-            }
+            setTimeout(() => setLocation("/dashboard"), 1000);
             return;
+          } catch (firebaseError: any) {
+            throw firebaseError;
           }
-        } catch (tempError) {
-          console.log('Temporary login failed, trying Firebase...');
         }
 
-        // Fallback to Firebase authentication
-        await signInWithEmail(data.email, data.password, data.rememberMe);
-        toast({
-          title: "Bienvenido",
-          description: data.rememberMe 
-            ? "Has iniciado sesión exitosamente. Tu sesión será recordada."
-            : "Has iniciado sesión exitosamente",
-        });
-        // Redirigir al dashboard después del login
-        setTimeout(() => setLocation("/dashboard"), 1000);
+        // For all other temp login failures, show the error message
+        throw new Error(tempResult.error || "Credenciales incorrectas");
       }
     } catch (error: any) {
       let errorMessage = "Ha ocurrido un error";
