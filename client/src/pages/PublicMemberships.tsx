@@ -425,7 +425,7 @@ export default function PublicMemberships() {
                     <div className="mt-auto">
                       <Button 
                         className={`w-full ${colorScheme.bg} hover:opacity-90 text-white font-semibold py-3`}
-                        onClick={() => setLocation(`/checkout-plan/${membership.id}`)}
+                        onClick={() => setLocation(`/registro-y-pago?plan=${membership.id}`)}
                       >
                         Elegir Plan
                       </Button>

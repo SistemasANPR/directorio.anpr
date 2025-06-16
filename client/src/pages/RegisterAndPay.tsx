@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -149,6 +149,10 @@ export default function RegisterAndPay() {
   const [clientSecret, setClientSecret] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Detectar si viene con un plan preseleccionado
+  const urlParams = new URLSearchParams(window.location.search);
+  const preselectedPlanId = urlParams.get('plan');
+
   const userForm = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -176,6 +180,16 @@ export default function RegisterAndPay() {
   const { data: memberships = [] } = useQuery<MembershipType[]>({
     queryKey: ["/api/membership-types/public"],
   });
+
+  // Effect para manejar plan preseleccionado
+  React.useEffect(() => {
+    if (preselectedPlanId && memberships.length > 0 && !selectedMembership) {
+      const preselectedPlan = memberships.find((m: MembershipType) => m.id.toString() === preselectedPlanId);
+      if (preselectedPlan) {
+        setSelectedMembership(preselectedPlan);
+      }
+    }
+  }, [preselectedPlanId, memberships, selectedMembership]);
 
   // Create payment intent
   const createPaymentMutation = useMutation({
@@ -259,7 +273,12 @@ export default function RegisterAndPay() {
 
   const handleCompanySubmit = (data: CompanyFormData) => {
     setCompanyData(data);
-    setCurrentStep(3);
+    // Si ya hay un plan preseleccionado, ir directamente al pago
+    if (selectedMembership) {
+      createPaymentMutation.mutate();
+    } else {
+      setCurrentStep(3);
+    }
   };
 
   const handleMembershipSelect = (membership: MembershipType) => {
@@ -504,50 +523,116 @@ export default function RegisterAndPay() {
               </Button>
             </div>
 
-            <div className="grid gap-4">
-              {memberships.map((membership) => {
-                const price = getSelectedPrice(membership);
-                return (
-                  <Card 
-                    key={membership.id} 
-                    className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-[#bcce16]"
-                    onClick={() => handleMembershipSelect(membership)}
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="flex items-center gap-2">
-                            <Crown className="h-5 w-5 text-[#bcce16]" />
-                            {membership.nombrePlan}
-                          </CardTitle>
-                          <p className="text-gray-600 mt-1">{membership.descripcionPlan}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-[#bcce16]">
-                            ${price.toLocaleString()}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {selectedPeriod === "anual" ? "por año" : "por mes"}
-                          </p>
-                        </div>
+            {selectedMembership ? (
+              // Mostrar plan preseleccionado
+              <div className="space-y-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-green-800 text-sm font-medium">
+                    ✓ Plan seleccionado desde la vista de membresías
+                  </p>
+                </div>
+                
+                <Card className="border-2 border-[#bcce16] shadow-lg">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Crown className="h-5 w-5 text-[#bcce16]" />
+                          {selectedMembership.nombrePlan}
+                        </CardTitle>
+                        <p className="text-gray-600 mt-1">{selectedMembership.descripcionPlan}</p>
                       </div>
-                    </CardHeader>
-                    {membership.beneficios && (
-                      <CardContent>
-                        <div className="space-y-2">
-                          {membership.beneficios.split('\n').map((benefit, idx) => (
-                            <div key={idx} className="flex items-center gap-2 text-sm">
-                              <Star className="h-4 w-4 text-[#bcce16]" />
-                              {benefit}
-                            </div>
-                          ))}
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-[#bcce16]">
+                          ${getSelectedPrice(selectedMembership).toLocaleString()}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {selectedPeriod === "anual" ? "por año" : "por mes"}
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  {selectedMembership.beneficios && (
+                    <CardContent>
+                      <div className="space-y-2">
+                        {selectedMembership.beneficios.split('\n').map((benefit: string, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm">
+                            <Star className="h-4 w-4 text-[#bcce16]" />
+                            {benefit}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+
+                <div className="flex gap-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedMembership(null);
+                      window.history.replaceState({}, '', '/registro-y-pago');
+                    }}
+                    className="flex-1"
+                  >
+                    Cambiar Plan
+                  </Button>
+                  <Button 
+                    onClick={() => createPaymentMutation.mutate()}
+                    className="flex-1"
+                    style={{ backgroundColor: '#bcce16' }}
+                  >
+                    Continuar con este Plan
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Mostrar todos los planes para selección
+              <div className="grid gap-4">
+                {(memberships as MembershipType[]).map((membership: MembershipType) => {
+                  const price = getSelectedPrice(membership);
+                  return (
+                    <Card 
+                      key={membership.id} 
+                      className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-[#bcce16]"
+                      onClick={() => handleMembershipSelect(membership)}
+                    >
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="flex items-center gap-2">
+                              <Crown className="h-5 w-5 text-[#bcce16]" />
+                              {membership.nombrePlan}
+                            </CardTitle>
+                            <p className="text-gray-600 mt-1">{membership.descripcionPlan}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-[#bcce16]">
+                              ${price.toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {selectedPeriod === "anual" ? "por año" : "por mes"}
+                            </p>
+                          </div>
                         </div>
-                      </CardContent>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
+                      </CardHeader>
+                      {membership.beneficios && (
+                        <CardContent>
+                          <div className="space-y-2">
+                            {membership.beneficios.split('\n').map((benefit: string, idx: number) => (
+                              <div key={idx} className="flex items-center gap-2 text-sm">
+                                <Star className="h-4 w-4 text-[#bcce16]" />
+                                {benefit}
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
 
             <Button 
               variant="outline" 
