@@ -140,5 +140,8 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-Changelog:
-- June 16, 2025. Initial setup
+Recent Changes:
+- June 16, 2025: Fixed payment process flow - Step 3 verification now always shows
+- June 16, 2025: Added plan verification with pricing options selection
+- June 16, 2025: Implemented anti-autofill solution for company form fields
+- June 16, 2025: Initial setup

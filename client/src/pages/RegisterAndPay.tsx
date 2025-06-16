@@ -287,17 +287,13 @@ export default function RegisterAndPay() {
 
   const handleCompanySubmit = (data: CompanyFormData) => {
     setCompanyData(data);
-    // Si ya hay un plan preseleccionado, ir directamente al pago
-    if (selectedMembership) {
-      createPaymentMutation.mutate();
-    } else {
-      setCurrentStep(3);
-    }
+    // Siempre ir al paso 3 para verificación del plan
+    setCurrentStep(3);
   };
 
   const handleMembershipSelect = (membership: MembershipType) => {
     setSelectedMembership(membership);
-    createPaymentMutation.mutate();
+    // No ir automáticamente al pago, dejar que el usuario verifique primero
   };
 
   const handlePaymentSuccess = () => {
@@ -844,14 +840,26 @@ export default function RegisterAndPay() {
               </div>
             )}
 
-            <Button 
-              variant="outline" 
-              onClick={() => setCurrentStep(2)}
-              className="w-full"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver a Datos de Empresa
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentStep(2)}
+                className="flex-1"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Volver a Datos de Empresa
+              </Button>
+              {selectedMembership && (
+                <Button 
+                  onClick={() => createPaymentMutation.mutate()}
+                  className="flex-1"
+                  style={{ backgroundColor: '#bcce16' }}
+                >
+                  Proceder al Pago
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         );
 
