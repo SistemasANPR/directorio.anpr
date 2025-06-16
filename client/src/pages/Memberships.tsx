@@ -245,8 +245,8 @@ export default function Memberships() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Tipos de Membresía</h1>
-          <p className="text-gray-600 mt-1">Administra los planes de membresía disponibles para las empresas</p>
+          <h1 className="text-3xl font-bold text-primary">Planes</h1>
+          <p className="text-gray-600 mt-1">Administra los planes disponibles para las empresas</p>
         </div>
         <div className="flex items-center space-x-3">
           {/* View Toggle */}
@@ -273,7 +273,7 @@ export default function Memberships() {
             <DialogTrigger asChild>
               <Button className="flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
-                <span>Nueva Membresía</span>
+                <span>Nuevo Plan</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">

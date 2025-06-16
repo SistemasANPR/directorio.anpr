@@ -1439,7 +1439,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
             {/* Sección: Información de Membresía */}
             <div className="space-y-6">
               <div className="border-b pb-4">
-                <h3 className="text-lg font-semibold text-primary">Información de Membresía</h3>
+                <h3 className="text-lg font-semibold text-primary">Información del Plan</h3>
                 <p className="text-sm text-gray-600">Configuración de la membresía y método de pago</p>
               </div>
 

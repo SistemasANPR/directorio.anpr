@@ -183,7 +183,7 @@ export default function MembershipsNew() {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este plan de membresía?")) {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este plan?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -201,7 +201,7 @@ export default function MembershipsNew() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-32">Cargando planes de membresía...</div>;
+    return <div className="flex justify-center items-center h-32">Cargando planes...</div>;
   }
 
   return (
@@ -382,7 +382,7 @@ export default function MembershipsNew() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Planes de Membresía</CardTitle>
+          <CardTitle>Planes</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>

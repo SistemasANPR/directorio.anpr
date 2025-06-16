@@ -354,7 +354,7 @@ export default function RepresentativeDashboard() {
                         </Button>
                         <Button variant="outline" className="w-full justify-start">
                           <RefreshCw className="w-4 h-4 mr-2" />
-                          Renovar Membresía
+                          Renovar Plan
                         </Button>
                         <Button variant="outline" className="w-full justify-start">
                           <Crown className="w-4 h-4 mr-2" />
@@ -562,7 +562,7 @@ export default function RepresentativeDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Button style={{ backgroundColor: '#bcce16' }} className="w-full">
                         <RefreshCw className="w-4 h-4 mr-2" />
-                        Renovar Membresía
+                        Renovar Plan
                       </Button>
                       <Button variant="outline" className="w-full">
                         <TrendingUp className="w-4 h-4 mr-2" />
