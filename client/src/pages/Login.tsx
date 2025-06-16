@@ -76,10 +76,14 @@ export default function Login() {
           
           // Redirect based on user role
           const userRole = tempResult.user.role?.id || tempResult.user.roleId;
+          console.log("User role detected:", userRole, "Full user:", tempResult.user);
+          
           if (userRole === 2) { // Representative role
-            setTimeout(() => setLocation("/dashboard-representante"), 1000);
+            console.log("Redirecting to representative dashboard");
+            setLocation("/dashboard-representante");
           } else {
-            setTimeout(() => setLocation("/dashboard"), 1000);
+            console.log("Redirecting to admin dashboard");
+            setLocation("/dashboard");
           }
           return;
         }
