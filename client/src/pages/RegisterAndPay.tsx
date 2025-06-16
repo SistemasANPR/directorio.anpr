@@ -670,6 +670,17 @@ export default function RegisterAndPay() {
                     <p className="text-purple-700 text-sm">
                       Selecciona cómo prefieres pagar tu membresía {selectedMembership.nombrePlan}
                     </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedMembership(null);
+                        window.history.replaceState({}, '', '/registro-y-pago');
+                      }}
+                      className="mt-2 text-purple-700 border-purple-300 hover:bg-purple-200"
+                    >
+                      Cambiar a otro plan
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4">
@@ -743,25 +754,7 @@ export default function RegisterAndPay() {
                   )}
                 </Card>
 
-                <div className="flex gap-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setSelectedMembership(null);
-                      window.history.replaceState({}, '', '/registro-y-pago');
-                    }}
-                    className="flex-1"
-                  >
-                    Cambiar Plan
-                  </Button>
-                  <Button 
-                    onClick={() => createPaymentMutation.mutate()}
-                    className="flex-1"
-                    style={{ backgroundColor: '#bcce16' }}
-                  >
-                    Proceder al Pago
-                  </Button>
-                </div>
+
               </div>
             ) : (
               // Mostrar todos los planes para selección
@@ -840,7 +833,7 @@ export default function RegisterAndPay() {
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 mt-6">
               <Button 
                 variant="outline" 
                 onClick={() => setCurrentStep(2)}
@@ -854,9 +847,19 @@ export default function RegisterAndPay() {
                   onClick={() => createPaymentMutation.mutate()}
                   className="flex-1"
                   style={{ backgroundColor: '#bcce16' }}
+                  disabled={createPaymentMutation.isPending}
                 >
-                  Proceder al Pago
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  {createPaymentMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Preparando...
+                    </>
+                  ) : (
+                    <>
+                      Proceder al Pago
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               )}
             </div>
