@@ -614,13 +614,94 @@ export default function RegisterAndPay() {
             </div>
 
             {selectedMembership ? (
-              // Mostrar plan preseleccionado
+              // Mostrar plan preseleccionado con verificación
               <div className="space-y-6">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <p className="text-green-800 text-sm font-medium">
                     ✓ Plan seleccionado desde la vista de membresías
                   </p>
                 </div>
+                
+                {/* Verificación del plan seleccionado */}
+                <Card className="border-2 border-blue-200 bg-blue-50">
+                  <CardHeader>
+                    <CardTitle className="text-blue-800 flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5" />
+                      Verificar tu Selección
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="font-medium">Plan:</span>
+                        <span>{selectedMembership.nombrePlan}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Periodicidad:</span>
+                        <span className="capitalize">{selectedPeriod}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Precio:</span>
+                        <span className="font-bold text-[#bcce16]">
+                          ${getSelectedPrice(selectedMembership).toLocaleString()} {selectedPeriod === "anual" ? "por año" : "por mes"}
+                        </span>
+                      </div>
+                      {selectedPeriod === "anual" && (
+                        <div className="text-sm text-green-600 font-medium">
+                          💰 Ahorras 15% pagando anualmente
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Opciones de periodicidad disponibles */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium text-gray-700">
+                      Opciones de Pago Disponibles para {selectedMembership.nombrePlan}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-3">
+                      {selectedMembership.opcionesPrecios.map((opcion, index) => (
+                        <div 
+                          key={index}
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                            selectedPeriod === opcion.periodicidad 
+                              ? 'border-[#bcce16] bg-green-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => {
+                            if (opcion.periodicidad === "mensual" || opcion.periodicidad === "anual") {
+                              setSelectedPeriod(opcion.periodicidad);
+                            }
+                          }}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="font-medium capitalize">{opcion.periodicidad}</span>
+                              {opcion.periodicidad === "anual" && (
+                                <Badge variant="secondary" className="ml-2">Recomendado</Badge>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold">${opcion.costo.toLocaleString()}</p>
+                              <p className="text-sm text-gray-500">
+                                {opcion.periodicidad === "anual" ? "por año" : "por mes"}
+                              </p>
+                            </div>
+                          </div>
+                          {selectedPeriod === opcion.periodicidad && (
+                            <div className="mt-2 text-sm text-green-600">
+                              ✓ Seleccionado
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
                 
                 <Card className="border-2 border-[#bcce16] shadow-lg">
                   <CardHeader>
@@ -631,14 +712,6 @@ export default function RegisterAndPay() {
                           {selectedMembership.nombrePlan}
                         </CardTitle>
                         <p className="text-gray-600 mt-1">{selectedMembership.descripcionPlan}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-[#bcce16]">
-                          ${getSelectedPrice(selectedMembership).toLocaleString()}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {selectedPeriod === "anual" ? "por año" : "por mes"}
-                        </p>
                       </div>
                     </div>
                   </CardHeader>
@@ -672,13 +745,13 @@ export default function RegisterAndPay() {
                     className="flex-1"
                     style={{ backgroundColor: '#bcce16' }}
                   >
-                    Continuar con este Plan
+                    Proceder al Pago
                   </Button>
                 </div>
               </div>
             ) : (
               // Mostrar todos los planes para selección
-              <div className="grid gap-4">
+              <div className="grid gap-6">
                 {(memberships as MembershipType[]).map((membership: MembershipType) => {
                   const price = getSelectedPrice(membership);
                   return (
@@ -706,9 +779,38 @@ export default function RegisterAndPay() {
                           </div>
                         </div>
                       </CardHeader>
-                      {membership.beneficios && (
-                        <CardContent>
-                          <div className="space-y-2">
+                      
+                      {/* Opciones de precios disponibles */}
+                      <CardContent className="pt-0">
+                        <div className="space-y-3 mb-4">
+                          <h4 className="text-sm font-medium text-gray-700">Opciones de Pago:</h4>
+                          <div className="grid gap-2">
+                            {membership.opcionesPrecios.map((opcion, index) => (
+                              <div 
+                                key={index}
+                                className={`p-2 rounded border text-sm ${
+                                  selectedPeriod === opcion.periodicidad 
+                                    ? 'border-[#bcce16] bg-green-50 text-green-800' 
+                                    : 'border-gray-200 text-gray-600'
+                                }`}
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="capitalize font-medium">{opcion.periodicidad}</span>
+                                  <span className="font-bold">${opcion.costo.toLocaleString()}</span>
+                                </div>
+                                {opcion.periodicidad === "anual" && (
+                                  <div className="text-xs text-green-600 mt-1">
+                                    Ahorro recomendado
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {membership.beneficios && (
+                          <div className="space-y-2 border-t pt-3">
+                            <h4 className="text-sm font-medium text-gray-700">Beneficios incluidos:</h4>
                             {membership.beneficios.split('\n').map((benefit: string, idx: number) => (
                               <div key={idx} className="flex items-center gap-2 text-sm">
                                 <Star className="h-4 w-4 text-[#bcce16]" />
@@ -716,8 +818,8 @@ export default function RegisterAndPay() {
                               </div>
                             ))}
                           </div>
-                        </CardContent>
-                      )}
+                        )}
+                      </CardContent>
                     </Card>
                   );
                 })}
