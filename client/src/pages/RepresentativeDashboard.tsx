@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,8 +27,6 @@ import {
   Clock,
   Crown,
   Edit,
-  TrendingUp,
-  DollarSign,
   Star,
   Award,
   Settings,
@@ -36,7 +34,6 @@ import {
   AlertTriangle,
   FileText,
   BarChart3,
-  MessageSquare,
   Package,
   Target,
   Briefcase,
@@ -101,16 +98,8 @@ export default function RepresentativeDashboard() {
     enabled: !!user?.id,
   });
 
-  // Fetch membership types for plan changes
   const { data: availablePlans = [] } = useQuery({
     queryKey: ["/api/membership-types"],
-    queryFn: async () => {
-      const response = await fetch("/api/membership-types", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch plans");
-      return response.json();
-    },
   });
 
   if (isLoading) {
@@ -135,7 +124,6 @@ export default function RepresentativeDashboard() {
   const { companies, payments, currentMembership, stats } = dashboardData;
   const primaryCompany = companies[0];
 
-  // Cancel membership mutation
   const cancelMembershipMutation = useMutation({
     mutationFn: async () => {
       if (!primaryCompany) throw new Error("No company found");
@@ -209,7 +197,7 @@ export default function RepresentativeDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Montserrat', fontWeight: 700 }}>
-          Panel de Representante
+          Panel de Representante - Mejorado
         </h1>
         <p className="text-gray-600">
           Bienvenido, {user?.displayName || user?.email}
@@ -294,7 +282,6 @@ export default function RepresentativeDashboard() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Company Quick Info */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -330,7 +317,7 @@ export default function RepresentativeDashboard() {
                       className="w-full bg-[#bcce16] hover:bg-[#a8b814] text-black"
                     >
                       <Edit className="h-4 w-4 mr-2" />
-                      Completar información
+                      Gestionar empresa
                     </Button>
                   </div>
                 ) : (
@@ -348,7 +335,6 @@ export default function RepresentativeDashboard() {
               </CardContent>
             </Card>
 
-            {/* Plan Status */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -646,7 +632,6 @@ export default function RepresentativeDashboard() {
             <CardContent>
               {currentMembership && primaryCompany ? (
                 <div className="space-y-6">
-                  {/* Current Plan Info */}
                   <div className="bg-gradient-to-r from-[#bcce16]/10 to-[#bcce16]/5 p-6 rounded-lg border">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -680,7 +665,6 @@ export default function RepresentativeDashboard() {
                       </div>
                     </div>
 
-                    {/* Plan Benefits */}
                     <div className="mb-6">
                       <h4 className="font-semibold mb-3">Beneficios incluidos:</h4>
                       <div className="bg-white p-4 rounded-lg">
@@ -688,7 +672,6 @@ export default function RepresentativeDashboard() {
                       </div>
                     </div>
                     
-                    {/* Plan Actions */}
                     <div className="flex gap-3">
                       <Button 
                         onClick={handleChangePlan}
@@ -717,7 +700,6 @@ export default function RepresentativeDashboard() {
                     </div>
                   </div>
 
-                  {/* Available Plans Preview */}
                   <div>
                     <h4 className="font-semibold mb-4">Planes Disponibles</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -779,7 +761,6 @@ export default function RepresentativeDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Download/Export Actions */}
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
                     <h3 className="font-semibold">Historial Completo</h3>
@@ -791,7 +772,6 @@ export default function RepresentativeDashboard() {
                   </Button>
                 </div>
 
-                {/* Payments Table */}
                 {payments && payments.length > 0 ? (
                   <div className="border rounded-lg">
                     <Table>
@@ -851,7 +831,6 @@ export default function RepresentativeDashboard() {
                   </div>
                 )}
 
-                {/* Payment Summary */}
                 {payments && payments.length > 0 && (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-semibold mb-3">Resumen de Pagos</h4>
