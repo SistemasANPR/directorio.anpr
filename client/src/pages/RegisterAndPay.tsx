@@ -684,59 +684,58 @@ export default function RegisterAndPay() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4">
-                      {selectedMembership.opcionesPrecios.map((opcion, index) => (
-                        <button 
-                          key={index}
-                          type="button"
-                          className={`p-4 rounded-lg border-3 cursor-pointer transition-all shadow-md hover:scale-102 text-left w-full ${
-                            selectedPeriod === opcion.periodicidad 
-                              ? 'border-[#bcce16] bg-green-100 scale-105 ring-2 ring-[#bcce16] ring-opacity-50' 
-                              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg'
-                          }`}
-                          onClick={() => {
-                            console.log('CLICK DETECTADO - Cambiando de', selectedPeriod, 'a', opcion.periodicidad);
-                            const newPeriod = opcion.periodicidad === "mensual" ? "mensual" : "anual";
-                            setSelectedPeriod(newPeriod);
-                          }}
-                          title={`Seleccionar pago ${opcion.periodicidad}`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-4 h-4 rounded-full border-2 ${
-                                selectedPeriod === opcion.periodicidad 
-                                  ? 'bg-[#bcce16] border-[#bcce16]' 
-                                  : 'border-gray-400'
-                              }`}>
-                                {selectedPeriod === opcion.periodicidad && (
-                                  <div className="w-2 h-2 bg-white rounded-full m-auto mt-0.5"></div>
-                                )}
+                      {selectedMembership.opcionesPrecios.map((opcion, index) => {
+                        const isSelected = selectedPeriod === opcion.periodicidad;
+                        return (
+                          <div 
+                            key={index}
+                            className={`p-4 rounded-lg border-3 cursor-pointer transition-all shadow-md hover:scale-102 ${
+                              isSelected
+                                ? 'border-[#bcce16] bg-green-100 scale-105 ring-2 ring-[#bcce16] ring-opacity-50' 
+                                : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg'
+                            }`}
+                            onClick={() => {
+                              console.log('🔥 CLICK FUNCIONANDO! Cambiando a:', opcion.periodicidad);
+                              setSelectedPeriod(opcion.periodicidad as "mensual" | "anual");
+                            }}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  name="periodicidad"
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  className="w-4 h-4 text-[#bcce16] focus:ring-[#bcce16]"
+                                  style={{ accentColor: '#bcce16' }}
+                                />
+                                <div>
+                                  <span className="font-bold text-lg capitalize">{opcion.periodicidad}</span>
+                                  {opcion.periodicidad === "anual" && (
+                                    <Badge variant="secondary" className="ml-2 bg-green-200 text-green-800">⭐ Recomendado</Badge>
+                                  )}
+                                </div>
                               </div>
-                              <div>
-                                <span className="font-bold text-lg capitalize">{opcion.periodicidad}</span>
-                                {opcion.periodicidad === "anual" && (
-                                  <Badge variant="secondary" className="ml-2 bg-green-200 text-green-800">⭐ Recomendado</Badge>
-                                )}
+                              <div className="text-right">
+                                <p className="font-bold text-xl text-[#bcce16]">${opcion.costo.toLocaleString()} MXN</p>
+                                <p className="text-sm text-gray-600">
+                                  {opcion.periodicidad === "anual" ? "pago único anual" : "pago mensual"}
+                                </p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-xl text-[#bcce16]">${opcion.costo.toLocaleString()} MXN</p>
-                              <p className="text-sm text-gray-600">
-                                {opcion.periodicidad === "anual" ? "pago único anual" : "pago mensual"}
-                              </p>
-                            </div>
+                            {isSelected && (
+                              <div className="mt-3 p-2 bg-green-200 rounded text-center">
+                                <div className="text-green-800 font-bold">✅ OPCIÓN SELECCIONADA</div>
+                              </div>
+                            )}
+                            {opcion.periodicidad === "anual" && (
+                              <div className="mt-2 text-sm text-green-700 font-medium">
+                                🎯 Ahorra dinero con el pago anual
+                              </div>
+                            )}
                           </div>
-                          {selectedPeriod === opcion.periodicidad && (
-                            <div className="mt-3 p-2 bg-green-200 rounded text-center">
-                              <div className="text-green-800 font-bold">✅ OPCIÓN SELECCIONADA</div>
-                            </div>
-                          )}
-                          {opcion.periodicidad === "anual" && (
-                            <div className="mt-2 text-sm text-green-700 font-medium">
-                              🎯 Ahorra dinero con el pago anual
-                            </div>
-                          )}
-                        </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
