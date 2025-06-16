@@ -113,6 +113,28 @@ export default function RepresentativeDashboard() {
     },
   });
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#bcce16]"></div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-2">No hay datos disponibles</h2>
+          <p className="text-gray-600">No se encontró información de tu cuenta.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { companies, payments, currentMembership, stats } = dashboardData;
+  const primaryCompany = companies[0];
+
   // Cancel membership mutation
   const cancelMembershipMutation = useMutation({
     mutationFn: async () => {
@@ -135,28 +157,6 @@ export default function RepresentativeDashboard() {
       });
     },
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#bcce16]"></div>
-      </div>
-    );
-  }
-
-  if (!dashboardData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">No hay datos disponibles</h2>
-          <p className="text-gray-600">No se encontró información de tu cuenta.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const { companies, payments, currentMembership, stats } = dashboardData;
-  const primaryCompany = companies[0];
 
   const handleCancelMembership = () => {
     Swal.fire({
