@@ -685,20 +685,18 @@ export default function RegisterAndPay() {
                   <CardContent>
                     <div className="grid gap-4">
                       {selectedMembership.opcionesPrecios.map((opcion, index) => (
-                        <div 
+                        <button 
                           key={index}
-                          className={`p-4 rounded-lg border-3 cursor-pointer transition-all shadow-md hover:scale-102 ${
+                          type="button"
+                          className={`p-4 rounded-lg border-3 cursor-pointer transition-all shadow-md hover:scale-102 text-left w-full ${
                             selectedPeriod === opcion.periodicidad 
                               ? 'border-[#bcce16] bg-green-100 scale-105 ring-2 ring-[#bcce16] ring-opacity-50' 
                               : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-lg'
                           }`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Cambiando periodicidad a:', opcion.periodicidad, 'desde:', selectedPeriod);
+                          onClick={() => {
+                            console.log('CLICK DETECTADO - Cambiando de', selectedPeriod, 'a', opcion.periodicidad);
                             const newPeriod = opcion.periodicidad === "mensual" ? "mensual" : "anual";
                             setSelectedPeriod(newPeriod);
-                            console.log('Nueva periodicidad establecida:', newPeriod);
                           }}
                           title={`Seleccionar pago ${opcion.periodicidad}`}
                         >
@@ -737,7 +735,7 @@ export default function RegisterAndPay() {
                               🎯 Ahorra dinero con el pago anual
                             </div>
                           )}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </CardContent>
