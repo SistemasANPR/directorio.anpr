@@ -176,6 +176,20 @@ export default function RegisterAndPay() {
     },
   });
 
+  // Efecto para limpiar campos cuando se llega al paso 2
+  useEffect(() => {
+    if (currentStep === 2) {
+      companyForm.reset({
+        nombreEmpresa: "",
+        email1: "",
+        telefono1: "",
+        direccionFisica: "",
+        descripcionEmpresa: "",
+        sitioWeb: "",
+      });
+    }
+  }, [currentStep, companyForm]);
+
   // Fetch membership types
   const { data: memberships = [] } = useQuery<MembershipType[]>({
     queryKey: ["/api/membership-types/public"],
@@ -392,7 +406,13 @@ export default function RegisterAndPay() {
       case 2:
         return (
           <Form {...companyForm}>
-            <form onSubmit={companyForm.handleSubmit(handleCompanySubmit)} className="space-y-4" autoComplete="off">
+            {/* Campos falsos para engañar al navegador */}
+            <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+              <input type="text" name="fake_name" tabIndex={-1} autoComplete="off" />
+              <input type="email" name="fake_email" tabIndex={-1} autoComplete="off" />
+              <input type="tel" name="fake_phone" tabIndex={-1} autoComplete="off" />
+            </div>
+            <form onSubmit={companyForm.handleSubmit(handleCompanySubmit)} className="space-y-4" autoComplete="new-password">
               <FormField
                 control={companyForm.control}
                 name="nombreEmpresa"
@@ -402,9 +422,16 @@ export default function RegisterAndPay() {
                     <FormControl>
                       <Input 
                         placeholder="Nombre de tu empresa" 
-                        autoComplete="off"
-                        data-form-type="other"
-                        {...field} 
+                        autoComplete="nope"
+                        readOnly
+                        onFocus={(e) => {
+                          e.target.removeAttribute('readonly');
+                          if (e.target.value && e.target.value !== '') {
+                            e.target.value = '';
+                            field.onChange('');
+                          }
+                        }}
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -422,9 +449,16 @@ export default function RegisterAndPay() {
                       <Input 
                         type="email" 
                         placeholder="contacto@empresa.com" 
-                        autoComplete="off"
-                        data-form-type="other"
-                        {...field} 
+                        autoComplete="nope"
+                        readOnly
+                        onFocus={(e) => {
+                          e.target.removeAttribute('readonly');
+                          if (e.target.value && e.target.value !== '') {
+                            e.target.value = '';
+                            field.onChange('');
+                          }
+                        }}
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -441,9 +475,16 @@ export default function RegisterAndPay() {
                     <FormControl>
                       <Input 
                         placeholder="+52 777 123 4567" 
-                        autoComplete="off"
-                        data-form-type="other"
-                        {...field} 
+                        autoComplete="nope"
+                        readOnly
+                        onFocus={(e) => {
+                          e.target.removeAttribute('readonly');
+                          if (e.target.value && e.target.value !== '') {
+                            e.target.value = '';
+                            field.onChange('');
+                          }
+                        }}
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -460,9 +501,16 @@ export default function RegisterAndPay() {
                     <FormControl>
                       <Input 
                         placeholder="Dirección completa de la empresa" 
-                        autoComplete="off"
-                        data-form-type="other"
-                        {...field} 
+                        autoComplete="nope"
+                        readOnly
+                        onFocus={(e) => {
+                          e.target.removeAttribute('readonly');
+                          if (e.target.value && e.target.value !== '') {
+                            e.target.value = '';
+                            field.onChange('');
+                          }
+                        }}
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
