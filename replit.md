@@ -141,6 +141,11 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 16, 2025: Fixed user role assignment issue - users registering through plan purchases now correctly show as "Representante"
+- June 16, 2025: Updated complete-registration endpoint to assign 'representante' role instead of 'representative'
+- June 16, 2025: Enhanced Users page with proper role display including green badge for representatives
+- June 16, 2025: Added representative column to company dashboard showing user information with avatar, name, and email
+- June 16, 2025: Updated database to correct existing users with incorrect roles
 - June 16, 2025: Completed terminology change from "Planes de membresía" to "Planes" across entire system
 - June 16, 2025: Updated all components including RepresentativeDashboard, Memberships, MembershipsNew, AddCompanyModal, and Sidebar
 - June 16, 2025: Enhanced representative dashboard with new sections and improved functionality
