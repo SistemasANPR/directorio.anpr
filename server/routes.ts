@@ -1555,7 +1555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: userData.email,
         displayName: userData.nombre,
         firebaseUid: `pending_${Date.now()}_${userData.email}`, // Unique temporary identifier
-        role: 'representative', // Always assign representative role for paid users
+        role: 'representante', // Always assign representative role for paid users
       });
 
       // Create company

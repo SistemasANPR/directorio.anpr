@@ -213,8 +213,23 @@ export default function Users() {
         return "bg-red-100 text-red-800";
       case "user":
         return "bg-blue-100 text-blue-800";
+      case "representante":
+        return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Administrador";
+      case "user":
+        return "Usuario";
+      case "representante":
+        return "Representante";
+      default:
+        return role;
     }
   };
 
@@ -333,7 +348,7 @@ export default function Users() {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge className={getRoleBadgeColor(user.role)}>
-                          {user.role === "admin" ? "Administrador" : "Usuario"}
+                          {getRoleDisplayName(user.role)}
                         </Badge>
                       </TableCell>
                       <TableCell>
