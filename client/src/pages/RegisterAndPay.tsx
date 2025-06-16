@@ -593,8 +593,8 @@ export default function RegisterAndPay() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold mb-2">Selecciona tu Plan de Membresía</h3>
-              <p className="text-gray-600">Elige el plan que mejor se adapte a tus necesidades</p>
+              <h3 className="text-xl font-semibold mb-2">Verificar y Seleccionar Plan de Membresía</h3>
+              <p className="text-gray-600">Confirma tu plan y elige la periodicidad de pago</p>
             </div>
 
             <div className="flex gap-4 justify-center mb-6">
@@ -616,61 +616,74 @@ export default function RegisterAndPay() {
             {selectedMembership ? (
               // Mostrar plan preseleccionado con verificación
               <div className="space-y-6">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <p className="text-green-800 text-sm font-medium">
-                    ✓ Plan seleccionado desde la vista de membresías
+                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-600" />
+                    <p className="text-blue-800 font-semibold">
+                      Plan Preseleccionado - Verificar Antes de Pagar
+                    </p>
+                  </div>
+                  <p className="text-blue-700 text-sm mt-1">
+                    Revisa los detalles y cambia la periodicidad si lo deseas
                   </p>
                 </div>
                 
-                {/* Verificación del plan seleccionado */}
-                <Card className="border-2 border-blue-200 bg-blue-50">
-                  <CardHeader>
-                    <CardTitle className="text-blue-800 flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5" />
-                      Verificar tu Selección
+                {/* Verificación del plan seleccionado - NUEVA FUNCIONALIDAD */}
+                <Card className="border-4 border-orange-400 bg-orange-50 shadow-lg">
+                  <CardHeader className="bg-orange-100">
+                    <CardTitle className="text-orange-800 flex items-center gap-2 text-lg">
+                      <CheckCircle className="h-6 w-6" />
+                      🔍 VERIFICAR TU SELECCIÓN
                     </CardTitle>
+                    <p className="text-orange-700 text-sm">Confirma los detalles antes del pago</p>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="font-medium">Plan:</span>
-                        <span>{selectedMembership.nombrePlan}</span>
+                  <CardContent className="pt-4">
+                    <div className="space-y-4 bg-white p-4 rounded-lg">
+                      <div className="flex justify-between text-lg">
+                        <span className="font-bold">Plan:</span>
+                        <span className="text-[#bcce16] font-bold">{selectedMembership.nombrePlan}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Periodicidad:</span>
-                        <span className="capitalize">{selectedPeriod}</span>
+                      <div className="flex justify-between text-lg">
+                        <span className="font-bold">Periodicidad:</span>
+                        <span className="capitalize font-bold text-blue-600">{selectedPeriod}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Precio:</span>
-                        <span className="font-bold text-[#bcce16]">
-                          ${getSelectedPrice(selectedMembership).toLocaleString()} {selectedPeriod === "anual" ? "por año" : "por mes"}
+                      <div className="flex justify-between text-xl">
+                        <span className="font-bold">Precio Final:</span>
+                        <span className="font-bold text-[#bcce16] text-2xl">
+                          ${getSelectedPrice(selectedMembership).toLocaleString()} {selectedPeriod === "anual" ? "MXN/año" : "MXN/mes"}
                         </span>
                       </div>
                       {selectedPeriod === "anual" && (
-                        <div className="text-sm text-green-600 font-medium">
-                          💰 Ahorras 15% pagando anualmente
+                        <div className="bg-green-100 p-3 rounded-lg">
+                          <div className="text-green-800 font-bold text-center">
+                            🎉 AHORRO ESPECIAL: 15% de descuento pagando anualmente
+                          </div>
                         </div>
                       )}
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Opciones de periodicidad disponibles */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm font-medium text-gray-700">
-                      Opciones de Pago Disponibles para {selectedMembership.nombrePlan}
+                {/* Opciones de periodicidad disponibles - NUEVA FUNCIONALIDAD */}
+                <Card className="border-2 border-purple-300 bg-purple-50">
+                  <CardHeader className="bg-purple-100">
+                    <CardTitle className="text-purple-800 flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      💳 CAMBIAR PERIODICIDAD DE PAGO
                     </CardTitle>
+                    <p className="text-purple-700 text-sm">
+                      Selecciona cómo prefieres pagar tu membresía {selectedMembership.nombrePlan}
+                    </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid gap-3">
+                    <div className="grid gap-4">
                       {selectedMembership.opcionesPrecios.map((opcion, index) => (
                         <div 
                           key={index}
-                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          className={`p-4 rounded-lg border-3 cursor-pointer transition-all shadow-md ${
                             selectedPeriod === opcion.periodicidad 
-                              ? 'border-[#bcce16] bg-green-50' 
-                              : 'border-gray-200 hover:border-gray-300'
+                              ? 'border-[#bcce16] bg-green-100 scale-105' 
+                              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                           }`}
                           onClick={() => {
                             if (opcion.periodicidad === "mensual" || opcion.periodicidad === "anual") {
@@ -680,21 +693,26 @@ export default function RegisterAndPay() {
                         >
                           <div className="flex justify-between items-center">
                             <div>
-                              <span className="font-medium capitalize">{opcion.periodicidad}</span>
+                              <span className="font-bold text-lg capitalize">{opcion.periodicidad}</span>
                               {opcion.periodicidad === "anual" && (
-                                <Badge variant="secondary" className="ml-2">Recomendado</Badge>
+                                <Badge variant="secondary" className="ml-2 bg-green-200 text-green-800">⭐ Recomendado</Badge>
                               )}
                             </div>
                             <div className="text-right">
-                              <p className="font-bold">${opcion.costo.toLocaleString()}</p>
-                              <p className="text-sm text-gray-500">
-                                {opcion.periodicidad === "anual" ? "por año" : "por mes"}
+                              <p className="font-bold text-xl text-[#bcce16]">${opcion.costo.toLocaleString()} MXN</p>
+                              <p className="text-sm text-gray-600">
+                                {opcion.periodicidad === "anual" ? "pago único anual" : "pago mensual"}
                               </p>
                             </div>
                           </div>
                           {selectedPeriod === opcion.periodicidad && (
-                            <div className="mt-2 text-sm text-green-600">
-                              ✓ Seleccionado
+                            <div className="mt-3 p-2 bg-green-200 rounded text-center">
+                              <div className="text-green-800 font-bold">✅ OPCIÓN SELECCIONADA</div>
+                            </div>
+                          )}
+                          {opcion.periodicidad === "anual" && (
+                            <div className="mt-2 text-sm text-green-700 font-medium">
+                              🎯 Ahorra dinero con el pago anual
                             </div>
                           )}
                         </div>
