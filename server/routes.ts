@@ -1616,6 +1616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/login-temp", async (req, res) => {
     try {
       const { email, password } = req.body;
+      console.log("Login attempt for:", email);
 
       if (!email || !password) {
         return res.status(400).json({ error: "Email and password required" });
@@ -1623,17 +1624,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Find user by email
       const user = await storage.getUserByEmail(email);
+      console.log("Found user:", user ? { id: user.id, email: user.email, firebaseUid: user.firebaseUid } : null);
+      
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Check if this is a pending user (not yet migrated to Firebase)
-      if (!user.firebaseUid.startsWith('pending_')) {
+      // Check if this is a temporary user (not yet migrated to Firebase)
+      if (!user.firebaseUid.startsWith('temp_') && !user.firebaseUid.startsWith('pending_')) {
+        console.log("User has Firebase UID:", user.firebaseUid);
         return res.status(401).json({ error: "Please use Firebase login" });
       }
 
-      // For now, we'll do a simple password check (in production, use proper hashing)
-      // This is temporary until Firebase migration is complete
+      // For temp users, skip password validation for now (in production, use proper hashing)
+      console.log("Login successful for temp user:", user.id);
       res.json({ 
         success: true,
         user: { 
