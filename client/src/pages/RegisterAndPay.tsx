@@ -392,7 +392,7 @@ export default function RegisterAndPay() {
       case 2:
         return (
           <Form {...companyForm}>
-            <form onSubmit={companyForm.handleSubmit(handleCompanySubmit)} className="space-y-4">
+            <form onSubmit={companyForm.handleSubmit(handleCompanySubmit)} className="space-y-4" autoComplete="off">
               <FormField
                 control={companyForm.control}
                 name="nombreEmpresa"
@@ -400,7 +400,12 @@ export default function RegisterAndPay() {
                   <FormItem>
                     <FormLabel>Nombre de la Empresa</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nombre de tu empresa" {...field} />
+                      <Input 
+                        placeholder="Nombre de tu empresa" 
+                        autoComplete="off"
+                        data-form-type="other"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -414,7 +419,13 @@ export default function RegisterAndPay() {
                   <FormItem>
                     <FormLabel>Email de la Empresa</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="contacto@empresa.com" {...field} />
+                      <Input 
+                        type="email" 
+                        placeholder="contacto@empresa.com" 
+                        autoComplete="off"
+                        data-form-type="other"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -428,7 +439,12 @@ export default function RegisterAndPay() {
                   <FormItem>
                     <FormLabel>Teléfono de la Empresa</FormLabel>
                     <FormControl>
-                      <Input placeholder="+52 777 123 4567" {...field} />
+                      <Input 
+                        placeholder="+52 777 123 4567" 
+                        autoComplete="off"
+                        data-form-type="other"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -442,7 +458,12 @@ export default function RegisterAndPay() {
                   <FormItem>
                     <FormLabel>Dirección Física</FormLabel>
                     <FormControl>
-                      <Input placeholder="Dirección completa de la empresa" {...field} />
+                      <Input 
+                        placeholder="Dirección completa de la empresa" 
+                        autoComplete="off"
+                        data-form-type="other"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -459,6 +480,8 @@ export default function RegisterAndPay() {
                       <Textarea 
                         placeholder="Describe tu empresa, servicios o productos..." 
                         rows={4}
+                        autoComplete="off"
+                        data-form-type="other"
                         {...field} 
                       />
                     </FormControl>
@@ -474,7 +497,12 @@ export default function RegisterAndPay() {
                   <FormItem>
                     <FormLabel>Sitio Web (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://www.empresa.com" {...field} />
+                      <Input 
+                        placeholder="https://www.empresa.com" 
+                        autoComplete="off"
+                        data-form-type="other"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
