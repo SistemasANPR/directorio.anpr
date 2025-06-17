@@ -28,7 +28,21 @@ interface SidebarProps {
   className?: string;
 }
 
-const navigationItems = [
+interface SubItem {
+  name: string;
+  href: string;
+  requireAdmin: boolean;
+}
+
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: any;
+  requireAdmin: boolean;
+  subItems?: SubItem[];
+}
+
+const navigationItems: NavigationItem[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
