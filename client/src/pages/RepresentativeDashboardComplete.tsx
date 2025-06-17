@@ -26,7 +26,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CompanyManagement from "@/components/CompanyManagement";
-import CertificateTable from "@/components/CertificateTable";
+import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
 import AddCertificateModal from "@/components/AddCertificateModal";
 import EditCertificateModal from "@/components/EditCertificateModal";
 import AddProjectModal from "@/components/AddProjectModal";
@@ -180,11 +180,58 @@ export default function RepresentativeDashboard() {
   });
 
   const handleEditCertificate = (certificate: Certificate) => {
+    // Check if this is an admin-assigned certificate
+    const adminCertificateNames = [
+      "Miembro Oficial ANPR México 2025",
+      "Certificación ANPR",
+      "Miembro Activo ANPR",
+      "Reconocimiento ANPR"
+    ];
+    
+    const isAdminCertificate = adminCertificateNames.some(name => 
+      certificate.nombreCertificado.toLowerCase().includes(name.toLowerCase())
+    );
+    
+    if (isAdminCertificate) {
+      Swal.fire({
+        title: 'Certificado protegido',
+        text: 'Este certificado fue asignado por ANPR y no puede ser editado',
+        icon: 'warning',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
     setSelectedCertificate(certificate);
     setIsEditCertificateModalOpen(true);
   };
 
   const handleDeleteCertificate = async (certificateId: number) => {
+    // Check if this is an admin-assigned certificate
+    const certificate = typedCertificates.find(cert => cert.id === certificateId);
+    if (certificate) {
+      const adminCertificateNames = [
+        "Miembro Oficial ANPR México 2025",
+        "Certificación ANPR",
+        "Miembro Activo ANPR",
+        "Reconocimiento ANPR"
+      ];
+      
+      const isAdminCertificate = adminCertificateNames.some(name => 
+        certificate.nombreCertificado.toLowerCase().includes(name.toLowerCase())
+      );
+      
+      if (isAdminCertificate) {
+        await Swal.fire({
+          title: 'Certificado protegido',
+          text: 'Este certificado fue asignado por ANPR y no puede ser eliminado',
+          icon: 'warning',
+          confirmButtonText: 'Entendido'
+        });
+        return;
+      }
+    }
+
     const result = await Swal.fire({
       title: '¿Estás seguro?',
       text: 'Esta acción eliminará el certificado permanentemente',
@@ -583,10 +630,11 @@ export default function RepresentativeDashboard() {
                     <div className="text-gray-500">Cargando certificados...</div>
                   </div>
                 ) : (
-                  <CertificateTable
+                  <RepresentativeCertificateTable
                     certificates={typedCertificates}
                     onEdit={handleEditCertificate}
                     onDelete={handleDeleteCertificate}
+                    userCompanyId={primaryCompany?.id}
                   />
                 )}
               </CardContent>
