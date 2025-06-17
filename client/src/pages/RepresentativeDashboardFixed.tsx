@@ -26,6 +26,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Building, 
   CreditCard, 
@@ -251,10 +258,6 @@ export default function RepresentativeDashboard() {
       </div>
     );
   }
-
-  const primaryCompany = dashboardData?.companies?.[0];
-  const currentMembership = dashboardData?.currentMembership;
-  const payments = dashboardData?.payments || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -658,21 +661,233 @@ export default function RepresentativeDashboard() {
           {/* Projects Tab */}
           <TabsContent value="projects">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Gestión de Proyectos
-                </CardTitle>
-                <p className="text-gray-600">Próximamente: portafolio de proyectos de tu empresa</p>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    Gestión de Proyectos
+                  </CardTitle>
+                  <p className="text-gray-600">Administra el portafolio de proyectos de tu empresa</p>
+                </div>
+                {primaryCompany && (
+                  <Dialog open={isAddingProject} onOpenChange={setIsAddingProject}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nuevo Proyecto
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Agregar Nuevo Proyecto</DialogTitle>
+                      </DialogHeader>
+                      <Form {...projectForm}>
+                        <form onSubmit={projectForm.handleSubmit(onSubmitProject)} className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={projectForm.control}
+                              name="nombreProyecto"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nombre del Proyecto</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={projectForm.control}
+                              name="cliente"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Cliente</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={projectForm.control}
+                            name="descripcionProyecto"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descripción</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} rows={3} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={projectForm.control}
+                              name="fechaInicio"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Fecha de Inicio</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={projectForm.control}
+                              name="fechaFin"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Fecha de Fin</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={projectForm.control}
+                              name="estadoProyecto"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Estado del Proyecto</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Seleccionar estado" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="planificacion">Planificación</SelectItem>
+                                      <SelectItem value="en_progreso">En Progreso</SelectItem>
+                                      <SelectItem value="completado">Completado</SelectItem>
+                                      <SelectItem value="pausado">Pausado</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={projectForm.control}
+                              name="presupuesto"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Presupuesto</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="$0.00" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={projectForm.control}
+                            name="ubicacion"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Ubicación</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="flex justify-end gap-3 pt-4">
+                            <Button type="button" variant="outline" onClick={() => setIsAddingProject(false)}>
+                              Cancelar
+                            </Button>
+                            <Button 
+                              type="submit" 
+                              className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                              disabled={createProjectMutation.isPending}
+                            >
+                              {createProjectMutation.isPending ? 'Creando...' : 'Crear Proyecto'}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Proyectos</h3>
-                  <p className="text-gray-600 mb-6">
-                    Esta función estará disponible próximamente
-                  </p>
-                </div>
+                {projects.length > 0 ? (
+                  <div className="space-y-4">
+                    {projects.map((project: any) => (
+                      <div key={project.id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg">{project.nombreProyecto}</h3>
+                            <p className="text-gray-600 mb-2">{project.descripcionProyecto}</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className="text-gray-500">Cliente:</span>
+                                <p className="font-medium">{project.cliente || 'No especificado'}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Estado:</span>
+                                <Badge variant="secondary" className="ml-1">
+                                  {project.estadoProyecto}
+                                </Badge>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Inicio:</span>
+                                <p className="font-medium">
+                                  {format(new Date(project.fechaInicio), 'dd/MM/yyyy', { locale: es })}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Presupuesto:</span>
+                                <p className="font-medium">{project.presupuesto || 'No especificado'}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteProjectMutation.mutate(project.id)}
+                            disabled={deleteProjectMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Sin proyectos</h3>
+                    <p className="text-gray-600 mb-6">
+                      Agrega tu primer proyecto para mostrar tu portafolio
+                    </p>
+                    {primaryCompany && (
+                      <Button 
+                        onClick={() => setIsAddingProject(true)}
+                        className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Agregar Proyecto
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -786,7 +1001,7 @@ export default function RepresentativeDashboard() {
                           <span className="text-sm font-medium text-green-800">Pagos Exitosos</span>
                         </div>
                         <p className="text-2xl font-bold text-green-900 mt-1">
-                          {payments.filter(p => p.status === 'succeeded').length}
+                          {payments.filter((p: any) => p.status === 'succeeded').length}
                         </p>
                       </div>
                       
@@ -797,8 +1012,8 @@ export default function RepresentativeDashboard() {
                         </div>
                         <p className="text-2xl font-bold text-blue-900 mt-1">
                           ${payments
-                            .filter(p => p.status === 'succeeded')
-                            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+                            .filter((p: any) => p.status === 'succeeded')
+                            .reduce((sum: number, p: any) => sum + (parseFloat(p.amount) || 0), 0)
                             .toFixed(2)} MXN
                         </p>
                       </div>
@@ -841,7 +1056,7 @@ export default function RepresentativeDashboard() {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {payments.map((payment, index) => (
+                            {payments.map((payment: any, index: number) => (
                               <tr key={payment.id || index}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   {format(new Date(payment.createdAt), 'dd/MM/yyyy HH:mm', { locale: es })}
@@ -859,7 +1074,7 @@ export default function RepresentativeDashboard() {
                                   </Badge>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {membershipTypes?.find(mt => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
+                                  {membershipTypes?.find((mt: any) => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
                                 </td>
                               </tr>
                             ))}
