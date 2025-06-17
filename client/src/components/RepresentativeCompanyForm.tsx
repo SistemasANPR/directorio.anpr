@@ -1,17 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Building, Save, Edit, X } from "lucide-react";
-import type { CompanyWithDetails } from "@shared/schema";
+import { Building, Save, Edit, X, Upload, Trash2, MapPin, Globe, Phone, Mail, Tag, Image as ImageIcon } from "lucide-react";
+import type { CompanyWithDetails, Category, MembershipType } from "@shared/schema";
 
 const representativeCompanySchema = z.object({
   nombreEmpresa: z.string().min(1, "El nombre de la empresa es requerido"),
@@ -23,6 +26,18 @@ const representativeCompanySchema = z.object({
   direccionFisica: z.string().min(1, "La dirección física es requerida"),
   descripcionEmpresa: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
   catalogoDigitalUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  categoriesIds: z.array(z.number()).optional(),
+  paisesPresencia: z.array(z.string()).optional(),
+  estadosPresencia: z.array(z.string()).optional(),
+  ciudadesPresencia: z.array(z.string()).optional(),
+  ubicacionPrincipal: z.string().optional(),
+  representantesVentas: z.array(z.string()).optional(),
+  redesSociales: z.array(z.object({
+    plataforma: z.string(),
+    url: z.string().url()
+  })).optional(),
+  videosUrls: z.array(z.string().url()).optional(),
+  galeriaProductosUrls: z.array(z.string()).optional(),
 });
 
 type RepresentativeCompanyFormData = z.infer<typeof representativeCompanySchema>;
