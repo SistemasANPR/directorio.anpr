@@ -825,11 +825,14 @@ export default function RepresentativeDashboard() {
               companyId={primaryCompany.id}
             />
 
-            <EditProjectModal
-              open={isEditProjectModalOpen}
-              onOpenChange={setIsEditProjectModalOpen}
-              project={selectedProject}
-            />
+            {selectedProject && isEditProjectModalOpen && (
+              <EditProjectModal
+                open={isEditProjectModalOpen}
+                onOpenChange={setIsEditProjectModalOpen}
+                project={selectedProject}
+                companyId={primaryCompany.id}
+              />
+            )}
           </>
         )}
 
