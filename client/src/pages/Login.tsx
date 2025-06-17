@@ -80,7 +80,7 @@ export default function Login() {
           
           if (userRole === 2) { // Representative role
             console.log("Redirecting to representative dashboard");
-            setLocation("/dashboard-representante");
+            setLocation("/representative-dashboard");
           } else {
             console.log("Redirecting to admin dashboard");
             setLocation("/dashboard");

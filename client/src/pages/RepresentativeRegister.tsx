@@ -65,7 +65,7 @@ export default function RepresentativeRegister() {
       
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       // Redirect back to checkout or dashboard
-      setLocation("/dashboard-representante");
+      setLocation("/representative-dashboard");
     },
     onError: (error: any) => {
       toast({
