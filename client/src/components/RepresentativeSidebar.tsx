@@ -1,0 +1,181 @@
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
+import { 
+  Building, 
+  BarChart3, 
+  Award,
+  Menu,
+  X,
+  LogOut,
+  Crown,
+  CreditCard,
+  Briefcase
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
+import { signOutUser } from "@/lib/auth";
+
+interface RepresentativeSidebarProps {
+  className?: string;
+}
+
+const representativeNavItems = [
+  {
+    name: "Resumen",
+    href: "/representative-dashboard?tab=overview",
+    icon: BarChart3,
+  },
+  {
+    name: "Mi Empresa",
+    href: "/representative-dashboard?tab=company",
+    icon: Building,
+  },
+  {
+    name: "Proyectos",
+    href: "/representative-dashboard?tab=projects",
+    icon: Briefcase,
+  },
+  {
+    name: "Certificados",
+    href: "/representative-dashboard?tab=certificates",
+    icon: Award,
+  },
+  {
+    name: "Mi Plan",
+    href: "/representative-dashboard?tab=membership",
+    icon: Crown,
+  },
+  {
+    name: "Pagos",
+    href: "/representative-dashboard?tab=payments",
+    icon: CreditCard,
+  },
+];
+
+export default function RepresentativeSidebar({ className }: RepresentativeSidebarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [location] = useLocation();
+  const { user } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const getActiveTab = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('tab') || 'overview';
+  };
+
+  const isTabActive = (href: string) => {
+    if (href.includes('?tab=')) {
+      const tabFromHref = href.split('?tab=')[1];
+      return getActiveTab() === tabFromHref;
+    }
+    return location === href;
+  };
+
+  const SidebarContent = () => (
+    <>
+      {/* Header */}
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-[#bcce16] rounded-lg flex items-center justify-center">
+            <span className="text-black font-bold text-sm">A</span>
+          </div>
+          <h1 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Montserrat', fontWeight: 700 }}>
+            ANPR México
+          </h1>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="p-4 space-y-2 flex-1">
+        {representativeNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = isTabActive(item.href);
+          
+          return (
+            <Link key={item.name} href={item.href}>
+              <div
+                className={`flex items-center space-x-3 px-3 py-2 rounded-sm transition-colors cursor-pointer ${
+                  isActive
+                    ? "bg-[#bcce16]/10 text-gray-900 border-r-2 border-[#bcce16]"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* User Profile */}
+      <div className="p-4 border-t border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.photoURL || ""} />
+              <AvatarFallback>
+                {user?.displayName?.[0] || user?.email?.[0] || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-700 truncate">
+                {user?.displayName || "Representante"}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="p-1 text-gray-400 hover:text-gray-600"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        </Button>
+      </div>
+
+      {/* Mobile sidebar */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
+          <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-sm border-r border-gray-100 flex flex-col">
+            <SidebarContent />
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop sidebar */}
+      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-full overflow-y-auto flex-col ${className}`}>
+        <SidebarContent />
+      </aside>
+    </>
+  );
+}

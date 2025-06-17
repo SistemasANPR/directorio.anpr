@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Sidebar from "@/components/Sidebar";
+import RepresentativeSidebar from "@/components/RepresentativeSidebar";
+import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
 import MyCompany from "@/pages/MyCompany";
@@ -37,9 +39,25 @@ import TestHome from "@/TestHome";
 import NotFound from "@/pages/not-found";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const isAdmin = user?.roleId === 1;
+  
   return (
     <div className="min-h-screen flex bg-background">
-      <Sidebar />
+      {isAdmin ? <Sidebar /> : <RepresentativeSidebar />}
+      <main className="flex-1 ml-0 lg:ml-64">
+        <div className="p-6 pt-20 lg:pt-6">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function RepresentativeLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex bg-background">
+      <RepresentativeSidebar />
       <main className="flex-1 ml-0 lg:ml-64">
         <div className="p-6 pt-20 lg:pt-6">
           {children}
@@ -224,9 +242,9 @@ function Router() {
       
       <Route path="/representative-dashboard">
         <ProtectedRoute>
-          <AppLayout>
+          <RepresentativeLayout>
             <RepresentativeDashboard />
-          </AppLayout>
+          </RepresentativeLayout>
         </ProtectedRoute>
       </Route>
       

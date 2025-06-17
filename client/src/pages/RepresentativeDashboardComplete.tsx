@@ -65,6 +65,10 @@ export default function RepresentativeDashboard() {
   const primaryCompany = dashboardData?.companies?.[0];
   const currentMembership = dashboardData?.currentMembership;
   const payments = dashboardData?.payments || [];
+  
+  // Type the responses properly
+  const typedCertificates = Array.isArray(certificates) ? certificates : [];
+  const typedMembershipTypes = Array.isArray(membershipTypes) ? membershipTypes : [];
 
   // Delete certificate mutation
   const deleteCertificateMutation = useMutation({
@@ -251,20 +255,31 @@ export default function RepresentativeDashboard() {
 
           {/* Company Management Tab - Using exact admin component */}
           <TabsContent value="company">
-            {primaryCompany ? (
-              <CompanyManagement companyId={primaryCompany.id} />
-            ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
-                  <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
-                  <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
-                    Registrar empresa
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Montserrat', fontWeight: 700 }}>
+                  Mi Empresa
+                </h2>
+                <p className="text-gray-600 mt-2">
+                  Gestiona la información completa de tu empresa
+                </p>
+              </div>
+              
+              {primaryCompany ? (
+                <CompanyManagement companyId={primaryCompany.id} />
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
+                    <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
+                    <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
+                      Registrar empresa
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           {/* Projects Tab */}
@@ -314,7 +329,7 @@ export default function RepresentativeDashboard() {
                   </div>
                 ) : (
                   <CertificateTable
-                    certificates={certificates}
+                    certificates={typedCertificates}
                     onEdit={handleEditCertificate}
                     onDelete={handleDeleteCertificate}
                   />
@@ -490,7 +505,7 @@ export default function RepresentativeDashboard() {
                                   </Badge>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {membershipTypes?.find((mt: any) => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
+                                  {typedMembershipTypes?.find((mt: any) => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
                                 </td>
                               </tr>
                             ))}
