@@ -31,12 +31,11 @@ import AddCertificateModal from "@/components/AddCertificateModal";
 import EditCertificateModal from "@/components/EditCertificateModal";
 import AddProjectModal from "@/components/AddProjectModal";
 import EditProjectModal from "@/components/EditProjectModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Certificate, ProjectWithDetails } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Swal from 'sweetalert2';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function RepresentativeDashboard() {
   const { user } = useAuth();
@@ -817,6 +816,80 @@ export default function RepresentativeDashboard() {
           onOpenChange={setIsEditCertificateModalOpen}
           certificate={selectedCertificate}
         />
+
+        {primaryCompany && (
+          <>
+            <AddProjectModal
+              open={isAddProjectModalOpen}
+              onOpenChange={setIsAddProjectModalOpen}
+              companyId={primaryCompany.id}
+            />
+
+            <EditProjectModal
+              open={isEditProjectModalOpen}
+              onOpenChange={setIsEditProjectModalOpen}
+              project={selectedProject}
+            />
+          </>
+        )}
+
+        {/* Plan Change Modal */}
+        <Dialog open={isChangePlanModalOpen} onOpenChange={setIsChangePlanModalOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Cambiar Plan de Membresía</DialogTitle>
+              <DialogDescription>
+                Selecciona un nuevo plan para tu empresa
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
+              {typedMembershipTypes.map((plan: any) => (
+                <div 
+                  key={plan.id} 
+                  className={`border rounded-lg p-6 cursor-pointer transition-all hover:shadow-md ${
+                    plan.id === currentMembership?.id ? 'border-[#bcce16] bg-[#bcce16]/5' : 'border-gray-200'
+                  }`}
+                >
+                  <div className="text-center">
+                    <h3 className="font-bold text-xl mb-2">{plan.nombrePlan}</h3>
+                    <div className="text-3xl font-bold text-[#bcce16] mb-4">
+                      ${plan.precioMensual}
+                      <span className="text-sm text-gray-500 font-normal">/mes</span>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-gray-600 mb-6">
+                      {plan.beneficios.split('\n').slice(0, 4).map((benefit: string, index: number) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span>{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {plan.id === currentMembership?.id ? (
+                      <Badge className="bg-[#bcce16] text-black">Plan Actual</Badge>
+                    ) : (
+                      <Button 
+                        className="w-full bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                        onClick={() => {
+                          // Implement plan change logic
+                          toast({
+                            title: "Funcionalidad próximamente",
+                            description: "El cambio de plan estará disponible pronto",
+                          });
+                          setIsChangePlanModalOpen(false);
+                        }}
+                      >
+                        Cambiar a este plan
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
