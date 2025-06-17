@@ -25,7 +25,7 @@ import Directory from "@/pages/Directory";
 import MembershipCheckout from "@/pages/MembershipCheckout";
 import RepresentativeRegister from "@/pages/RepresentativeRegister";
 import RepresentativeLogin from "@/pages/RepresentativeLogin";
-import RepresentativeDashboard from "@/pages/RepresentativeDashboardNew";
+import RepresentativeDashboard from "@/pages/RepresentativeDashboardSimple";
 import RegisterAndPay from "@/pages/RegisterAndPay";
 import RegistroExitoso from "@/pages/RegistroExitoso";
 import SystemSettings from "@/pages/SystemSettings";

@@ -11,17 +11,11 @@ import {
   Calendar, 
   Crown,
   Edit,
-  Star,
   Award,
-  Settings,
   BarChart3,
   Package,
-  Target,
   Briefcase,
   Eye,
-  Phone,
-  Mail,
-  MapPin,
   Check
 } from "lucide-react";
 import { format } from "date-fns";
@@ -59,9 +53,9 @@ export default function RepresentativeDashboard() {
     );
   }
 
-  const primaryCompany = dashboardData?.companies?.[0] as any;
-  const currentMembership = dashboardData?.currentMembership as any;
-  const stats = dashboardData?.stats as any;
+  const primaryCompany = dashboardData?.companies?.[0];
+  const currentMembership = dashboardData?.currentMembership;
+  const payments = dashboardData?.payments || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -105,7 +99,6 @@ export default function RepresentativeDashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Quick Stats */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -143,7 +136,7 @@ export default function RepresentativeDashboard() {
                         {primaryCompany?.estado === 'activo' ? 'Activa' : 'Inactiva'}
                       </Badge>
                     </div>
-                    <Target className="h-8 w-8 text-[#bcce16]" />
+                    <Check className="h-8 w-8 text-[#bcce16]" />
                   </div>
                 </CardContent>
               </Card>
@@ -201,14 +194,14 @@ export default function RepresentativeDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building className="h-5 w-5" />
-                  Gestión de Mi Empresa
+                  Información de Mi Empresa
                 </CardTitle>
-                <p className="text-gray-600">Administra la información completa de tu empresa</p>
+                <p className="text-gray-600">Datos registrados durante la compra del plan</p>
               </CardHeader>
               <CardContent>
                 {primaryCompany ? (
                   <div className="space-y-6">
-                    {/* Company Info Display */}
+                    {/* Company Basic Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
@@ -297,19 +290,15 @@ export default function RepresentativeDashboard() {
                   <Briefcase className="h-5 w-5" />
                   Gestión de Proyectos
                 </CardTitle>
-                <p className="text-gray-600">Administra el portafolio de proyectos de tu empresa</p>
+                <p className="text-gray-600">Próximamente: portafolio de proyectos de tu empresa</p>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
                   <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">Proyectos</h3>
                   <p className="text-gray-600 mb-6">
-                    Esta sección estará disponible próximamente para gestionar el portafolio de proyectos
+                    Esta función estará disponible próximamente
                   </p>
-                  <Button variant="outline" disabled>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configurar Proyectos
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -323,19 +312,15 @@ export default function RepresentativeDashboard() {
                   <Award className="h-5 w-5" />
                   Certificados y Premios
                 </CardTitle>
-                <p className="text-gray-600">Gestiona los certificados y reconocimientos de tu empresa</p>
+                <p className="text-gray-600">Próximamente: gestión de certificaciones</p>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <Star className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <Award className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">Certificados</h3>
                   <p className="text-gray-600 mb-6">
-                    Esta sección estará disponible próximamente para gestionar certificados y premios
+                    Esta función estará disponible próximamente
                   </p>
-                  <Button variant="outline" disabled>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configurar Certificados
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -349,7 +334,7 @@ export default function RepresentativeDashboard() {
                   <Crown className="h-5 w-5" />
                   Plan de Membresía
                 </CardTitle>
-                <p className="text-gray-600">Gestiona tu plan actual y opciones de cambio</p>
+                <p className="text-gray-600">Información de tu plan actual</p>
               </CardHeader>
               <CardContent>
                 {currentMembership && primaryCompany ? (
@@ -381,16 +366,6 @@ export default function RepresentativeDashboard() {
                           </p>
                         </div>
                       </div>
-
-                      <div className="flex gap-3">
-                        <Button variant="outline">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Cambiar Plan
-                        </Button>
-                        <Button variant="outline">
-                          Cancelar Suscripción
-                        </Button>
-                      </div>
                     </div>
 
                     {/* Benefits */}
@@ -410,10 +385,7 @@ export default function RepresentativeDashboard() {
                   <div className="text-center py-12">
                     <Crown className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2">Sin plan activo</h3>
-                    <p className="text-gray-600 mb-6">Selecciona un plan para activar tu membresía</p>
-                    <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
-                      Ver Planes Disponibles
-                    </Button>
+                    <p className="text-gray-600">No se encontró información del plan</p>
                   </div>
                 )}
               </CardContent>
@@ -428,10 +400,10 @@ export default function RepresentativeDashboard() {
                   <CreditCard className="h-5 w-5" />
                   Historial de Pagos
                 </CardTitle>
-                <p className="text-gray-600">Revisa todos tus pagos y transacciones</p>
+                <p className="text-gray-600">Historial completo de transacciones</p>
               </CardHeader>
               <CardContent>
-                {dashboardData?.payments && dashboardData.payments.length > 0 ? (
+                {payments.length > 0 ? (
                   <div className="space-y-6">
                     {/* Payment Summary */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -441,7 +413,7 @@ export default function RepresentativeDashboard() {
                           <span className="text-sm font-medium text-green-800">Pagos Exitosos</span>
                         </div>
                         <p className="text-2xl font-bold text-green-900 mt-1">
-                          {dashboardData.payments.filter((p: any) => p.status === 'succeeded').length}
+                          {payments.filter(p => p.status === 'succeeded').length}
                         </p>
                       </div>
                       
@@ -451,9 +423,9 @@ export default function RepresentativeDashboard() {
                           <span className="text-sm font-medium text-blue-800">Total Pagado</span>
                         </div>
                         <p className="text-2xl font-bold text-blue-900 mt-1">
-                          ${dashboardData.payments
-                            .filter((p: any) => p.status === 'succeeded')
-                            .reduce((sum: number, p: any) => sum + (parseFloat(p.amount) || 0), 0)
+                          ${payments
+                            .filter(p => p.status === 'succeeded')
+                            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
                             .toFixed(2)} MXN
                         </p>
                       </div>
@@ -464,8 +436,8 @@ export default function RepresentativeDashboard() {
                           <span className="text-sm font-medium text-purple-800">Último Pago</span>
                         </div>
                         <p className="text-lg font-semibold text-purple-900 mt-1">
-                          {dashboardData.payments.length > 0 ? 
-                            format(new Date(dashboardData.payments[0].createdAt), 'dd/MM/yyyy', { locale: es }) : 
+                          {payments.length > 0 ? 
+                            format(new Date(payments[0].createdAt), 'dd/MM/yyyy', { locale: es }) : 
                             'N/A'
                           }
                         </p>
@@ -496,7 +468,7 @@ export default function RepresentativeDashboard() {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {dashboardData.payments.map((payment: any, index: number) => (
+                            {payments.map((payment, index) => (
                               <tr key={payment.id || index}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   {format(new Date(payment.createdAt), 'dd/MM/yyyy HH:mm', { locale: es })}
@@ -514,7 +486,7 @@ export default function RepresentativeDashboard() {
                                   </Badge>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {membershipTypes?.find((mt: any) => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
+                                  {membershipTypes?.find(mt => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
                                 </td>
                               </tr>
                             ))}
@@ -527,9 +499,7 @@ export default function RepresentativeDashboard() {
                   <div className="text-center py-12">
                     <CreditCard className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2">Sin historial de pagos</h3>
-                    <p className="text-gray-600 mb-6">
-                      No se han registrado pagos en tu cuenta aún
-                    </p>
+                    <p className="text-gray-600">No se han registrado pagos en tu cuenta</p>
                   </div>
                 )}
               </CardContent>
