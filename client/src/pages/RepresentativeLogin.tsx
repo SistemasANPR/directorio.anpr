@@ -57,13 +57,20 @@ export default function RepresentativeLogin() {
         // Store user data in localStorage for session management
         localStorage.setItem('tempUser', JSON.stringify(userData.user));
         
+        console.log("User role detected:", userData.user.roleId, "Full user:", userData.user);
+        console.log("Redirecting to representative dashboard");
+        
         toast({
           title: "Sesión iniciada exitosamente",
           description: "Bienvenido de vuelta",
         });
         
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        setLocation("/representative-dashboard");
+        
+        // Small delay to ensure localStorage is written
+        setTimeout(() => {
+          setLocation("/representative-dashboard");
+        }, 100);
         return;
       }
 

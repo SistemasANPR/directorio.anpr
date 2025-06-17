@@ -32,6 +32,8 @@ import Swal from 'sweetalert2';
 export default function RepresentativeDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  
+  console.log("RepresentativeDashboard - Current user:", user);
   const [isAddCertificateModalOpen, setIsAddCertificateModalOpen] = useState(false);
   const [isEditCertificateModalOpen, setIsEditCertificateModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);

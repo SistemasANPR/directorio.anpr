@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const tempUserData = localStorage.getItem('tempUser');
         if (tempUserData) {
           const tempUser = JSON.parse(tempUserData);
+          console.log("Loading temp user from localStorage:", tempUser);
           setUser(tempUser);
           setLoading(false);
           return;
