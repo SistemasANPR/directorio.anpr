@@ -138,9 +138,19 @@ export default function Sidebar({ className = "" }: SidebarProps) {
 
   const handleSignOut = async () => {
     try {
+      // Clear temporary user data first
+      localStorage.removeItem('tempUser');
+      
+      // Sign out from Firebase if authenticated
       await signOutUser();
+      
+      // Force redirect to login page
+      window.location.href = '/login';
     } catch (error) {
       console.error("Error signing out:", error);
+      // Force redirect even if there's an error
+      localStorage.removeItem('tempUser');
+      window.location.href = '/login';
     }
   };
 
