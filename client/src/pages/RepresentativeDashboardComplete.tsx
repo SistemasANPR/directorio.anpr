@@ -62,13 +62,13 @@ export default function RepresentativeDashboard() {
     queryKey: ["/api/certificates"],
   });
 
-  const primaryCompany = dashboardData?.companies?.[0];
-  const currentMembership = dashboardData?.currentMembership;
-  const payments = dashboardData?.payments || [];
+  const primaryCompany = (dashboardData as any)?.companies?.[0];
+  const currentMembership = (dashboardData as any)?.currentMembership;
+  const payments = (dashboardData as any)?.payments || [];
   
   // Type the responses properly
-  const typedCertificates = Array.isArray(certificates) ? certificates : [];
-  const typedMembershipTypes = Array.isArray(membershipTypes) ? membershipTypes : [];
+  const typedCertificates = Array.isArray(certificates) ? certificates as Certificate[] : [];
+  const typedMembershipTypes = Array.isArray(membershipTypes) ? membershipTypes as any[] : [];
 
   // Delete certificate mutation
   const deleteCertificateMutation = useMutation({
@@ -505,7 +505,7 @@ export default function RepresentativeDashboard() {
                                   </Badge>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {typedMembershipTypes?.find((mt: any) => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
+                                  {typedMembershipTypes.find((mt: any) => mt.id === payment.membershipTypeId)?.nombrePlan || 'Plan básico'}
                                 </td>
                               </tr>
                             ))}
