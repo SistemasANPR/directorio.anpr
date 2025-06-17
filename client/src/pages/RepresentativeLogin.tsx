@@ -63,7 +63,7 @@ export default function RepresentativeLogin() {
         });
         
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        setLocation("/dashboard-representante");
+        setLocation("/representative-dashboard");
         return;
       }
 
@@ -77,7 +77,7 @@ export default function RepresentativeLogin() {
         });
         
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        setLocation("/dashboard-representante");
+        setLocation("/representative-dashboard");
       } catch (firebaseError) {
         throw new Error("Email o contraseña incorrectos");
       }

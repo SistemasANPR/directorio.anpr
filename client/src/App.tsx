@@ -222,7 +222,7 @@ function Router() {
         </PublicLayout>
       </Route>
       
-      <Route path="/dashboard-representante">
+      <Route path="/representative-dashboard">
         <ProtectedRoute>
           <AppLayout>
             <RepresentativeDashboard />
