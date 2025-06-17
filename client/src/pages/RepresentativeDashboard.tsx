@@ -508,12 +508,86 @@ export default function RepresentativeDashboard() {
 
         {/* Company Management Tab */}
         <TabsContent value="company">
-          {primaryCompany ? (
-            <CompanyManagement companyId={primaryCompany.id} />
-          ) : (
-            <Card>
-              <CardContent className="py-12">
-                <div className="text-center">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                Gestión de Mi Empresa
+              </CardTitle>
+              <p className="text-gray-600">Administra la información completa de tu empresa</p>
+            </CardHeader>
+            <CardContent>
+              {primaryCompany ? (
+                <div className="space-y-6">
+                  {/* Company Info Display */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Nombre de la Empresa</label>
+                        <p className="text-lg font-semibold">{primaryCompany.nombreEmpresa}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Email Principal</label>
+                        <p>{primaryCompany.email1 || 'No configurado'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Teléfono Principal</label>
+                        <p>{primaryCompany.telefono1 || 'No configurado'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Sitio Web</label>
+                        <p>{primaryCompany.sitioWeb || 'No configurado'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Estado</label>
+                        <Badge variant={primaryCompany.estado === 'activo' ? 'default' : 'secondary'}>
+                          {primaryCompany.estado === 'activo' ? 'Activa' : 'Inactiva'}
+                        </Badge>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Plan de Membresía</label>
+                        <p className="font-medium text-[#bcce16]">{currentMembership?.nombrePlan}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Periodicidad</label>
+                        <p>{primaryCompany.membershipPeriodicidad}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Vencimiento</label>
+                        <p>{format(new Date(primaryCompany.fechaFinMembresia), 'dd/MM/yyyy', { locale: es })}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Descripción de la Empresa</label>
+                    <p className="mt-1 text-gray-700">{primaryCompany.descripcionEmpresa || 'No configurada'}</p>
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Dirección Física</label>
+                    <p className="mt-1 text-gray-700">{primaryCompany.direccionFisica || 'No configurada'}</p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4 border-t">
+                    <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar Información
+                    </Button>
+                    <Button variant="outline">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver en Directorio
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
                   <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
                   <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
@@ -524,9 +598,9 @@ export default function RepresentativeDashboard() {
                     Registrar empresa
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Projects Tab */}
