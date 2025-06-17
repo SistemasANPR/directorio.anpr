@@ -130,39 +130,36 @@ export default function Sidebar({ className = "" }: SidebarProps) {
     }
   };
 
-  // Define limited navigation for company representatives
+  // Define navigation for company representatives
   const representativeNavItems = [
     {
-      name: "Dashboard",
-      href: "/dashboard",
+      name: "Mi Dashboard",
+      href: "/representative-dashboard",
       icon: BarChart3,
       requireAdmin: false,
     },
     {
       name: "Mi Empresa",
-      href: "/empresas",
+      href: "/representative-dashboard",
       icon: Building,
       requireAdmin: false,
-      subItems: [
-        {
-          name: "Datos de la Empresa",
-          href: "/empresas",
-          requireAdmin: false,
-        },
-        {
-          name: "Testimonios",
-          href: "/testimonios",
-          requireAdmin: false,
-        },
-      ],
+    },
+    {
+      name: "Ver Directorio",
+      href: "/directorio",
+      icon: Globe,
+      requireAdmin: false,
     },
   ];
 
-  // Use different navigation based on impersonation status
-  const currentNavItems = isImpersonating ? representativeNavItems : navigationItems;
+  // Determine if user is a representative (role 'representante')
+  const isRepresentative = user?.role === 'representante';
+
+  // Use different navigation based on user role
+  const currentNavItems = isRepresentative && !isAdmin ? representativeNavItems : navigationItems;
   
   const filteredNavItems = currentNavItems.filter(item => 
-    !item.requireAdmin || (isAdmin && !isImpersonating)
+    !item.requireAdmin || (isAdmin && !isRepresentative)
   );
 
   const toggleExpanded = (itemName: string) => {
