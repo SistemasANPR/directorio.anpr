@@ -11,6 +11,8 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { user, loading, isAdmin } = useAuth();
+  
+  console.log("ProtectedRoute - loading:", loading, "user:", user, "isAdmin:", isAdmin, "requireAdmin:", requireAdmin);
 
   if (loading) {
     return (

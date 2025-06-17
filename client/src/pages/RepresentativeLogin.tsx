@@ -67,10 +67,8 @@ export default function RepresentativeLogin() {
         
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
         
-        // Small delay to ensure localStorage is written
-        setTimeout(() => {
-          setLocation("/representative-dashboard");
-        }, 100);
+        // Force immediate redirect using window.location
+        window.location.href = "/representative-dashboard";
         return;
       }
 

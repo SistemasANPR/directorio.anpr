@@ -55,6 +55,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function RepresentativeLayout({ children }: { children: React.ReactNode }) {
+  console.log("RepresentativeLayout rendering with children:", children);
   return (
     <div className="min-h-screen flex bg-background">
       <RepresentativeSidebar />
