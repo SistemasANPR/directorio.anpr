@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,13 @@ import {
   Briefcase,
   Check,
   Plus,
-  Eye
+  Eye,
+  Edit,
+  Trash2,
+  Package,
+  X,
+  Download,
+  AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -23,29 +29,50 @@ import CompanyManagement from "@/components/CompanyManagement";
 import CertificateTable from "@/components/CertificateTable";
 import AddCertificateModal from "@/components/AddCertificateModal";
 import EditCertificateModal from "@/components/EditCertificateModal";
-import { Certificate } from "@shared/schema";
+import AddProjectModal from "@/components/AddProjectModal";
+import EditProjectModal from "@/components/EditProjectModal";
+import { Certificate, ProjectWithDetails } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useMutation } from "@tanstack/react-query";
 import Swal from 'sweetalert2';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function RepresentativeDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   
   console.log("RepresentativeDashboard - Current user:", user);
+  
+  // Certificate management states
   const [isAddCertificateModalOpen, setIsAddCertificateModalOpen] = useState(false);
   const [isEditCertificateModalOpen, setIsEditCertificateModalOpen] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+  
+  // Project management states
+  const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<ProjectWithDetails | null>(null);
+  
+  // Plan management states
+  const [isChangePlanModalOpen, setIsChangePlanModalOpen] = useState(false);
+  const [isCancelPlanModalOpen, setIsCancelPlanModalOpen] = useState(false);
+  
   const { toast } = useToast();
 
   // Handle URL parameters for direct tab navigation
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get('tab');
-    if (tabParam && ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
+    const updateTab = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab');
+      if (tabParam && ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    };
+    
+    updateTab();
+    window.addEventListener('popstate', updateTab);
+    return () => window.removeEventListener('popstate', updateTab);
   }, []);
 
   // Fetch dashboard data
@@ -64,9 +91,16 @@ export default function RepresentativeDashboard() {
     queryKey: ["/api/certificates"],
   });
 
+  // Extract company data
   const primaryCompany = (dashboardData as any)?.companies?.[0];
   const currentMembership = (dashboardData as any)?.currentMembership;
   const payments = (dashboardData as any)?.payments || [];
+
+  // Fetch projects for the company
+  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+    queryKey: [`/api/companies/${primaryCompany?.id}/projects`],
+    enabled: !!primaryCompany?.id,
+  });
   
   // Type the responses properly
   const typedCertificates = Array.isArray(certificates) ? certificates as Certificate[] : [];
@@ -88,6 +122,56 @@ export default function RepresentativeDashboard() {
       toast({
         title: "Error",
         description: "No se pudo eliminar el certificado",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete project mutation
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (projectId: number) => {
+      const response = await apiRequest("DELETE", `/api/projects/${projectId}`);
+      if (!response.ok) {
+        throw new Error("Error al eliminar el proyecto");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/companies/${primaryCompany?.id}/projects`] });
+      toast({
+        title: "Proyecto eliminado",
+        description: "El proyecto se ha eliminado correctamente",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Error al eliminar el proyecto",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Cancel plan mutation
+  const cancelPlanMutation = useMutation({
+    mutationFn: async () => {
+      // Implementation for plan cancellation
+      const response = await apiRequest("PATCH", `/api/companies/${primaryCompany?.id}`, {
+        estado: "cancelado"
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/representative/dashboard/${user?.id}`] });
+      toast({
+        title: "Plan cancelado",
+        description: "Tu plan ha sido cancelado exitosamente",
+      });
+      setIsCancelPlanModalOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo cancelar el plan",
         variant: "destructive",
       });
     },

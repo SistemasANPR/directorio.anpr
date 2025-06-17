@@ -100,19 +100,24 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
           const isActive = isTabActive(item.href);
           
           return (
-            <Link key={item.name} href={item.href}>
+            <div key={item.name}>
               <div
                 className={`flex items-center space-x-3 px-3 py-2 rounded-sm transition-colors cursor-pointer ${
                   isActive
                     ? "bg-[#bcce16]/10 text-gray-900 border-r-2 border-[#bcce16]"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  const tabName = item.href.split('?tab=')[1];
+                  window.history.pushState({}, '', item.href);
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                  setIsMobileMenuOpen(false);
+                }}
               >
                 <Icon className="w-5 h-5" />
                 <span>{item.name}</span>
               </div>
-            </Link>
+            </div>
           );
         })}
       </nav>
