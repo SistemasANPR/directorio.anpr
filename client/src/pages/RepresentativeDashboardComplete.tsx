@@ -101,6 +101,9 @@ export default function RepresentativeDashboard() {
     queryKey: [`/api/companies/${primaryCompany?.id}/projects`],
     enabled: !!primaryCompany?.id,
   });
+
+  // Type projects data properly
+  const typedProjects = Array.isArray(projects) ? projects as ProjectWithDetails[] : [];
   
   // Type the responses properly
   const typedCertificates = Array.isArray(certificates) ? certificates as Certificate[] : [];
@@ -198,6 +201,69 @@ export default function RepresentativeDashboard() {
     if (result.isConfirmed) {
       deleteCertificateMutation.mutate(certificateId);
     }
+  };
+
+  const handleEditProject = (project: ProjectWithDetails) => {
+    setSelectedProject(project);
+    setIsEditProjectModalOpen(true);
+  };
+
+  const handleDeleteProject = async (projectId: number) => {
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción eliminará el proyecto permanentemente',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      deleteProjectMutation.mutate(projectId);
+    }
+  };
+
+  const handleCancelPlan = async () => {
+    const result = await Swal.fire({
+      title: '¿Cancelar plan?',
+      text: 'Esta acción cancelará tu membresía actual',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'No cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      cancelPlanMutation.mutate();
+    }
+  };
+
+  const exportPaymentHistory = () => {
+    // Create CSV content
+    const csvContent = [
+      ['Fecha', 'Monto', 'Estado', 'Plan'],
+      ...payments.map((payment: any) => [
+        format(new Date(payment.createdAt), 'dd/MM/yyyy', { locale: es }),
+        `$${payment.amount} ${payment.currency.toUpperCase()}`,
+        payment.status === 'succeeded' ? 'Exitoso' : payment.status,
+        currentMembership?.nombrePlan || 'N/A'
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historial_pagos_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   if (isLoading) {
@@ -371,21 +437,125 @@ export default function RepresentativeDashboard() {
           {/* Projects Tab */}
           <TabsContent value="projects">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Gestión de Proyectos
-                </CardTitle>
-                <p className="text-gray-600">Próximamente: portafolio de proyectos de tu empresa</p>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    Gestión de Proyectos
+                  </CardTitle>
+                  <p className="text-gray-600">Administra el portafolio de proyectos de tu empresa</p>
+                </div>
+                {primaryCompany && (
+                  <Button
+                    onClick={() => setIsAddProjectModalOpen(true)}
+                    className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nuevo Proyecto
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <Briefcase className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Proyectos</h3>
-                  <p className="text-gray-600 mb-6">
-                    Esta función estará disponible próximamente
-                  </p>
-                </div>
+                {projectsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-gray-500">Cargando proyectos...</div>
+                  </div>
+                ) : typedProjects.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {typedProjects.map((project: ProjectWithDetails) => (
+                      <div key={project.id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow bg-white">
+                        {/* Imagen de portada */}
+                        <div 
+                          className="h-48 bg-gradient-to-br from-yellow-400 to-yellow-500 relative"
+                          style={{
+                            backgroundImage: project.galeriaImagenes && project.galeriaImagenes.length > 0 
+                              ? `url(${project.galeriaImagenes[0]})`
+                              : undefined,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          }}
+                        >
+                          <div className="absolute top-3 right-3 flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => handleEditProject(project)}
+                              className="bg-white/90 hover:bg-white"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteProject(project.id)}
+                              disabled={deleteProjectMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Información del proyecto */}
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">
+                              {project.nombreProyecto}
+                            </h3>
+                            <Badge variant={project.estado === 'publicado' ? 'default' : 'secondary'}>
+                              {project.estado}
+                            </Badge>
+                          </div>
+                          
+                          {project.descripcionProyecto && (
+                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                              {project.descripcionProyecto}
+                            </p>
+                          )}
+                          
+                          <div className="space-y-2 text-sm text-gray-500">
+                            {project.clienteContratante && (
+                              <div className="flex items-center gap-2">
+                                <Building className="h-4 w-4" />
+                                <span>{project.clienteContratante}</span>
+                              </div>
+                            )}
+                            
+                            {project.fechaInicio && (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                <span>{format(new Date(project.fechaInicio), 'MMM yyyy', { locale: es })}</span>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center gap-4 pt-2 border-t">
+                              <div className="flex items-center gap-1">
+                                <Eye className="h-4 w-4" />
+                                <span>{project.vistas || 0}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Sin proyectos</h3>
+                    <p className="text-gray-600 mb-6">
+                      Agrega tu primer proyecto para mostrar tu portafolio
+                    </p>
+                    {primaryCompany && (
+                      <Button 
+                        onClick={() => setIsAddProjectModalOpen(true)}
+                        className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Agregar Proyecto
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -484,6 +654,21 @@ export default function RepresentativeDashboard() {
                         <Eye className="h-4 w-4 mr-2" />
                         Ver en Directorio
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsChangePlanModalOpen(true)}
+                      >
+                        <Crown className="h-4 w-4 mr-2" />
+                        Cambiar Plan
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        onClick={handleCancelPlan}
+                        disabled={cancelPlanMutation.isPending}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancelar Plan
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -551,8 +736,17 @@ export default function RepresentativeDashboard() {
 
                     {/* Payment History Table */}
                     <div className="border rounded-lg overflow-hidden">
-                      <div className="bg-gray-50 px-6 py-3 border-b">
+                      <div className="bg-gray-50 px-6 py-3 border-b flex justify-between items-center">
                         <h3 className="font-semibold text-gray-900">Transacciones</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={exportPaymentHistory}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Exportar CSV
+                        </Button>
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full">
