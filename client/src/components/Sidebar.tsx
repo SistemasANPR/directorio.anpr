@@ -152,14 +152,17 @@ export default function Sidebar({ className = "" }: SidebarProps) {
     },
   ];
 
-  // Determine if user is a representative (role 'representante')
+  // Debug: Check user role
+  console.log('User role:', user?.role, 'isAdmin:', isAdmin, 'user:', user);
+
+  // Determine if user is a representative
   const isRepresentative = user?.role === 'representante';
 
-  // Use different navigation based on user role
-  const currentNavItems = isRepresentative && !isAdmin ? representativeNavItems : navigationItems;
+  // Use different navigation based on user role - prioritize representative check
+  const currentNavItems = isRepresentative ? representativeNavItems : navigationItems;
   
   const filteredNavItems = currentNavItems.filter(item => 
-    !item.requireAdmin || (isAdmin && !isRepresentative)
+    isRepresentative ? !item.requireAdmin : (!item.requireAdmin || isAdmin)
   );
 
   const toggleExpanded = (itemName: string) => {
