@@ -141,6 +141,10 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 17, 2025: Created separate RepresentativeCompanyForm component to avoid conflicts with admin CompanyManagement component
+- June 17, 2025: Implemented automatic ANPR certificate assignment for business memberships in complete-registration endpoint
+- June 17, 2025: Added assignCertificateToCompany method to storage interface for automatic certificate assignment
+- June 17, 2025: Enhanced RepresentativeCertificateTable with role-based access restrictions for admin-assigned certificates
 - June 17, 2025: Completely rebuilt RepresentativeDashboard with comprehensive functionality including 6 tabs (Resumen, Mi Empresa, Proyectos, Certificados, Mi Plan, Pagos)
 - June 17, 2025: Added complete company management (CRUD) with detailed forms for editing all company information
 - June 17, 2025: Implemented advanced plan management with cancellation/change options and detailed plan comparisons
@@ -148,7 +152,6 @@ Recent Changes:
 - June 17, 2025: Added project and certificate management sections (placeholder for future development)
 - June 17, 2025: Integrated real-time renewal warnings and quick navigation actions
 - June 17, 2025: Fixed sidebar navigation to show representative-specific menu instead of admin menu
-- June 17, 2025: Enhanced CompanyManagement component with full CRUD operations and image gallery management
 - June 16, 2025: Fixed user role assignment issue - users registering through plan purchases now correctly show as "Representante"
 - June 16, 2025: Updated complete-registration endpoint to assign 'representante' role instead of 'representative'
 - June 16, 2025: Enhanced Users page with proper role display including green badge for representatives

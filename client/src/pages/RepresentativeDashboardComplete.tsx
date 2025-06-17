@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import CompanyManagement from "@/components/CompanyManagement";
+import RepresentativeCompanyForm from "@/components/RepresentativeCompanyForm";
 import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
 import AddCertificateModal from "@/components/AddCertificateModal";
 import EditCertificateModal from "@/components/EditCertificateModal";
@@ -451,7 +451,7 @@ export default function RepresentativeDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Company Management Tab - Using exact admin component */}
+          {/* Company Management Tab - Using dedicated representative component */}
           <TabsContent value="company">
             <div className="space-y-6">
               <div>
@@ -459,12 +459,12 @@ export default function RepresentativeDashboard() {
                   Mi Empresa
                 </h2>
                 <p className="text-gray-600 mt-2">
-                  Gestiona la información completa de tu empresa
+                  Gestiona la información básica de tu empresa
                 </p>
               </div>
               
               {primaryCompany ? (
-                <CompanyManagement companyId={primaryCompany.id} />
+                <RepresentativeCompanyForm company={primaryCompany} />
               ) : (
                 <Card>
                   <CardContent className="text-center py-12">
