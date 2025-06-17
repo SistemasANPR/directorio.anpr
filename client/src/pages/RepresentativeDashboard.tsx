@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,6 +92,15 @@ export default function RepresentativeDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const { toast } = useToast();
+
+  // Handle URL parameters for direct tab navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
 
   const { data: dashboardData, isLoading } = useQuery<DashboardData>({
     queryKey: ["/api/representative/dashboard", user?.id],

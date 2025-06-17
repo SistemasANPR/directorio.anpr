@@ -140,7 +140,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
     },
     {
       name: "Mi Empresa",
-      href: "/representative-dashboard",
+      href: "/representative-dashboard?tab=company",
       icon: Building,
       requireAdmin: false,
     },
@@ -152,8 +152,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
     },
   ];
 
-  // Debug: Check user role
-  console.log('User role:', user?.role, 'isAdmin:', isAdmin, 'user:', user);
+
 
   // Determine if user is a representative
   const isRepresentative = user?.role === 'representante';
