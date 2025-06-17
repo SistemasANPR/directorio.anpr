@@ -1601,6 +1601,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "succeeded"
       });
 
+      // Automatically assign ANPR certificate for business memberships
+      try {
+        // Find the "Miembro Oficial ANPR México 2025" certificate
+        const certificates = await storage.getAllCertificates();
+        const anprCertificate = certificates.find((cert: any) => 
+          cert.nombreCertificado === "Miembro Oficial ANPR México 2025"
+        );
+
+        if (anprCertificate) {
+          // Create company-certificate association
+          await storage.assignCertificateToCompany(company.id, anprCertificate.id, {
+            fechaObtencion: new Date().toISOString().split('T')[0],
+            asignadoPorAdmin: true,
+            observaciones: `Certificado asignado automáticamente por membresía ${membershipType.nombrePlan}`
+          });
+          
+          console.log(`ANPR certificate automatically assigned to company ${company.id}`);
+        } else {
+          console.warn("ANPR certificate not found - skipping automatic assignment");
+        }
+      } catch (certificateError) {
+        console.error("Error assigning ANPR certificate:", certificateError);
+        // Don't fail the registration if certificate assignment fails
+      }
+
       res.json({ 
         success: true, 
         user: { id: user.id, email: user.email, password: userData.password },

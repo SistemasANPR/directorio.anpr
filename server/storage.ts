@@ -93,6 +93,11 @@ export interface IStorage {
   createCertificate(certificate: InsertCertificate): Promise<Certificate>;
   updateCertificate(id: number, certificate: Partial<InsertCertificate>): Promise<Certificate | undefined>;
   deleteCertificate(id: number): Promise<boolean>;
+  assignCertificateToCompany(companyId: number, certificateId: number, details: {
+    fechaObtencion: string;
+    asignadoPorAdmin: boolean;
+    observaciones?: string;
+  }): Promise<void>;
 
   // Roles
   getRole(id: number): Promise<Role | undefined>;
@@ -499,6 +504,32 @@ export class DatabaseStorage implements IStorage {
   async deleteCertificate(id: number): Promise<boolean> {
     const result = await db.delete(certificates).where(eq(certificates.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async assignCertificateToCompany(companyId: number, certificateId: number, details: {
+    fechaObtencion: string;
+    asignadoPorAdmin: boolean;
+    observaciones?: string;
+  }): Promise<void> {
+    // Get the current company to update its certificateIds
+    const company = await this.getCompany(companyId);
+    if (!company) {
+      throw new Error("Company not found");
+    }
+
+    // Get current certificate IDs and add the new one if not already present
+    const currentCertificateIds = (company.certificateIds as number[]) || [];
+    if (!currentCertificateIds.includes(certificateId)) {
+      currentCertificateIds.push(certificateId);
+      
+      // Update the company's certificateIds array
+      await db.update(companies)
+        .set({ 
+          certificateIds: currentCertificateIds,
+          updatedAt: new Date()
+        })
+        .where(eq(companies.id, companyId));
+    }
   }
 
   // Roles
