@@ -249,6 +249,14 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/dashboard-representante">
+        <ProtectedRoute>
+          <RepresentativeLayout>
+            <RepresentativeDashboard />
+          </RepresentativeLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/directorio">
         <PublicLayout>
           <Directory />
