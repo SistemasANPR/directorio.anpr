@@ -16,6 +16,7 @@ import MembershipsNew from "@/pages/MembershipsNew";
 import Users from "@/pages/Users";
 import Certificates from "@/pages/Certificates";
 import Roles from "@/pages/Roles";
+import Reports from "@/pages/Reports";
 import OpinionsAdmin from "@/pages/OpinionsAdmin";
 import Testimonials from "@/pages/Testimonials";
 import TestimonialsAdmin from "@/pages/TestimonialsAdmin";
@@ -147,6 +148,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <Roles />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/reportes">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <Reports />
           </AppLayout>
         </ProtectedRoute>
       </Route>
