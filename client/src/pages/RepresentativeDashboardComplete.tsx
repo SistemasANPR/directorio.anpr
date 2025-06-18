@@ -80,9 +80,9 @@ export default function RepresentativeDashboard() {
     enabled: !!user?.id,
   });
 
-  // Fetch membership types
+  // Fetch membership types (only public plans for non-admin users)
   const { data: membershipTypes } = useQuery({
-    queryKey: ['/api/membership-types'],
+    queryKey: ['/api/membership-types/public'],
   });
 
   // Fetch certificates for this company

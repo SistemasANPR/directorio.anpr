@@ -514,7 +514,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/membership-types", async (req, res) => {
     try {
       const membershipTypes = await storage.getAllMembershipTypes();
-      res.json(membershipTypes);
+      
+      // Check if user is admin - if not, filter out private memberships
+      const isAdmin = req.user?.role === 'admin' || req.user?.roleId === 1;
+      
+      if (!isAdmin) {
+        // Filter out private memberships for non-admin users
+        const publicMemberships = membershipTypes.filter((membership: any) => 
+          !membership.visibilidad || membership.visibilidad === "publica"
+        );
+        res.json(publicMemberships);
+      } else {
+        // Admin users can see all memberships
+        res.json(membershipTypes);
+      }
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch membership types" });
     }

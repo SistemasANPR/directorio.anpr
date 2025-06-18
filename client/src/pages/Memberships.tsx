@@ -95,7 +95,7 @@ export default function Memberships() {
     },
   });
 
-  // Fetch memberships
+  // Fetch memberships (admin component - can see all memberships including private ones)
   const { data: memberships = [], isLoading } = useQuery<MembershipType[]>({
     queryKey: ["/api/membership-types"],
   });
