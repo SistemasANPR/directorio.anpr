@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import DynamicSocialMedia from "@/components/DynamicSocialMedia";
 
 const companyUpdateSchema = z.object({
   nombreEmpresa: z.string().min(1, "El nombre de la empresa es requerido"),
@@ -65,14 +66,7 @@ const companyUpdateSchema = z.object({
   ubicacionPrincipal: z.string().optional(),
   representantesVentas: z.array(z.string()).optional(),
   catalogoDigitalUrl: z.string().url("URL inválida").optional().or(z.literal("")),
-  redesSociales: z.object({
-    facebook: z.string().optional(),
-    twitter: z.string().optional(),
-    instagram: z.string().optional(),
-    linkedin: z.string().optional(),
-    youtube: z.string().optional(),
-    whatsapp: z.string().optional(),
-  }).optional(),
+  redesSociales: z.record(z.string()).optional(),
 });
 
 type CompanyUpdateData = z.infer<typeof companyUpdateSchema>;
@@ -530,54 +524,23 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
                     />
 
                     {/* Social Media Section */}
-                    <div className="space-y-2">
-                      <Label>Redes Sociales (Opcional)</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <FormField
-                          control={form.control}
-                          name="redesSociales.facebook"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="Facebook URL" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="redesSociales.instagram"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="Instagram URL" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="redesSociales.linkedin"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="LinkedIn URL" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="redesSociales.whatsapp"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder="WhatsApp" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="redesSociales"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <DynamicSocialMedia
+                                value={field.value || {}}
+                                onChange={field.onChange}
+                                disabled={updateCompanyMutation.isPending}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
                 </div>
