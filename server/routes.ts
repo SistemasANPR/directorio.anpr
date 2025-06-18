@@ -1665,7 +1665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Login successful for temp user:", user.id);
       
       // Convert role string to roleId for consistency
-      let roleId = 1; // Default to user role
+      let roleId = 2; // Default to representative role
       if (user.role === "admin") roleId = 1;
       else if (user.role === "representative" || user.role === "representante") roleId = 2;
       

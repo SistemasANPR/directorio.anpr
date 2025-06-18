@@ -76,13 +76,18 @@ export default function Login() {
           
           // Redirect based on user role
           const userRole = tempResult.user.role?.id || tempResult.user.roleId;
-          console.log("User role detected:", userRole, "Full user:", tempResult.user);
+          const roleString = tempResult.user.role;
+          console.log("User role detected:", userRole, "Role string:", roleString, "Full user:", tempResult.user);
           
-          if (userRole === 2) { // Representative role
+          // Check if user is admin (roleId 1 or role string "admin")
+          if (userRole === 1 || roleString === 'admin') {
+            console.log("Redirecting to admin dashboard");
+            setLocation("/dashboard");
+          } else if (userRole === 2 || roleString === 'representante') { // Representative role
             console.log("Redirecting to representative dashboard");
             setLocation("/representative-dashboard");
           } else {
-            console.log("Redirecting to admin dashboard");
+            console.log("Unknown role, defaulting to admin dashboard");
             setLocation("/dashboard");
           }
           return;
