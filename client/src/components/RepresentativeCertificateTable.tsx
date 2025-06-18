@@ -37,17 +37,8 @@ const getVisibilityBadgeColor = (visibility?: string) => {
 };
 
 const isAdminAssignedCertificate = (certificate: Certificate) => {
-  // Admin-assigned certificates have specific names or are system-generated
-  const adminCertificateNames = [
-    "Miembro Oficial ANPR México 2025",
-    "Certificación ANPR",
-    "Miembro Activo ANPR",
-    "Reconocimiento ANPR"
-  ];
-  
-  return adminCertificateNames.some(name => 
-    certificate.nombreCertificado.toLowerCase().includes(name.toLowerCase())
-  );
+  // Check if certificate was created by admin using the new database field
+  return (certificate as any).creadoPorAdmin === true;
 };
 
 export default function RepresentativeCertificateTable({ 

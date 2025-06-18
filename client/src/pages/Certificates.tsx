@@ -149,6 +149,8 @@ export default function Certificates() {
       fechaEmision: certificate.fechaEmision || "",
       fechaVencimiento: certificate.fechaVencimiento || "",
       entidadEmisora: certificate.entidadEmisora || "",
+      membershipPlanIds: (certificate as any).membershipPlanIds || [],
+      creadoPorAdmin: (certificate as any).creadoPorAdmin || true,
     });
     setEditOpen(true);
   };
@@ -349,6 +351,44 @@ export default function Certificates() {
                 />
               </div>
 
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Planes de Membresía Asociados
+                </Label>
+                <p className="text-sm text-gray-600 mb-3">
+                  Selecciona los planes que tendrán acceso automático a este certificado
+                </p>
+                <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                  {membershipTypes.map((plan: any) => (
+                    <label key={plan.id} className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={form.watch("membershipPlanIds")?.includes(plan.id) || false}
+                        onCheckedChange={(checked) => {
+                          const currentIds = form.getValues("membershipPlanIds") || [];
+                          if (checked) {
+                            form.setValue("membershipPlanIds", [...currentIds, plan.id]);
+                          } else {
+                            form.setValue("membershipPlanIds", currentIds.filter(id => id !== plan.id));
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{plan.nombrePlan}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <div>
+                  <Label className="text-sm font-medium text-blue-900">Certificado Creado por Administrador</Label>
+                  <p className="text-xs text-blue-700">
+                    Este certificado solo será visible para administradores y se asignará automáticamente según los planes seleccionados
+                  </p>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
@@ -406,12 +446,29 @@ export default function Certificates() {
                     </span>
                   </div>
                 )}
+
+                {(certificate as any).membershipPlanIds && (certificate as any).membershipPlanIds.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-600">
+                      {(certificate as any).membershipPlanIds.length} plan(es) asociado(s)
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between mt-4">
-                <Badge variant={certificate.estado === "activo" ? "default" : "secondary"}>
-                  {certificate.estado}
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge variant={certificate.estado === "activo" ? "default" : "secondary"}>
+                    {certificate.estado}
+                  </Badge>
+                  {(certificate as any).creadoPorAdmin && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Admin
+                    </Badge>
+                  )}
+                </div>
                 
                 <div className="flex gap-2">
                   <Button 
