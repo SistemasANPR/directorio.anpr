@@ -50,6 +50,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { CompanyWithDetails } from "@shared/schema";
+import DynamicSocialMedia from "@/components/DynamicSocialMedia";
 
 const companyUpdateSchema = z.object({
   nombreEmpresa: z.string().min(1, "El nombre de la empresa es requerido"),
@@ -66,14 +67,7 @@ const companyUpdateSchema = z.object({
   ubicacionPrincipal: z.string().optional(),
   representantesVentas: z.array(z.string()).optional(),
   catalogoDigitalUrl: z.string().url("URL inválida").optional().or(z.literal("")),
-  redesSociales: z.object({
-    facebook: z.string().optional(),
-    twitter: z.string().optional(),
-    instagram: z.string().optional(),
-    linkedin: z.string().optional(),
-    youtube: z.string().optional(),
-    whatsapp: z.string().optional(),
-  }).optional(),
+  redesSociales: z.record(z.string()).optional(),
 });
 
 type CompanyUpdateData = z.infer<typeof companyUpdateSchema>;
@@ -516,92 +510,22 @@ export default function RepresentativeCompanyManagementComplete({ company }: Rep
 
                 {/* Social Media */}
                 <div className="space-y-4">
-                  <Label className="text-lg font-semibold">Redes Sociales</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="redesSociales.facebook"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Facebook</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="https://facebook.com/..." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="redesSociales.twitter"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Twitter</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="https://twitter.com/..." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="redesSociales.instagram"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Instagram</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="https://instagram.com/..." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="redesSociales.linkedin"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>LinkedIn</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="https://linkedin.com/..." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="redesSociales.youtube"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>YouTube</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="https://youtube.com/..." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="redesSociales.whatsapp"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>WhatsApp</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="https://wa.me/..." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="redesSociales"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <DynamicSocialMedia
+                            value={field.value || {}}
+                            onChange={field.onChange}
+                            disabled={updateCompanyMutation.isPending}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <div className="flex justify-end space-x-3">
