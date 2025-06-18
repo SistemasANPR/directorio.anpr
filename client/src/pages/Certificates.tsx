@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, FileImage, Calendar, Building2 } from "lucide-react";
+import { Plus, FileImage, Calendar, Building2, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Certificate, InsertCertificate } from "@shared/schema";
@@ -22,6 +23,8 @@ const certificateSchema = z.object({
   fechaEmision: z.string().optional(),
   fechaVencimiento: z.string().optional(),
   entidadEmisora: z.string().optional(),
+  membershipPlanIds: z.array(z.number()).optional(),
+  creadoPorAdmin: z.boolean().default(true),
 });
 
 type CertificateFormData = z.infer<typeof certificateSchema>;
@@ -41,6 +44,10 @@ export default function Certificates() {
     queryKey: ["/api/certificates"],
   });
 
+  const { data: membershipTypes = [] } = useQuery({
+    queryKey: ["/api/membership-types"],
+  });
+
   const form = useForm<CertificateFormData>({
     resolver: zodResolver(certificateSchema),
     defaultValues: {
@@ -50,6 +57,8 @@ export default function Certificates() {
       fechaEmision: "",
       fechaVencimiento: "",
       entidadEmisora: "",
+      membershipPlanIds: [],
+      creadoPorAdmin: true,
     },
   });
 
@@ -62,6 +71,8 @@ export default function Certificates() {
       fechaEmision: "",
       fechaVencimiento: "",
       entidadEmisora: "",
+      membershipPlanIds: [],
+      creadoPorAdmin: true,
     },
   });
 

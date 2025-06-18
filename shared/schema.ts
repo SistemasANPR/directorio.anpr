@@ -81,6 +81,8 @@ export const certificates = pgTable("certificates", {
   fechaVencimiento: text("fecha_vencimiento"),
   entidadEmisora: text("entidad_emisora"),
   estado: text("estado").notNull().default("activo"),
+  membershipPlanIds: jsonb("membership_plan_ids"), // Array of membership plan IDs that include this certificate by default
+  creadoPorAdmin: boolean("creado_por_admin").notNull().default(false), // If true, only visible to admins
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
