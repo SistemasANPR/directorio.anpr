@@ -614,7 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const filteredCertificates = isAdmin 
         ? certificates 
-        : certificates.filter(cert => !(cert as any).creadoPorAdmin);
+        : certificates.filter(cert => (cert as any).creado_por_admin !== true);
       
       res.json(filteredCertificates);
     } catch (error) {
