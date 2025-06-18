@@ -68,7 +68,7 @@ export default function Reports() {
     queryKey: ["/api/reports", selectedPeriod, dateRange],
   });
 
-  const { data: companies = [] } = useQuery({
+  const { data: companiesResponse } = useQuery({
     queryKey: ["/api/companies"],
   });
 
@@ -79,6 +79,9 @@ export default function Reports() {
   const { data: payments = [] } = useQuery({
     queryKey: ["/api/payments/all"],
   });
+
+  // Extract companies array from the API response structure
+  const companies = Array.isArray(companiesResponse?.companies) ? companiesResponse.companies : [];
 
   const handleExportToExcel = (data: any[], filename: string) => {
     const ws = XLSX.utils.json_to_sheet(data);
@@ -157,10 +160,9 @@ export default function Reports() {
             </SelectContent>
           </Select>
           {selectedPeriod === "custom" && (
-            <DatePickerWithRange
-              date={dateRange}
-              onDateChange={setDateRange}
-            />
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">Filtro de fechas próximamente disponible</span>
+            </div>
           )}
         </div>
       </div>
