@@ -141,8 +141,9 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
-- June 18, 2025: Fixed certificate visibility filtering - representatives can no longer see admin-created certificates
-- June 18, 2025: Enhanced API endpoint with role-based filtering using userRole parameter
+- June 18, 2025: SECURITY FIX - Fixed critical certificate visibility filtering issue where representatives could see admin-created certificates
+- June 18, 2025: Corrected database field mapping between Drizzle ORM (creadoPorAdmin) and PostgreSQL (creado_por_admin) columns
+- June 18, 2025: Enhanced API endpoint with role-based filtering using userRole parameter - verified working correctly
 - June 18, 2025: Updated both admin and representative interfaces to use proper certificate filtering
 - June 18, 2025: Upgraded payment receipt downloads to professional PDF format using jsPDF library
 - June 18, 2025: Implemented individual transaction receipt generation with company branding and detailed payment information
