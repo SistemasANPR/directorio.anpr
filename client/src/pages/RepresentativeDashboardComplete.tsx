@@ -85,9 +85,15 @@ export default function RepresentativeDashboard() {
     queryKey: ['/api/membership-types/public'],
   });
 
-  // Fetch certificates for this company
+  // Fetch certificates for this company (filtered by user role)
   const { data: certificates = [], isLoading: certificatesLoading } = useQuery({
-    queryKey: ["/api/certificates"],
+    queryKey: ["/api/certificates", { userRole: user?.role }],
+    queryFn: async () => {
+      const response = await fetch(`/api/certificates?userRole=${user?.role || 'representante'}`);
+      if (!response.ok) throw new Error('Failed to fetch certificates');
+      return response.json();
+    },
+    enabled: !!user?.role,
   });
 
   // Extract company data

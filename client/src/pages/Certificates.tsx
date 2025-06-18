@@ -41,7 +41,12 @@ export default function Certificates() {
   const queryClient = useQueryClient();
 
   const { data: certificates = [], isLoading } = useQuery<Certificate[]>({
-    queryKey: ["/api/certificates"],
+    queryKey: ["/api/certificates", { userRole: 'admin' }],
+    queryFn: async () => {
+      const response = await fetch('/api/certificates?userRole=admin');
+      if (!response.ok) throw new Error('Failed to fetch certificates');
+      return response.json();
+    },
   });
 
   const { data: membershipTypes = [] } = useQuery({

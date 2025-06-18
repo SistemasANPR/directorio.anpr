@@ -607,7 +607,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/certificates", async (req, res) => {
     try {
       const certificates = await storage.getAllCertificates();
-      res.json(certificates);
+      
+      // Filter out admin-created certificates for non-admin users
+      const userRole = req.query.userRole as string;
+      const isAdmin = userRole === 'admin';
+      
+      const filteredCertificates = isAdmin 
+        ? certificates 
+        : certificates.filter(cert => !(cert as any).creadoPorAdmin);
+      
+      res.json(filteredCertificates);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch certificates" });
     }

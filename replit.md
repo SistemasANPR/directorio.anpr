@@ -141,6 +141,9 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 18, 2025: Fixed certificate visibility filtering - representatives can no longer see admin-created certificates
+- June 18, 2025: Enhanced API endpoint with role-based filtering using userRole parameter
+- June 18, 2025: Updated both admin and representative interfaces to use proper certificate filtering
 - June 18, 2025: Upgraded payment receipt downloads to professional PDF format using jsPDF library
 - June 18, 2025: Implemented individual transaction receipt generation with company branding and detailed payment information
 - June 18, 2025: Fixed logout functionality in both admin and representative sidebars with proper session cleanup
