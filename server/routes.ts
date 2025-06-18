@@ -612,10 +612,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userRole = req.query.userRole as string;
       const isAdmin = userRole === 'admin';
       
+      console.log(`Certificate filtering - userRole: ${userRole}, isAdmin: ${isAdmin}`);
+      console.log('All certificates:', certificates.map(cert => ({
+        id: cert.id,
+        name: cert.nombreCertificado,
+        creadoPorAdmin: (cert as any).creadoPorAdmin
+      })));
+      
       const filteredCertificates = isAdmin 
         ? certificates 
-        : certificates.filter(cert => (cert as any).creado_por_admin !== true);
+        : certificates.filter(cert => {
+            const isAdminCreated = (cert as any).creadoPorAdmin === true;
+            console.log(`Certificate ${cert.id}: creadoPorAdmin=${(cert as any).creadoPorAdmin}, isAdminCreated=${isAdminCreated}, will include=${!isAdminCreated}`);
+            return !isAdminCreated;
+          });
       
+      console.log(`Returning ${filteredCertificates.length} certificates out of ${certificates.length}`);
       res.json(filteredCertificates);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch certificates" });
