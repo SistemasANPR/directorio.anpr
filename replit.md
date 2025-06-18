@@ -141,6 +141,11 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 18, 2025: Upgraded payment receipt downloads to professional PDF format using jsPDF library
+- June 18, 2025: Implemented individual transaction receipt generation with company branding and detailed payment information
+- June 18, 2025: Fixed logout functionality in both admin and representative sidebars with proper session cleanup
+- June 18, 2025: Created RepresentativeCompanyManagementComplete component as exact copy of admin CompanyManagement functionality
+- June 18, 2025: Added comprehensive company management for representatives including category selection, image galleries, and social media management
 - June 17, 2025: Created separate RepresentativeCompanyForm component to avoid conflicts with admin CompanyManagement component
 - June 17, 2025: Implemented automatic ANPR certificate assignment for business memberships in complete-registration endpoint
 - June 17, 2025: Added assignCertificateToCompany method to storage interface for automatic certificate assignment

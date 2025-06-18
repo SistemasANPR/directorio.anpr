@@ -312,224 +312,165 @@ export default function RepresentativeDashboard() {
     window.URL.revokeObjectURL(url);
   };
 
-  // Download individual payment receipt
-  const downloadPaymentReceipt = (payment: any) => {
+  // Download individual payment receipt as PDF
+  const downloadPaymentReceipt = async (payment: any) => {
     const membershipType = typedMembershipTypes.find((mt: any) => mt.id === payment.membershipTypeId);
     const paymentDate = format(new Date(payment.createdAt), 'dd/MM/yyyy HH:mm', { locale: es });
     const company = primaryCompany;
 
-    // Create HTML content for the receipt
-    const receiptHTML = `
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Recibo de Pago - ${payment.id}</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-          }
-          .header {
-            border-bottom: 3px solid #bcce16;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-          }
-          .logo-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-          }
-          .company-info {
-            flex: 1;
-          }
-          .company-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2d3748;
-            margin: 0;
-          }
-          .company-subtitle {
-            color: #718096;
-            margin: 5px 0;
-          }
-          .receipt-info {
-            text-align: right;
-          }
-          .receipt-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2d3748;
-            margin: 0;
-          }
-          .receipt-number {
-            color: #718096;
-            margin: 5px 0;
-          }
-          .details-section {
-            background: #f7fafc;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-          }
-          .details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-          }
-          .detail-item {
-            margin-bottom: 15px;
-          }
-          .detail-label {
-            font-weight: bold;
-            color: #4a5568;
-            display: block;
-            margin-bottom: 5px;
-          }
-          .detail-value {
-            color: #2d3748;
-          }
-          .amount-section {
-            background: #bcce16;
-            color: #000;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            margin: 20px 0;
-          }
-          .amount-label {
-            font-size: 14px;
-            margin-bottom: 5px;
-          }
-          .amount-value {
-            font-size: 36px;
-            font-weight: bold;
-          }
-          .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 12px;
-          }
-          .status-success {
-            background: #c6f6d5;
-            color: #22543d;
-          }
-          .status-pending {
-            background: #fed7d7;
-            color: #742a2a;
-          }
-          .footer {
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
-            margin-top: 30px;
-            text-align: center;
-            color: #718096;
-            font-size: 14px;
-          }
-          @media print {
-            body { margin: 0; padding: 15px; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="logo-section">
-            <div class="company-info">
-              <h1 class="company-name">ANPR México</h1>
-              <p class="company-subtitle">Asociación Nacional de Profesionales en Relaciones Públicas</p>
-            </div>
-            <div class="receipt-info">
-              <h2 class="receipt-title">RECIBO</h2>
-              <p class="receipt-number"># ${payment.id}</p>
-              <p class="receipt-number">${paymentDate}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="details-section">
-          <h3 style="margin-top: 0; color: #2d3748;">Información del Cliente</h3>
-          <div class="details-grid">
-            <div>
-              <div class="detail-item">
-                <span class="detail-label">Empresa:</span>
-                <span class="detail-value">${company?.nombreEmpresa || 'N/A'}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Email:</span>
-                <span class="detail-value">${company?.email1 || 'N/A'}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Teléfono:</span>
-                <span class="detail-value">${company?.telefono1 || 'N/A'}</span>
-              </div>
-            </div>
-            <div>
-              <div class="detail-item">
-                <span class="detail-label">Plan contratado:</span>
-                <span class="detail-value">${membershipType?.nombrePlan || 'Plan básico'}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">ID de transacción:</span>
-                <span class="detail-value">${payment.stripePaymentIntentId || 'N/A'}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Estado:</span>
-                <span class="status-badge ${payment.status === 'succeeded' ? 'status-success' : 'status-pending'}">
-                  ${payment.status === 'succeeded' ? 'Exitoso' : 
-                    payment.status === 'pending' ? 'Pendiente' : 'Fallido'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="amount-section">
-          <div class="amount-label">MONTO TOTAL PAGADO</div>
-          <div class="amount-value">$${parseFloat(payment.amount || '0').toFixed(2)} ${payment.currency?.toUpperCase() || 'MXN'}</div>
-        </div>
-
-        <div class="details-section">
-          <h3 style="margin-top: 0; color: #2d3748;">Descripción del Servicio</h3>
-          <p style="margin: 0; line-height: 1.6;">
-            ${membershipType?.beneficios || 'Servicios de membresía empresarial en el directorio ANPR México.'}
-          </p>
-        </div>
-
-        <div class="footer">
-          <p>Este recibo fue generado automáticamente el ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: es })}</p>
-          <p>ANPR México - Directorio Empresarial | www.anpr.org.mx</p>
-        </div>
-      </body>
-      </html>
-    `;
-
-    // Create and download the receipt
-    const blob = new Blob([receiptHTML], { type: 'text/html;charset=utf-8;' });
-    const link = document.createElement('a');
-    
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `recibo-pago-${payment.id}-${format(new Date(payment.createdAt), 'yyyy-MM-dd')}.html`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+    try {
+      // Import jsPDF dynamically
+      const { jsPDF } = await import('jspdf');
+      
+      // Create new PDF document
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Set font
+      pdf.setFont('helvetica');
+      
+      // Header section
+      pdf.setFillColor(188, 206, 22); // #bcce16
+      pdf.rect(0, 0, 210, 30, 'F');
+      
+      // Company name
+      pdf.setFontSize(22);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('ANPR México', 20, 20);
+      
+      // Subtitle
+      pdf.setFontSize(10);
+      pdf.setTextColor(80, 80, 80);
+      pdf.text('Asociación Nacional de Profesionales en Relaciones Públicas', 20, 26);
+      
+      // Receipt title and number
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('RECIBO', 150, 20);
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(80, 80, 80);
+      pdf.text(`# ${payment.id}`, 150, 26);
+      pdf.text(paymentDate, 150, 30);
+      
+      // Customer information section
+      let yPos = 50;
+      pdf.setFillColor(247, 250, 252); // #f7fafc
+      pdf.rect(20, yPos, 170, 40, 'F');
+      
+      pdf.setFontSize(14);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text('Información del Cliente', 25, yPos + 10);
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(74, 85, 104);
+      
+      // Left column
+      pdf.text('Empresa:', 25, yPos + 20);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text(company?.nombreEmpresa || 'N/A', 25, yPos + 25);
+      
+      pdf.setTextColor(74, 85, 104);
+      pdf.text('Email:', 25, yPos + 32);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text(company?.email1 || 'N/A', 25, yPos + 37);
+      
+      // Right column
+      pdf.setTextColor(74, 85, 104);
+      pdf.text('Plan contratado:', 110, yPos + 20);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text(membershipType?.nombrePlan || 'Plan básico', 110, yPos + 25);
+      
+      pdf.setTextColor(74, 85, 104);
+      pdf.text('Estado:', 110, yPos + 32);
+      pdf.setTextColor(45, 55, 72);
+      const statusText = payment.status === 'succeeded' ? 'Exitoso' : 
+                        payment.status === 'pending' ? 'Pendiente' : 'Fallido';
+      pdf.text(statusText, 110, yPos + 37);
+      
+      // Amount section
+      yPos += 60;
+      pdf.setFillColor(188, 206, 22); // #bcce16
+      pdf.rect(20, yPos, 170, 25, 'F');
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('MONTO TOTAL PAGADO', 105, yPos + 8, { align: 'center' });
+      
+      pdf.setFontSize(24);
+      const amountText = `$${parseFloat(payment.amount || '0').toFixed(2)} ${payment.currency?.toUpperCase() || 'MXN'}`;
+      pdf.text(amountText, 105, yPos + 20, { align: 'center' });
+      
+      // Transaction details
+      yPos += 40;
+      pdf.setFillColor(247, 250, 252); // #f7fafc
+      pdf.rect(20, yPos, 170, 30, 'F');
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text('Detalles de la Transacción', 25, yPos + 10);
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(74, 85, 104);
+      pdf.text('ID de transacción:', 25, yPos + 18);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text(payment.stripePaymentIntentId || 'N/A', 25, yPos + 23);
+      
+      pdf.setTextColor(74, 85, 104);
+      pdf.text('Teléfono:', 110, yPos + 18);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text(company?.telefono1 || 'N/A', 110, yPos + 23);
+      
+      // Service description
+      yPos += 45;
+      pdf.setFillColor(247, 250, 252); // #f7fafc
+      pdf.rect(20, yPos, 170, 35, 'F');
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(45, 55, 72);
+      pdf.text('Descripción del Servicio', 25, yPos + 10);
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(45, 55, 72);
+      const serviceDescription = membershipType?.beneficios || 'Servicios de membresía empresarial en el directorio ANPR México.';
+      
+      // Split long text into multiple lines
+      const lines = pdf.splitTextToSize(serviceDescription, 160);
+      let lineY = yPos + 18;
+      lines.forEach((line: string) => {
+        if (lineY < yPos + 30) { // Keep within the box
+          pdf.text(line, 25, lineY);
+          lineY += 5;
+        }
+      });
+      
+      // Footer
+      yPos += 50;
+      pdf.setDrawColor(226, 232, 240); // #e2e8f0
+      pdf.line(20, yPos, 190, yPos);
+      
+      pdf.setFontSize(9);
+      pdf.setTextColor(113, 128, 150);
+      const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm', { locale: es });
+      pdf.text(`Este recibo fue generado automáticamente el ${currentDate}`, 105, yPos + 8, { align: 'center' });
+      pdf.text('ANPR México - Directorio Empresarial | www.anpr.org.mx', 105, yPos + 15, { align: 'center' });
+      
+      // Save the PDF
+      const fileName = `recibo-pago-${payment.id}-${format(new Date(payment.createdAt), 'yyyy-MM-dd')}.pdf`;
+      pdf.save(fileName);
+      
+      toast({
+        title: "Recibo descargado",
+        description: "El recibo de pago PDF se ha descargado correctamente",
+      });
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el recibo PDF",
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "Recibo descargado",
-      description: "El recibo de pago se ha descargado correctamente",
-    });
   };
 
   if (isLoading) {
@@ -1065,7 +1006,7 @@ export default function RepresentativeDashboard() {
                                     className="gap-2"
                                   >
                                     <Download className="h-4 w-4" />
-                                    Descargar
+                                    Descargar PDF
                                   </Button>
                                 </td>
                               </tr>
