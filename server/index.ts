@@ -6,6 +6,19 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Middleware to extract user info from headers for API requests
+app.use('/api', (req: any, res, next) => {
+  const userHeader = req.headers['x-user-info'];
+  if (userHeader) {
+    try {
+      req.user = JSON.parse(userHeader as string);
+    } catch (error) {
+      // If parsing fails, continue without user info
+    }
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

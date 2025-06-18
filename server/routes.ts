@@ -511,12 +511,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Membership Types API
-  app.get("/api/membership-types", async (req, res) => {
+  app.get("/api/membership-types", async (req: any, res) => {
     try {
       const membershipTypes = await storage.getAllMembershipTypes();
       
       // Check if user is admin - if not, filter out private memberships
       const isAdmin = req.user?.role === 'admin' || req.user?.roleId === 1;
+      console.log('User info in membership-types endpoint:', req.user);
+      console.log('Is admin:', isAdmin);
       
       if (!isAdmin) {
         // Filter out private memberships for non-admin users

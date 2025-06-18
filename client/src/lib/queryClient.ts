@@ -14,9 +14,21 @@ export async function apiRequest(
 ): Promise<Response> {
   const isFormData = data instanceof FormData;
   
+  // Get user info from localStorage for authentication
+  const tempUserData = localStorage.getItem('tempUser');
+  const headers: Record<string, string> = {};
+  
+  if (data && !isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+  
+  if (tempUserData) {
+    headers["x-user-info"] = tempUserData;
+  }
+  
   const res = await fetch(url, {
     method,
-    headers: data && !isFormData ? { "Content-Type": "application/json" } : {},
+    headers,
     body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     credentials: "include",
   });
@@ -31,8 +43,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Get user info from localStorage for authentication
+    const tempUserData = localStorage.getItem('tempUser');
+    const headers: Record<string, string> = {};
+    
+    if (tempUserData) {
+      headers["x-user-info"] = tempUserData;
+    }
+    
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

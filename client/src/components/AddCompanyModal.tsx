@@ -230,7 +230,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   });
 
   const { data: membershipTypes = [] } = useQuery<MembershipType[]>({
-    queryKey: ["/api/membership-types"],
+    queryKey: ["/api/membership-types"], // Admin component - can see all membership types
   });
 
   const { data: certificates = [] } = useQuery<Certificate[]>({
