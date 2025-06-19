@@ -1143,6 +1143,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get company membership limits and current usage
+  app.get("/api/companies/:companyId/limits", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId);
+      const company = await storage.getCompany(companyId);
+      
+      if (!company) {
+        return res.status(404).json({ error: "Empresa no encontrada" });
+      }
+
+      if (!company.membershipTypeId) {
+        return res.status(400).json({ error: "La empresa no tiene un plan de membresía asignado" });
+      }
+
+      const membershipType = await storage.getMembershipType(company.membershipTypeId);
+      if (!membershipType) {
+        return res.status(404).json({ error: "Plan de membresía no encontrado" });
+      }
+
+      // Get current usage
+      const projects = await storage.getProjectsByCompany(companyId);
+      const currentProjectCount = projects.length;
+      const currentProductCount = Array.isArray(company.galeriaProductosUrls) 
+        ? company.galeriaProductosUrls.length 
+        : 0;
+
+      const limits = {
+        planName: membershipType.nombrePlan,
+        projects: {
+          limit: membershipType.cantidadProyectosAdmitidos || 0,
+          current: currentProjectCount,
+          available: Math.max(0, (membershipType.cantidadProyectosAdmitidos || 0) - currentProjectCount)
+        },
+        products: {
+          limit: membershipType.cantidadProductosAdmitidos || 0,
+          current: currentProductCount,
+          available: Math.max(0, (membershipType.cantidadProductosAdmitidos || 0) - currentProductCount)
+        }
+      };
+
+      res.json(limits);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/projects", uploadImage.array('galeriaImagenes', 4), async (req, res) => {
     try {
       // Skip authentication check for now - allow project creation

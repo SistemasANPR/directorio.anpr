@@ -29,6 +29,7 @@ import { es } from "date-fns/locale";
 import RepresentativeCompanyManagementComplete from "@/components/RepresentativeCompanyManagementComplete";
 import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
 import RepresentativeReview from "@/components/RepresentativeReview";
+import MembershipLimitsDisplay from "@/components/MembershipLimitsDisplay";
 import AddCertificateModal from "@/components/AddCertificateModal";
 import EditCertificateModal from "@/components/EditCertificateModal";
 import AddProjectModal from "@/components/AddProjectModal";
@@ -594,6 +595,13 @@ export default function RepresentativeDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Membership Limits Display */}
+            {primaryCompany && (
+              <div className="mb-6">
+                <MembershipLimitsDisplay companyId={primaryCompany.id} />
+              </div>
+            )}
 
             {/* Welcome Card */}
             <Card className="mb-6">
