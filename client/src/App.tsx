@@ -40,8 +40,7 @@ import TestHome from "@/TestHome";
 import NotFound from "@/pages/not-found";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
+  const { user, isAdmin } = useAuth();
   
   return (
     <div className="min-h-screen flex bg-background">

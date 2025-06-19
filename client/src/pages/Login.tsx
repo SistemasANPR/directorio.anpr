@@ -74,22 +74,25 @@ export default function Login() {
               : "Has iniciado sesión exitosamente",
           });
           
-          // Redirect based on user role
+          // Redirect based on user role with a small delay to ensure state update
           const userRole = tempResult.user.role?.id || tempResult.user.roleId;
           const roleString = tempResult.user.role;
           console.log("User role detected:", userRole, "Role string:", roleString, "Full user:", tempResult.user);
           
-          // Check if user is admin (roleId 1 or role string "admin")
-          if (userRole === 1 || roleString === 'admin') {
-            console.log("Redirecting to admin dashboard");
-            setLocation("/dashboard");
-          } else if (userRole === 2 || roleString === 'representante') { // Representative role
-            console.log("Redirecting to representative dashboard");
-            setLocation("/representative-dashboard");
-          } else {
-            console.log("Unknown role, defaulting to admin dashboard");
-            setLocation("/dashboard");
-          }
+          // Force page reload to ensure proper state initialization
+          setTimeout(() => {
+            // Check if user is admin (roleId 1 or role string "admin")
+            if (userRole === 1 || roleString === 'admin') {
+              console.log("Redirecting to admin dashboard");
+              window.location.href = "/dashboard";
+            } else if (userRole === 2 || roleString === 'representante') { // Representative role
+              console.log("Redirecting to representative dashboard");
+              window.location.href = "/representative-dashboard";
+            } else {
+              console.log("Unknown role, defaulting to admin dashboard");
+              window.location.href = "/dashboard";
+            }
+          }, 500);
           return;
         }
 
