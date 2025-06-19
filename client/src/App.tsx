@@ -32,7 +32,7 @@ import RepresentativeDashboard from "@/pages/RepresentativeDashboardComplete";
 import RegisterAndPay from "@/pages/RegisterAndPay";
 import RegistroExitoso from "@/pages/RegistroExitoso";
 import SystemSettings from "@/pages/SystemSettings";
-import HomeAdmin from "@/pages/HomeAdmin";
+
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
@@ -199,13 +199,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/home-admin">
-        <ProtectedRoute requireAdmin>
-          <AppLayout>
-            <HomeAdmin />
-          </AppLayout>
-        </ProtectedRoute>
-      </Route>
+
       
       <Route path="/integracion">
         <ProtectedRoute requireAdmin>
