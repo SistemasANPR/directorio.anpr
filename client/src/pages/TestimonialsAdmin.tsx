@@ -4,18 +4,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Star, CheckCircle, XCircle, Clock, Eye, MessageSquare } from "lucide-react";
+import { Star, CheckCircle, XCircle, Clock, Eye, MessageSquare, Building, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function TestimonialsAdmin() {
   const { toast } = useToast();
+  const [selectedTestimonialType, setSelectedTestimonialType] = useState("empresa");
   const [selectedTab, setSelectedTab] = useState("pendiente");
 
-  const { data: testimonials, isLoading } = useQuery({
+  // Testimonios sobre empresas
+  const { data: companyTestimonials, isLoading: loadingCompany } = useQuery({
+    queryKey: ["/api/opinions", { tipo: "empresa", estado: selectedTab }],
+    queryFn: () => fetch(`/api/opinions?tipo=empresa&estado=${selectedTab}`).then(res => res.json()),
+    enabled: selectedTestimonialType === "empresa",
+  });
+
+  // Testimonios sobre la plataforma
+  const { data: platformTestimonials, isLoading: loadingPlatform } = useQuery({
     queryKey: ["/api/opinions", { tipo: "plataforma", estado: selectedTab }],
     queryFn: () => fetch(`/api/opinions?tipo=plataforma&estado=${selectedTab}`).then(res => res.json()),
+    enabled: selectedTestimonialType === "plataforma",
   });
+
+  const currentTestimonials = selectedTestimonialType === "empresa" ? companyTestimonials : platformTestimonials;
+  const isLoading = selectedTestimonialType === "empresa" ? loadingCompany : loadingPlatform;
 
   const approveTestimonialMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -65,24 +78,35 @@ export default function TestimonialsAdmin() {
     rejectTestimonialMutation.mutate(id);
   };
 
-  const getStatusBadge = (estado: string) => {
-    switch (estado) {
-      case "aprobada":
-        return <Badge className="bg-green-100 text-green-800">Aprobado</Badge>;
-      case "rechazada":
-        return <Badge className="bg-red-100 text-red-800">Rechazado</Badge>;
-      default:
-        return <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>;
-    }
-  };
-
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+        className={`w-4 h-4 ${
+          i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+        }`}
       />
     ));
+  };
+
+  const getStatusBadge = (estado: string) => {
+    switch (estado) {
+      case "pendiente":
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendiente</Badge>;
+      case "aprobada":
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Aprobado</Badge>;
+      case "rechazada":
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rechazado</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const getCompanyName = (testimonial: any) => {
+    if (testimonial.company) {
+      return testimonial.company.nombreEmpresa;
+    }
+    return "Empresa no especificada";
   };
 
   if (isLoading) {
@@ -99,11 +123,52 @@ export default function TestimonialsAdmin() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gestión de Testimonios</h1>
           <p className="text-muted-foreground">
-            Administre los testimonios de la plataforma enviados por los usuarios
+            Administre los testimonios de usuarios y representantes
           </p>
         </div>
       </div>
 
+      {/* Tabs para tipo de testimonio */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Tipos de Testimonios
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant={selectedTestimonialType === "empresa" ? "default" : "outline"}
+              onClick={() => setSelectedTestimonialType("empresa")}
+              className="h-auto p-4 flex flex-col items-center gap-2"
+            >
+              <Building className="h-6 w-6" />
+              <div className="text-center">
+                <div className="font-medium">Testimonios sobre Empresas</div>
+                <div className="text-sm text-muted-foreground">
+                  Evaluaciones de usuarios sobre servicios empresariales
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant={selectedTestimonialType === "plataforma" ? "default" : "outline"}
+              onClick={() => setSelectedTestimonialType("plataforma")}
+              className="h-auto p-4 flex flex-col items-center gap-2"
+            >
+              <Users className="h-6 w-6" />
+              <div className="text-center">
+                <div className="font-medium">Testimonios sobre la Plataforma</div>
+                <div className="text-sm text-muted-foreground">
+                  Feedback de representantes sobre el directorio
+                </div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabs para estado */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pendiente" className="flex items-center gap-2">
@@ -121,18 +186,18 @@ export default function TestimonialsAdmin() {
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
-          {testimonials?.opinions?.length === 0 ? (
+          {!currentTestimonials?.opinions || currentTestimonials.opinions.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center">
                 <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
-                  No hay testimonios {selectedTab === "pendiente" ? "pendientes" : selectedTab === "aprobada" ? "aprobados" : "rechazados"}.
+                  No hay testimonios {selectedTab === "pendiente" ? "pendientes" : selectedTab === "aprobada" ? "aprobados" : "rechazados"} para {selectedTestimonialType === "empresa" ? "empresas" : "la plataforma"}.
                 </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4">
-              {testimonials?.opinions?.map((testimonial: any) => (
+              {currentTestimonials.opinions.map((testimonial: any) => (
                 <Card key={testimonial.id}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
@@ -141,9 +206,27 @@ export default function TestimonialsAdmin() {
                           <CardTitle className="text-lg">{testimonial.nombre}</CardTitle>
                           {getStatusBadge(testimonial.estado)}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          <p>{testimonial.cargo}</p>
-                          <p>{testimonial.email}</p>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p className="flex items-center gap-2">
+                            <span className="font-medium">Email:</span> {testimonial.email}
+                          </p>
+                          {testimonial.cargo && (
+                            <p className="flex items-center gap-2">
+                              <span className="font-medium">Cargo:</span> {testimonial.cargo}
+                            </p>
+                          )}
+                          {selectedTestimonialType === "empresa" && (
+                            <p className="flex items-center gap-2">
+                              <Building className="w-4 h-4" />
+                              <span className="font-medium">Empresa:</span> {getCompanyName(testimonial)}
+                            </p>
+                          )}
+                          <p className="flex items-center gap-2">
+                            <span className="font-medium">Tipo:</span> 
+                            <Badge variant="secondary">
+                              {selectedTestimonialType === "empresa" ? "Sobre Empresa" : "Sobre Plataforma"}
+                            </Badge>
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex">
@@ -184,31 +267,29 @@ export default function TestimonialsAdmin() {
                     <div className="space-y-4">
                       <div>
                         <h4 className="font-medium mb-2">Testimonio:</h4>
-                        <p className="text-gray-700 leading-relaxed">{testimonial.comentario}</p>
+                        <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
+                          {testimonial.comentario}
+                        </p>
                       </div>
                       
-                      <div className="flex justify-between items-center text-xs text-muted-foreground border-t pt-4">
-                        <span>
-                          Enviado el {new Date(testimonial.fechaCreacion).toLocaleDateString("es-ES", {
+                      <div className="text-sm text-muted-foreground">
+                        <p>
+                          <span className="font-medium">Fecha:</span>{" "}
+                          {new Date(testimonial.fechaCreacion).toLocaleDateString("es-ES", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit"
                           })}
-                        </span>
-                        
+                        </p>
                         {testimonial.fechaAprobacion && (
-                          <span>
-                            {testimonial.estado === "aprobada" ? "Aprobado" : "Revisado"} el{" "}
+                          <p>
+                            <span className="font-medium">Fecha de aprobación:</span>{" "}
                             {new Date(testimonial.fechaAprobacion).toLocaleDateString("es-ES", {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
                             })}
-                          </span>
+                          </p>
                         )}
                       </div>
                     </div>
