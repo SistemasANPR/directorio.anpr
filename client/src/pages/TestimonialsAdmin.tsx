@@ -141,12 +141,20 @@ export default function TestimonialsAdmin() {
             <Button
               variant={selectedTestimonialType === "empresa" ? "default" : "outline"}
               onClick={() => setSelectedTestimonialType("empresa")}
-              className="h-auto p-4 flex flex-col items-center gap-2"
+              className={`h-auto p-4 flex flex-col items-center gap-2 ${
+                selectedTestimonialType === "empresa" 
+                  ? "text-white" 
+                  : ""
+              }`}
             >
               <Building className="h-6 w-6" />
               <div className="text-center">
                 <div className="font-medium">Testimonios sobre Empresas</div>
-                <div className="text-sm text-muted-foreground">
+                <div className={`text-sm ${
+                  selectedTestimonialType === "empresa" 
+                    ? "text-white/80" 
+                    : "text-muted-foreground"
+                }`}>
                   Evaluaciones de usuarios sobre servicios empresariales
                 </div>
               </div>
@@ -154,12 +162,20 @@ export default function TestimonialsAdmin() {
             <Button
               variant={selectedTestimonialType === "plataforma" ? "default" : "outline"}
               onClick={() => setSelectedTestimonialType("plataforma")}
-              className="h-auto p-4 flex flex-col items-center gap-2"
+              className={`h-auto p-4 flex flex-col items-center gap-2 ${
+                selectedTestimonialType === "plataforma" 
+                  ? "text-white" 
+                  : ""
+              }`}
             >
               <Users className="h-6 w-6" />
               <div className="text-center">
                 <div className="font-medium">Testimonios sobre la Plataforma</div>
-                <div className="text-sm text-muted-foreground">
+                <div className={`text-sm ${
+                  selectedTestimonialType === "plataforma" 
+                    ? "text-white/80" 
+                    : "text-muted-foreground"
+                }`}>
                   Feedback de representantes sobre el directorio
                 </div>
               </div>
