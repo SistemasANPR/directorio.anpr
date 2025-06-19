@@ -143,16 +143,20 @@ export default function TestimonialsAdmin() {
               onClick={() => setSelectedTestimonialType("empresa")}
               className={`h-auto p-4 flex flex-col items-center gap-2 ${
                 selectedTestimonialType === "empresa" 
-                  ? "text-white" 
+                  ? "text-white [&>*]:text-white [&_*]:text-white" 
                   : ""
               }`}
             >
-              <Building className="h-6 w-6" />
+              <Building className={`h-6 w-6 ${
+                selectedTestimonialType === "empresa" ? "text-white" : ""
+              }`} />
               <div className="text-center">
-                <div className="font-medium">Testimonios sobre Empresas</div>
+                <div className={`font-medium ${
+                  selectedTestimonialType === "empresa" ? "text-white" : ""
+                }`}>Testimonios sobre Empresas</div>
                 <div className={`text-sm ${
                   selectedTestimonialType === "empresa" 
-                    ? "text-white/80" 
+                    ? "text-white/90" 
                     : "text-muted-foreground"
                 }`}>
                   Evaluaciones de usuarios sobre servicios empresariales
@@ -164,16 +168,20 @@ export default function TestimonialsAdmin() {
               onClick={() => setSelectedTestimonialType("plataforma")}
               className={`h-auto p-4 flex flex-col items-center gap-2 ${
                 selectedTestimonialType === "plataforma" 
-                  ? "text-white" 
+                  ? "text-white [&>*]:text-white [&_*]:text-white" 
                   : ""
               }`}
             >
-              <Users className="h-6 w-6" />
+              <Users className={`h-6 w-6 ${
+                selectedTestimonialType === "plataforma" ? "text-white" : ""
+              }`} />
               <div className="text-center">
-                <div className="font-medium">Testimonios sobre la Plataforma</div>
+                <div className={`font-medium ${
+                  selectedTestimonialType === "plataforma" ? "text-white" : ""
+                }`}>Testimonios sobre la Plataforma</div>
                 <div className={`text-sm ${
                   selectedTestimonialType === "plataforma" 
-                    ? "text-white/80" 
+                    ? "text-white/90" 
                     : "text-muted-foreground"
                 }`}>
                   Feedback de representantes sobre el directorio
