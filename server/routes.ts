@@ -1593,6 +1593,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF Settings API endpoints
+  app.get("/api/pdf-settings", async (req, res) => {
+    try {
+      const settings = await storage.getPdfSettings();
+      res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/pdf-settings", async (req, res) => {
+    try {
+      const validatedData = insertPdfSettingsSchema.partial().parse(req.body);
+      const settings = await storage.updatePdfSettings(validatedData);
+      res.json(settings);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

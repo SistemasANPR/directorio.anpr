@@ -277,7 +277,48 @@ export const integrationSettings = pgTable("integration_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const pdfSettings = pgTable("pdf_settings", {
+  id: serial("id").primaryKey(),
+  // Branding
+  companyName: text("company_name").default("ANPR México").notNull(),
+  companySubtitle: text("company_subtitle").default("Asociación Nacional de Profesionales en Relaciones Públicas"),
+  logoUrl: text("logo_url"),
+  websiteUrl: text("website_url").default("www.anpr.org.mx"),
+  
+  // Colors (hex format)
+  primaryColor: text("primary_color").default("#bcce16").notNull(), // Header background
+  secondaryColor: text("secondary_color").default("#2d3748").notNull(), // Text color
+  accentColor: text("accent_color").default("#f7fafc").notNull(), // Background sections
+  textColor: text("text_color").default("#000000").notNull(), // Main text
+  subtitleColor: text("subtitle_color").default("#505050").notNull(), // Subtitle text
+  
+  // Layout settings
+  headerHeight: integer("header_height").default(30).notNull(),
+  fontSize: integer("font_size").default(10).notNull(),
+  titleFontSize: integer("title_font_size").default(22).notNull(),
+  
+  // Content settings
+  showLogo: boolean("show_logo").default(true).notNull(),
+  showWebsite: boolean("show_website").default(true).notNull(),
+  showAddress: boolean("show_address").default(true).notNull(),
+  footerText: text("footer_text").default("Este recibo fue generado automáticamente"),
+  
+  // Contact information
+  address: text("address"),
+  phone: text("phone"),
+  email: text("email"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertIntegrationSettingsSchema = createInsertSchema(integrationSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPdfSettingsSchema = createInsertSchema(pdfSettings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -318,6 +359,9 @@ export type InsertProject = z.infer<typeof insertProjectSchema>;
 
 export type IntegrationSettings = typeof integrationSettings.$inferSelect;
 export type InsertIntegrationSettings = z.infer<typeof insertIntegrationSettingsSchema>;
+
+export type PdfSettings = typeof pdfSettings.$inferSelect;
+export type InsertPdfSettings = z.infer<typeof insertPdfSettingsSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

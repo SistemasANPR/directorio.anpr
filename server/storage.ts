@@ -10,6 +10,7 @@ import {
   systemSettings,
   projects,
   integrationSettings,
+  pdfSettings,
   type User, 
   type Company, 
   type Category, 
@@ -28,6 +29,8 @@ import {
   type InsertProject,
   type IntegrationSettings,
   type InsertIntegrationSettings,
+  type PdfSettings,
+  type InsertPdfSettings,
   type MembershipPayment,
   type InsertMembershipPayment,
   type SystemSettings,
@@ -154,6 +157,11 @@ export interface IStorage {
   // Membership Limits Validation
   validateProjectLimits(companyId: number): Promise<void>;
   validateProductLimits(companyId: number, newProductCount?: number): Promise<void>;
+
+  // PDF Settings
+  getPdfSettings(): Promise<PdfSettings>;
+  updatePdfSettings(settings: Partial<InsertPdfSettings>): Promise<PdfSettings>;
+  createPdfSettings(settings: InsertPdfSettings): Promise<PdfSettings>;
 
 
 
@@ -1085,6 +1093,55 @@ export class DatabaseStorage implements IStorage {
     } catch (error: any) {
       return { syncedUsers: 0, message: `Error de sincronización: ${error.message}` };
     }
+  }
+
+  // PDF Settings
+  async getPdfSettings(): Promise<PdfSettings> {
+    const [settings] = await db.select().from(pdfSettings).limit(1);
+    
+    // If no settings exist, create default ones
+    if (!settings) {
+      return await this.createPdfSettings({
+        companyName: "ANPR México",
+        companySubtitle: "Asociación Nacional de Profesionales en Relaciones Públicas",
+        websiteUrl: "www.anpr.org.mx",
+        primaryColor: "#bcce16",
+        secondaryColor: "#2d3748",
+        accentColor: "#f7fafc",
+        textColor: "#000000",
+        subtitleColor: "#505050",
+        headerHeight: 30,
+        fontSize: 10,
+        titleFontSize: 22,
+        showLogo: true,
+        showWebsite: true,
+        showAddress: true,
+        footerText: "Este recibo fue generado automáticamente"
+      });
+    }
+    
+    return settings;
+  }
+
+  async createPdfSettings(settings: InsertPdfSettings): Promise<PdfSettings> {
+    const [newSettings] = await db
+      .insert(pdfSettings)
+      .values(settings)
+      .returning();
+    return newSettings;
+  }
+
+  async updatePdfSettings(updates: Partial<InsertPdfSettings>): Promise<PdfSettings> {
+    // Get current settings or create default if none exist
+    let currentSettings = await this.getPdfSettings();
+    
+    const [updatedSettings] = await db
+      .update(pdfSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(pdfSettings.id, currentSettings.id))
+      .returning();
+      
+    return updatedSettings;
   }
 }
 
