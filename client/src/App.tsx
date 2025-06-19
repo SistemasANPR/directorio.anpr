@@ -32,6 +32,7 @@ import RepresentativeDashboard from "@/pages/RepresentativeDashboardComplete";
 import RegisterAndPay from "@/pages/RegisterAndPay";
 import RegistroExitoso from "@/pages/RegistroExitoso";
 import SystemSettings from "@/pages/SystemSettings";
+import PdfSettings from "@/pages/PdfSettings";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import MainNavigation from "@/components/MainNavigation";
@@ -191,7 +192,13 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-
+      <Route path="/configuracion-pdf">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <PdfSettings />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
       
       <Route path="/integracion">
         <ProtectedRoute requireAdmin>
