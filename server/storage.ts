@@ -151,6 +151,10 @@ export interface IStorage {
   incrementProjectConsultas(id: number): Promise<void>;
   moderateProject(id: number, estado: string): Promise<Project | undefined>;
 
+  // Membership Limits Validation
+  validateProjectLimits(companyId: number): Promise<void>;
+  validateProductLimits(companyId: number, newProductCount?: number): Promise<void>;
+
 
 
   // Integration Settings
@@ -351,7 +355,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCompany(id: number, companyData: Partial<InsertCompany>): Promise<Company | undefined> {
-    const [company] = await db.update(companies).set(companyData).where(eq(companies.id, id)).returning();
+    // Si se está actualizando la galería de productos, verificar límites
+    if (companyData.galeriaProductosUrls) {
+      const currentCompany = await this.getCompany(id);
+      if (currentCompany) {
+        const currentProductCount = Array.isArray(currentCompany.galeriaProductosUrls) 
+          ? currentCompany.galeriaProductosUrls.length 
+          : 0;
+        const newProductCount = Array.isArray(companyData.galeriaProductosUrls) 
+          ? companyData.galeriaProductosUrls.length 
+          : 0;
+        
+        // Solo validar si se están agregando productos
+        if (newProductCount > currentProductCount) {
+          await this.validateProductLimits(id, newProductCount - currentProductCount);
+        }
+      }
+    }
+
+    const [company] = await db.update(companies).set({ ...companyData, updatedAt: new Date() }).where(eq(companies.id, id)).returning();
     return company || undefined;
   }
 
@@ -824,11 +846,64 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
+    // Verificar límites del plan de membresía antes de crear el proyecto
+    await this.validateProjectLimits(insertProject.companyId);
+    
     const [project] = await db
       .insert(projects)
       .values(insertProject)
       .returning();
     return project;
+  }
+
+  async validateProjectLimits(companyId: number): Promise<void> {
+    // Obtener información de la empresa y su plan de membresía
+    const company = await this.getCompany(companyId);
+    if (!company || !company.membershipTypeId) {
+      throw new Error("La empresa no tiene un plan de membresía válido");
+    }
+
+    const membershipType = await this.getMembershipType(company.membershipTypeId);
+    if (!membershipType) {
+      throw new Error("Plan de membresía no encontrado");
+    }
+
+    // Verificar límite de proyectos
+    const currentProjectCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(projects)
+      .where(eq(projects.companyId, companyId));
+
+    const projectCount = currentProjectCount[0]?.count || 0;
+    const projectLimit = membershipType.cantidadProyectosAdmitidos || 0;
+
+    if (projectLimit > 0 && projectCount >= projectLimit) {
+      throw new Error(`Has alcanzado el límite de ${projectLimit} proyectos permitidos en tu plan ${membershipType.nombrePlan}`);
+    }
+  }
+
+  async validateProductLimits(companyId: number, newProductCount: number = 1): Promise<void> {
+    // Obtener información de la empresa y su plan de membresía
+    const company = await this.getCompany(companyId);
+    if (!company || !company.membershipTypeId) {
+      throw new Error("La empresa no tiene un plan de membresía válido");
+    }
+
+    const membershipType = await this.getMembershipType(company.membershipTypeId);
+    if (!membershipType) {
+      throw new Error("Plan de membresía no encontrado");
+    }
+
+    // Verificar límite de productos (basado en galería de productos)
+    const currentProductCount = Array.isArray(company.galeriaProductosUrls) 
+      ? company.galeriaProductosUrls.length 
+      : 0;
+    
+    const productLimit = membershipType.cantidadProductosAdmitidos || 0;
+
+    if (productLimit > 0 && (currentProductCount + newProductCount) > productLimit) {
+      throw new Error(`Has alcanzado el límite de ${productLimit} productos permitidos en tu plan ${membershipType.nombrePlan}. Actualmente tienes ${currentProductCount} productos.`);
+    }
   }
 
   async updateProject(id: number, projectData: Partial<InsertProject>): Promise<Project | undefined> {

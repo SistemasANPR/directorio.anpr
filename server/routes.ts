@@ -1159,11 +1159,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const companyId = parseInt(req.body.companyId);
 
-      // Verificar límite de proyectos por empresa
-      const existingProjects = await storage.getProjectsByCompany(companyId);
-      if (existingProjects.length >= 5) {
-        return res.status(400).json({ error: "Límite de 5 proyectos por empresa alcanzado" });
-      }
+      // La validación de límites ahora se maneja automáticamente en storage.createProject()
+      // basada en el plan de membresía de la empresa
 
       // Procesar imágenes subidas
       const files = req.files as Express.Multer.File[];
