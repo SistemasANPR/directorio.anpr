@@ -59,9 +59,15 @@ const getCategoryBadgeColor = (category?: string) => {
   }
 };
 
-const getCategoryIcon = (iconName?: string) => {
+const getCategoryIcon = (iconName?: string, iconUrl?: string) => {
+  // If there's a custom icon URL, use it as an image
+  if (iconUrl) {
+    return <img src={iconUrl} alt="Category" className="w-4 h-4 object-contain" />;
+  }
+  
+  // Otherwise, use Lucide icons
   const iconMap: Record<string, React.ComponentType<any>> = {
-    'Tag': Tag,
+    'Tags': Tag,
     'Code': Code,
     'Cog': Cog,
     'ShoppingCart': ShoppingCart,
@@ -78,9 +84,10 @@ const getCategoryIcon = (iconName?: string) => {
     'Calendar': Calendar,
     'Coffee': Coffee,
     'Building': Building,
+    'Zap': Lightbulb,
   };
   
-  const IconComponent = iconMap[iconName || 'Tag'] || Tag;
+  const IconComponent = iconMap[iconName || 'Tags'] || Tag;
   return <IconComponent className="w-4 h-4" />;
 };
 
@@ -150,7 +157,7 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
                     <div className="flex flex-wrap gap-2">
                       {company.categories.slice(0, 3).map((category) => (
                         <div key={category.id} className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors" title={category.nombreCategoria}>
-                          {getCategoryIcon(category.icono ?? undefined)}
+                          {getCategoryIcon(category.icono ?? undefined, category.iconoUrl ?? undefined)}
                         </div>
                       ))}
                       {company.categories.length > 3 && (
