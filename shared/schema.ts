@@ -312,14 +312,7 @@ export type InsertSystemSettings = z.infer<typeof insertSystemSettingsSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 
-export type HomeConfiguration = typeof homeConfiguration.$inferSelect;
-export type InsertHomeConfiguration = z.infer<typeof insertHomeConfigurationSchema>;
 
-export type HomeHighlights = typeof homeHighlights.$inferSelect;
-export type InsertHomeHighlights = z.infer<typeof insertHomeHighlightsSchema>;
-
-export type HomeBanners = typeof homeBanners.$inferSelect;
-export type InsertHomeBanners = z.infer<typeof insertHomeBannersSchema>;
 
 export type IntegrationSettings = typeof integrationSettings.$inferSelect;
 export type InsertIntegrationSettings = z.infer<typeof insertIntegrationSettingsSchema>;

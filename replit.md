@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: HOME ADMIN REMOVAL - Completely eliminated home administration functionality including frontend components, API routes, storage methods, database tables, and related schemas (homeConfiguration, homeHighlights, homeBanners)
 - June 19, 2025: MENU ORGANIZATION - Updated navigation menus to remove testimonials option from admin menu, kept only "Administrar Testimonios", and added testimonials access for representatives
 - June 19, 2025: TESTIMONIALS DIFFERENTIATION - Implemented complete separation between company testimonials and platform feedback with distinct interfaces and filtering
 - June 18, 2025: SECURITY FIX - Fixed critical certificate visibility filtering issue where representatives could see admin-created certificates
