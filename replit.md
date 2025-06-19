@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: TESTIMONIALS DIFFERENTIATION - Implemented complete separation between company testimonials and platform feedback with distinct interfaces and filtering
 - June 18, 2025: SECURITY FIX - Fixed critical certificate visibility filtering issue where representatives could see admin-created certificates
 - June 18, 2025: Corrected database field mapping between Drizzle ORM (creadoPorAdmin) and PostgreSQL (creado_por_admin) columns
 - June 18, 2025: Enhanced API endpoint with role-based filtering using userRole parameter - verified working correctly
