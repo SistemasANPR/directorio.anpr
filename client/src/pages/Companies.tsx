@@ -156,19 +156,37 @@ export default function Companies() {
 
   const handleDownloadTemplate = () => {
     const templateHeaders = [
-      'id', 'nombre', 'direccion', 'email', 'telefono', 'direccion_web', 
-      'informacion', 'whatsapp', 'logo_url', 'video_url', 'catalogo_url', 
-      'pais', 'ciudad', 'miembro', 'codigo_activacion', 'fecha_registro', 'fecha_activacion'
+      'nombreEmpresa', 'descripcionEmpresa', 'categoriaId', 'membershipTypeId',
+      'email1', 'email2', 'telefono1', 'telefono2', 'direccionFisica',
+      'paisesPresencia', 'estadosPresencia', 'ciudadesPresencia', 'ubicacionPrincipal',
+      'sitioWeb', 'catalogoDigitalUrl', 'galeriaProductosUrls', 'videosUrls',
+      'redesSociales_facebook', 'redesSociales_instagram', 'redesSociales_linkedin',
+      'redesSociales_twitter', 'redesSociales_youtube', 'redesSociales_whatsapp',
+      'representantesVentas', 'ubicacionGeografica', 'membershipPeriodicidad',
+      'formaPago', 'fechaInicioMembresia', 'fechaFinMembresia', 'notasMembresia',
+      'estado', 'userId'
     ];
 
     const templateData = [
       templateHeaders,
       [
-        '1', 'Empresa Ejemplo SA', 'Av. Principal 123, Col. Centro, CP 12345, Ciudad, Estado',
-        'contacto@empresaejemplo.com', '55 1234 5678', 'https://www.empresaejemplo.com',
-        'Descripción de la empresa y sus servicios principales', '55 1234 5679',
-        'logo-empresa.png', 'https://youtube.com/watch?v=ejemplo', 'catalogo-productos.pdf',
-        'México', 'Ciudad de México', '1', 'ABC123-DEF456', '2024-01-15', '2024-01-20'
+        'Empresa Ejemplo SA', 
+        'Descripción completa de la empresa y sus servicios principales',
+        '1', '1',
+        'contacto@empresa.com', 'ventas@empresa.com',
+        '+52 55 1234 5678', '+52 55 8765 4321',
+        'Av. Principal 123, Col. Centro, CP 12345, Ciudad, Estado',
+        'México,Estados Unidos', 'CDMX,Estado de México', 'Ciudad de México,Toluca',
+        'Ciudad de México, México',
+        'https://www.empresa.com', 'https://catalogo.empresa.com',
+        'imagen1.jpg,imagen2.jpg,imagen3.jpg', 'https://youtube.com/watch?v=ejemplo',
+        'https://facebook.com/empresa', 'https://instagram.com/empresa',
+        'https://linkedin.com/company/empresa', 'https://twitter.com/empresa',
+        'https://youtube.com/empresa', '+52 55 1234 5679',
+        'Juan Pérez - Director General - juan@empresa.com - +52 55 1111 2222',
+        '19.4326,-99.1332', 'anual', 'tarjeta',
+        '2024-01-15', '2025-01-15', 'Empresa con buen historial crediticio',
+        'activo', '1'
       ]
     ];
 

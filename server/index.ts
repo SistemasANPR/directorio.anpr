@@ -6,6 +6,15 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Remove CSP headers that might be interfering with development
+app.use((req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  res.removeHeader('X-Content-Security-Policy');
+  res.removeHeader('X-WebKit-CSP');
+  res.removeHeader('X-Frame-Options');
+  next();
+});
+
 // Middleware to extract user info from headers for API requests
 app.use('/api', (req: any, res, next) => {
   const userHeader = req.headers['x-user-info'];

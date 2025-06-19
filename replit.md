@@ -141,6 +141,10 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: OPINIONS ADMIN SEPARATION - Updated OpinionsAdmin component to focus exclusively on company opinions (tipo: "empresa") with title "Opiniones sobre empresas"
+- June 19, 2025: API FILTERING - Modified frontend API calls to filter only company opinions, ensuring complete separation from platform reviews
+- June 19, 2025: UI TERMINOLOGY - Updated dropdown and statistics labels from "reseñas" to "opiniones" for consistency in company feedback section
+- June 19, 2025: CSP CONFIGURATION - Resolved Content Security Policy issues preventing application rendering by removing conflicting headers
 - June 19, 2025: REPRESENTATIVE REVIEWS - Implemented complete review system for representatives to provide platform feedback
 - June 19, 2025: SIDEBAR NAVIGATION - Replaced "Testimonios" with "Mi Reseña" in representative sidebar, connected to new review tab
 - June 19, 2025: REVIEW COMPONENT - Created RepresentativeReview component with full CRUD functionality (create, edit, delete one review per representative)
