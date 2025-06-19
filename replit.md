@@ -141,6 +141,11 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: GENERAL PLATFORM SETTINGS SYSTEM COMPLETED - Successfully connected and enhanced existing SystemSettings component with comprehensive logo upload functionality and platform-wide branding control
+- June 19, 2025: SYSTEM LOGO UPLOAD INTEGRATION - Added drag-and-drop file upload for system logos and favicons with validation, preview, and storage in dedicated directories (/uploads/system-logos and /uploads/system-favicons)
+- June 19, 2025: NAVIGATION INTEGRATION - Added "Configuración General" to admin sidebar navigation under Configuration submenu, properly integrated with routing system
+- June 19, 2025: BACKEND API ENHANCEMENT - Created /api/system-settings/upload-image endpoint with multer configuration for handling logo and favicon uploads with 5MB limits and image validation
+- June 19, 2025: PLATFORM BRANDING CONNECTION - Enhanced existing SystemSettings to update platform-wide branding including title, colors, and visual identity across entire application
 - June 19, 2025: PDF LOGO UPLOAD SYSTEM COMPLETED - Successfully implemented comprehensive file upload system for PDF configuration logotipos with validation, secure storage, and preview functionality
 - June 19, 2025: FILE UPLOAD ENHANCEMENT - Added multer configuration for PDF logo uploads with 5MB limit, image validation (PNG, JPG, JPEG, SVG), and unique filename generation
 - June 19, 2025: BACKEND API EXPANSION - Created /api/pdf-settings/upload-logo endpoint with complete file handling, error validation, and response formatting
