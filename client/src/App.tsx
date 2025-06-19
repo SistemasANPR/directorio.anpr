@@ -183,6 +183,14 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/admin/testimonials">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <TestimonialsAdmin />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/configuracion">
         <ProtectedRoute requireAdmin>
           <AppLayout>
