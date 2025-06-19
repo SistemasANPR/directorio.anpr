@@ -51,6 +51,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Swal from 'sweetalert2';
 import MembershipDataTable from "@/components/MembershipDataTable";
+import { TestMembershipForm } from "@/components/TestMembershipForm";
 
 const membershipSchema = z.object({
   nombrePlan: z.string().min(1, "El nombre del plan es requerido"),
@@ -353,6 +354,28 @@ export default function Memberships() {
                           <SelectItem value="yearly">Anual</SelectItem>
                           <SelectItem value="quarterly">Trimestral</SelectItem>
                           <SelectItem value="biannual">Semestral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="visibilidad"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Visibilidad</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar visibilidad" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="publica">Pública - Visible para todos</SelectItem>
+                          <SelectItem value="privada">Privada - Solo administradores</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
