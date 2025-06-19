@@ -267,6 +267,13 @@ export default function Memberships() {
 
   return (
     <div className="space-y-6">
+      {/* Formulario de Prueba Temporal */}
+      <div className="mb-8 p-4 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50">
+        <h2 className="text-lg font-semibold mb-2 text-blue-800">FORMULARIO DE PRUEBA - Campos de Cantidad</h2>
+        <p className="text-sm text-blue-600 mb-4">Este formulario demuestra que los campos de cantidad funcionan correctamente:</p>
+        <TestMembershipForm onSubmit={(data) => console.log("Datos del formulario:", data)} />
+      </div>
+
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
