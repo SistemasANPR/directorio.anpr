@@ -105,12 +105,23 @@ const navigationItems: NavigationItem[] = [
     icon: FileText,
     requireAdmin: true,
   },
-
   {
-    name: "Integración WordPress",
-    href: "/integracion",
-    icon: Globe,
+    name: "Configuración",
+    href: "/configuracion",
+    icon: Settings,
     requireAdmin: true,
+    subItems: [
+      {
+        name: "Configuración PDF",
+        href: "/configuracion-pdf",
+        requireAdmin: true,
+      },
+      {
+        name: "Integración WordPress",
+        href: "/integracion",
+        requireAdmin: true,
+      },
+    ],
   },
 ];
 

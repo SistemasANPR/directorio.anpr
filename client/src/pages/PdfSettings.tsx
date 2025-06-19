@@ -60,7 +60,7 @@ export default function PdfSettings() {
   const [formData, setFormData] = useState<Partial<PdfSettings>>({});
 
   // Update form data when settings load
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings) {
       setFormData(settings);
     }
