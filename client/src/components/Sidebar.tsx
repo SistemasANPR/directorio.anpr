@@ -105,18 +105,7 @@ const navigationItems: NavigationItem[] = [
     icon: FileText,
     requireAdmin: true,
   },
-  {
-    name: "Configuración del Sistema",
-    href: "/configuracion",
-    icon: Settings,
-    requireAdmin: true,
-  },
-  {
-    name: "Administración de Home",
-    href: "/home-admin",
-    icon: Settings,
-    requireAdmin: true,
-  },
+
   {
     name: "Integración WordPress",
     href: "/integracion",
