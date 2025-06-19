@@ -19,7 +19,7 @@ import Roles from "@/pages/Roles";
 import Reports from "@/pages/Reports";
 import OpinionsAdmin from "@/pages/OpinionsAdmin";
 import Testimonials from "@/pages/Testimonials";
-import TestimonialsAdmin from "@/pages/TestimonialsAdmin";
+import ReviewsAdmin from "@/pages/ReviewsAdmin";
 import Login from "@/pages/Login";
 import Home from "@/pages/Home";
 import CompanyDetails from "@/pages/CompanyDetails";
@@ -175,18 +175,10 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/testimonios-admin">
+      <Route path="/admin/reviews">
         <ProtectedRoute requireAdmin>
           <AppLayout>
-            <TestimonialsAdmin />
-          </AppLayout>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/admin/testimonials">
-        <ProtectedRoute requireAdmin>
-          <AppLayout>
-            <TestimonialsAdmin />
+            <ReviewsAdmin />
           </AppLayout>
         </ProtectedRoute>
       </Route>

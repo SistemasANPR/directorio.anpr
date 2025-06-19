@@ -81,8 +81,8 @@ const navigationItems: NavigationItem[] = [
         requireAdmin: true,
       },
       {
-        name: "Administrar Testimonios",
-        href: "/admin/testimonials",
+        name: "Gestión de Reseñas",
+        href: "/admin/reviews",
         requireAdmin: true,
       },
     ],
