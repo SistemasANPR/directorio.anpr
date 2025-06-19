@@ -573,6 +573,25 @@ export default function Memberships() {
                   </ul>
                 </div>
               )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Productos Permitidos</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {selectedMembership.cantidadProductosAdmitidos || 0}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Proyectos Permitidos</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {selectedMembership.cantidadProyectosAdmitidos || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
