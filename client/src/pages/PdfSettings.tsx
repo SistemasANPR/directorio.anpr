@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,9 @@ import {
   RefreshCw,
   Settings,
   Monitor,
-  Image as ImageIcon
+  Image as ImageIcon,
+  X,
+  Check
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -58,13 +60,83 @@ export default function PdfSettings() {
 
   // Form state
   const [formData, setFormData] = useState<Partial<PdfSettings>>({});
+  
+  // File upload state
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Update form data when settings load
   useEffect(() => {
     if (settings) {
       setFormData(settings);
+      // Set logo preview if exists
+      if (settings.logoUrl) {
+        setLogoPreview(`/uploads/${settings.logoUrl}`);
+      }
     }
   }, [settings]);
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un archivo de imagen válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "El archivo es demasiado grande. Máximo 5MB permitido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLogoFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLogoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Upload logo file
+  const uploadLogo = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    const response = await fetch('/api/pdf-settings/upload-logo', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Error uploading logo');
+    }
+
+    const result = await response.json();
+    return result.filename;
+  };
+
+  // Remove logo
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setFormData(prev => ({ ...prev, logoUrl: null }));
+  };
 
   // Update PDF settings mutation
   const updateMutation = useMutation({
@@ -94,9 +166,30 @@ export default function PdfSettings() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate(formData);
+    
+    try {
+      setIsUploading(true);
+      let updatedFormData = { ...formData };
+      
+      // Upload logo if a new file is selected
+      if (logoFile) {
+        const filename = await uploadLogo(logoFile);
+        updatedFormData.logoUrl = filename;
+      }
+      
+      updateMutation.mutate(updatedFormData);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al subir el logotipo",
+        variant: "destructive",
+      });
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleInputChange = (field: keyof PdfSettings, value: string | number | boolean) => {
@@ -210,16 +303,65 @@ export default function PdfSettings() {
                 </div>
 
                 <div>
-                  <Label htmlFor="logoUrl">URL del Logo</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="logoUrl"
-                      value={formData.logoUrl || ''}
-                      onChange={(e) => handleInputChange('logoUrl', e.target.value)}
-                      placeholder="/path/to/logo.png"
+                  <Label>Logotipo de la Empresa</Label>
+                  <div className="space-y-3">
+                    {/* Logo preview */}
+                    {logoPreview && (
+                      <div className="relative inline-block">
+                        <div className="w-32 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 overflow-hidden">
+                          <img 
+                            src={logoPreview} 
+                            alt="Logo preview" 
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                          onClick={removeLogo}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Upload area */}
+                    <div 
+                      className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
+                        logoPreview ? 'border-gray-200' : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <ImageIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600 mb-1">
+                        {logoPreview ? 'Cambiar logotipo' : 'Subir logotipo'}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        PNG, JPG, SVG hasta 5MB
+                      </p>
+                    </div>
+
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
                     />
-                    <Button type="button" variant="outline" size="sm">
-                      <Upload className="h-4 w-4" />
+
+                    {/* Upload button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {logoPreview ? 'Cambiar logotipo' : 'Seleccionar archivo'}
                     </Button>
                   </div>
                 </div>
