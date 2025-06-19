@@ -304,7 +304,7 @@ export default function ReviewsAdmin() {
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
                         <span>
-                          {format(new Date(review.createdAt), "PPP", { locale: es })}
+                          {format(new Date(review.fechaCreacion), "PPP", { locale: es })}
                         </span>
                       </div>
                       {review.approver && (
@@ -334,7 +334,7 @@ export default function ReviewsAdmin() {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <label className="text-sm font-medium text-gray-700">Usuario:</label>
-                              <p className="text-sm">{selectedReview?.user.displayName} ({selectedReview?.user.email})</p>
+                              <p className="text-sm">{selectedReview?.nombre} ({selectedReview?.email})</p>
                             </div>
                             <div>
                               <label className="text-sm font-medium text-gray-700">Calificación:</label>
