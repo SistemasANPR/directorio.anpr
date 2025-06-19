@@ -248,7 +248,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
               {/* Sub Items */}
               {hasSubItems && isExpanded && (
                 <div className="ml-8 mt-1 space-y-1">
-                  {item.subItems.filter(subItem => !subItem.requireAdmin || isAdmin).map((subItem) => {
+                  {item.subItems?.filter((subItem: SubItem) => !subItem.requireAdmin || isAdmin).map((subItem: SubItem) => {
                     const isSubActive = location === subItem.href;
                     
                     return (
