@@ -54,11 +54,9 @@ import MembershipDataTable from "@/components/MembershipDataTable";
 
 const membershipSchema = z.object({
   nombrePlan: z.string().min(1, "El nombre del plan es requerido"),
+  costo: z.number().min(0, "El costo debe ser mayor a 0"),
+  periodicidad: z.string().min(1, "La periodicidad es requerida"),
   descripcionPlan: z.string().optional(),
-  opcionesPrecios: z.array(z.object({
-    periodicidad: z.string().min(1, "La periodicidad es requerida"),
-    costo: z.number().min(0, "El costo debe ser mayor a 0")
-  })).min(1, "Debe agregar al menos una opción de precio"),
   beneficios: z.string().optional(),
   visibilidad: z.enum(["publica", "privada"]).default("publica"),
   cantidadProductosAdmitidos: z.number().min(0, "La cantidad de productos debe ser mayor o igual a 0").default(0),
@@ -79,8 +77,9 @@ export default function Memberships() {
     resolver: zodResolver(membershipSchema),
     defaultValues: {
       nombrePlan: "",
+      costo: 0,
+      periodicidad: "",
       descripcionPlan: "",
-      opcionesPrecios: [{ periodicidad: "", costo: 0 }],
       beneficios: "",
       visibilidad: "publica",
       cantidadProductosAdmitidos: 0,
@@ -92,8 +91,9 @@ export default function Memberships() {
     resolver: zodResolver(membershipSchema),
     defaultValues: {
       nombrePlan: "",
+      costo: 0,
+      periodicidad: "",
       descripcionPlan: "",
-      opcionesPrecios: [{ periodicidad: "", costo: 0 }],
       beneficios: "",
       visibilidad: "publica",
       cantidadProductosAdmitidos: 0,
@@ -110,8 +110,13 @@ export default function Memberships() {
   const createMembershipMutation = useMutation({
     mutationFn: async (data: MembershipFormData) => {
       const membershipData = {
-        ...data,
+        nombrePlan: data.nombrePlan,
+        descripcionPlan: data.descripcionPlan,
+        opcionesPrecios: [{ periodicidad: data.periodicidad, costo: data.costo }],
         beneficios: data.beneficios ? data.beneficios.split('\n').filter(b => b.trim()) : [],
+        visibilidad: data.visibilidad,
+        cantidadProductosAdmitidos: data.cantidadProductosAdmitidos,
+        cantidadProyectosAdmitidos: data.cantidadProyectosAdmitidos,
       };
       const response = await apiRequest("POST", "/api/membership-types", membershipData);
       return response.json();
@@ -139,8 +144,13 @@ export default function Memberships() {
     mutationFn: async (data: MembershipFormData) => {
       if (!selectedMembership) throw new Error("No membership selected");
       const membershipData = {
-        ...data,
+        nombrePlan: data.nombrePlan,
+        descripcionPlan: data.descripcionPlan,
+        opcionesPrecios: [{ periodicidad: data.periodicidad, costo: data.costo }],
         beneficios: data.beneficios ? data.beneficios.split('\n').filter(b => b.trim()) : [],
+        visibilidad: data.visibilidad,
+        cantidadProductosAdmitidos: data.cantidadProductosAdmitidos,
+        cantidadProyectosAdmitidos: data.cantidadProyectosAdmitidos,
       };
       const response = await apiRequest("PUT", `/api/membership-types/${selectedMembership.id}`, membershipData);
       return response.json();
@@ -199,10 +209,16 @@ export default function Memberships() {
       ? membership.beneficios.join('\n') 
       : '';
     
+    // Extract first pricing option for form
+    const firstPricing = Array.isArray(membership.opcionesPrecios) && membership.opcionesPrecios.length > 0 
+      ? membership.opcionesPrecios[0] 
+      : { periodicidad: "", costo: 0 };
+    
     editForm.reset({
       nombrePlan: membership.nombrePlan,
+      costo: firstPricing.costo || 0,
+      periodicidad: firstPricing.periodicidad || "",
       descripcionPlan: membership.descripcionPlan || "",
-      opcionesPrecios: Array.isArray(membership.opcionesPrecios) ? membership.opcionesPrecios : [{ periodicidad: "", costo: 0 }],
       beneficios: beneficiosText,
       visibilidad: membership.visibilidad || "publica",
       cantidadProductosAdmitidos: membership.cantidadProductosAdmitidos || 0,
