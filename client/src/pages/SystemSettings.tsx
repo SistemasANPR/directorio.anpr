@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,7 +24,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -39,10 +38,20 @@ import {
   Globe, 
   DollarSign,
   Save,
-  Upload,
-  Eye
+  Eye,
+  Plus,
+  Trash2,
+  Mail,
+  Phone
 } from "lucide-react";
+import { SiFacebook, SiX, SiInstagram, SiYoutube, SiLinkedin, SiWhatsapp, SiTiktok, SiTelegram } from "react-icons/si";
 import Swal from "sweetalert2";
+
+const socialMediaSchema = z.object({
+  platform: z.string().min(1, "Plataforma requerida"),
+  url: z.string().url("URL válida requerida"),
+  iconColor: z.string().min(1, "Color de ícono requerido"),
+});
 
 const systemSettingsSchema = z.object({
   systemName: z.string().min(1, "Nombre del sistema es requerido"),
@@ -52,13 +61,36 @@ const systemSettingsSchema = z.object({
   logoUrl: z.string().optional(),
   faviconUrl: z.string().optional(),
   currency: z.string().min(1, "Moneda es requerida"),
-  systemUrl: z.string().optional(),
   contactEmail: z.string().email("Email válido requerido").optional(),
   contactPhone: z.string().optional(),
-  socialMedia: z.string().optional(),
+  socialMediaList: z.array(socialMediaSchema).optional(),
 });
 
 type SystemSettingsFormData = z.infer<typeof systemSettingsSchema>;
+
+interface SystemSettingsData {
+  systemName?: string;
+  systemDescription?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  logoUrl?: string;
+  faviconUrl?: string;
+  currency?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  socialMedia?: string;
+}
+
+const socialMediaPlatforms = [
+  { value: "facebook", label: "Facebook", icon: SiFacebook, defaultColor: "#1877F2" },
+  { value: "twitter", label: "Twitter / X", icon: SiX, defaultColor: "#000000" },
+  { value: "instagram", label: "Instagram", icon: SiInstagram, defaultColor: "#E4405F" },
+  { value: "youtube", label: "YouTube", icon: SiYoutube, defaultColor: "#FF0000" },
+  { value: "linkedin", label: "LinkedIn", icon: SiLinkedin, defaultColor: "#0077B5" },
+  { value: "whatsapp", label: "WhatsApp", icon: SiWhatsapp, defaultColor: "#25D366" },
+  { value: "tiktok", label: "TikTok", icon: SiTiktok, defaultColor: "#000000" },
+  { value: "telegram", label: "Telegram", icon: SiTelegram, defaultColor: "#0088CC" },
+];
 
 const currencies = [
   { value: "USD", label: "USD - Dólar Estadounidense", symbol: "$" },
@@ -83,9 +115,24 @@ export default function SystemSettings() {
     queryKey: ["/api/system-settings"],
   });
 
+  // Parse existing social media data
+  const parseSocialMedia = (socialMediaJson: string) => {
+    try {
+      if (!socialMediaJson) return [];
+      const parsed = JSON.parse(socialMediaJson);
+      return Object.entries(parsed).map(([platform, url]) => ({
+        platform,
+        url: url as string,
+        iconColor: socialMediaPlatforms.find(p => p.value === platform)?.defaultColor || "#000000"
+      }));
+    } catch {
+      return [];
+    }
+  };
+
   const form = useForm<SystemSettingsFormData>({
     resolver: zodResolver(systemSettingsSchema),
-    defaultValues: {
+    values: {
       systemName: settings?.systemName || "Mi Organización",
       systemDescription: settings?.systemDescription || "",
       primaryColor: settings?.primaryColor || "#3b82f6",
@@ -93,16 +140,32 @@ export default function SystemSettings() {
       logoUrl: settings?.logoUrl || "",
       faviconUrl: settings?.faviconUrl || "",
       currency: settings?.currency || "USD",
-      systemUrl: settings?.systemUrl || "",
       contactEmail: settings?.contactEmail || "",
       contactPhone: settings?.contactPhone || "",
-      socialMedia: settings?.socialMedia || "",
+      socialMediaList: parseSocialMedia(settings?.socialMedia || ""),
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "socialMediaList",
   });
 
   const updateMutation = useMutation({
     mutationFn: async (data: SystemSettingsFormData) => {
-      const response = await apiRequest("PUT", "/api/system-settings", data);
+      // Convert socialMediaList back to JSON format for backend compatibility
+      const socialMediaJson = data.socialMediaList?.reduce((acc, item) => {
+        acc[item.platform] = item.url;
+        return acc;
+      }, {} as Record<string, string>);
+
+      const apiData = {
+        ...data,
+        socialMedia: JSON.stringify(socialMediaJson || {}),
+        socialMediaList: undefined, // Remove this field from API call
+      };
+
+      const response = await apiRequest("PUT", "/api/system-settings", apiData);
       return response.json();
     },
     onSuccess: () => {
@@ -141,10 +204,8 @@ export default function SystemSettings() {
         canvas.width = size;
         canvas.height = size;
         
-        // Dibujar imagen redimensionada
         ctx?.drawImage(img, 0, 0, size, size);
         
-        // Convertir a base64
         const dataUrl = canvas.toDataURL('image/png');
         form.setValue(field, dataUrl);
       };
@@ -159,19 +220,23 @@ export default function SystemSettings() {
     }
   };
 
+  const addSocialMedia = () => {
+    append({
+      platform: "facebook",
+      url: "",
+      iconColor: "#1877F2"
+    });
+  };
+
   const applyPreview = () => {
     const formData = form.getValues();
     const root = document.documentElement;
     
     if (isPreviewMode) {
-      // Aplicar colores de vista previa
       root.style.setProperty('--primary', formData.primaryColor);
       root.style.setProperty('--secondary', formData.secondaryColor);
-      
-      // Actualizar título del documento
       document.title = formData.systemName;
       
-      // Actualizar favicon si existe
       if (formData.faviconUrl) {
         let favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
         if (!favicon) {
@@ -182,7 +247,6 @@ export default function SystemSettings() {
         favicon.href = formData.faviconUrl;
       }
     } else {
-      // Restaurar valores originales
       root.style.removeProperty('--primary');
       root.style.removeProperty('--secondary');
       document.title = settings?.systemName || "Mi Organización";
@@ -273,20 +337,6 @@ export default function SystemSettings() {
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="systemUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL del Sistema</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://mi-organizacion.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
 
@@ -361,7 +411,7 @@ export default function SystemSettings() {
                         <DollarSign className="h-4 w-4" />
                         Moneda
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecciona una moneda" />
@@ -466,7 +516,10 @@ export default function SystemSettings() {
             {/* Contacto */}
             <Card>
               <CardHeader>
-                <CardTitle>Información de Contacto</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Información de Contacto
+                </CardTitle>
                 <CardDescription>
                   Datos de contacto de la organización
                 </CardDescription>
@@ -499,27 +552,129 @@ export default function SystemSettings() {
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="socialMedia"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Redes Sociales (JSON)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          {...field} 
-                          placeholder='{"facebook": "https://facebook.com/...", "twitter": "https://twitter.com/..."}'
-                          rows={3}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
           </div>
+
+          {/* Redes Sociales */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Redes Sociales
+              </CardTitle>
+              <CardDescription>
+                Configura las redes sociales de tu organización con colores personalizados
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {fields.map((field, index) => {
+                const selectedPlatform = socialMediaPlatforms.find(p => p.value === form.watch(`socialMediaList.${index}.platform`));
+                const IconComponent = selectedPlatform?.icon;
+
+                return (
+                  <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg">
+                    <FormField
+                      control={form.control}
+                      name={`socialMediaList.${index}.platform`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Plataforma</FormLabel>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              const platform = socialMediaPlatforms.find(p => p.value === value);
+                              if (platform) {
+                                form.setValue(`socialMediaList.${index}.iconColor`, platform.defaultColor);
+                              }
+                            }} 
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona plataforma" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {socialMediaPlatforms.map((platform) => (
+                                <SelectItem key={platform.value} value={platform.value}>
+                                  <div className="flex items-center gap-2">
+                                    <platform.icon className="h-4 w-4" />
+                                    <span>{platform.label}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`socialMediaList.${index}.url`}
+                      render={({ field }) => (
+                        <FormItem className="flex-2">
+                          <FormLabel>URL</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="https://..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`socialMediaList.${index}.iconColor`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Color</FormLabel>
+                          <FormControl>
+                            <div className="flex gap-2 items-center">
+                              <Input 
+                                {...field} 
+                                type="color" 
+                                className="w-12 h-10 p-1 rounded"
+                              />
+                              {IconComponent && (
+                                <IconComponent 
+                                  className="h-5 w-5" 
+                                  style={{ color: field.value }}
+                                />
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => remove(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addSocialMedia}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Red Social
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Información sobre Vista Previa */}
           {isPreviewMode && (
