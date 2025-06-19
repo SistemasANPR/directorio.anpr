@@ -1671,6 +1671,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System Settings image upload configuration
+  const systemImageStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const type = req.body.type || 'logo';
+      const uploadDir = type === 'logo' ? 'uploads/system-logos' : 'uploads/system-favicons';
+      
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      const type = req.body.type || 'logo';
+      cb(null, `${type}_${timestamp}${ext}`);
+    }
+  });
+
+  const uploadSystemImages = multer({
+    storage: systemImageStorage,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = [
+        'image/jpeg',
+        'image/jpg', 
+        'image/png',
+        'image/svg+xml'
+      ];
+      
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Solo se permiten archivos PNG, JPG, JPEG o SVG'));
+      }
+    }
+  });
+
+  // System Settings image upload endpoint
+  app.post("/api/system-settings/upload-image", uploadSystemImages.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No se recibió ningún archivo" });
+      }
+
+      // Validate file exists and is accessible
+      const type = req.body.type || 'logo';
+      const uploadDir = type === 'logo' ? 'uploads/system-logos' : 'uploads/system-favicons';
+      const filePath = path.join(process.cwd(), uploadDir, req.file.filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(500).json({ error: "Error al guardar el archivo" });
+      }
+
+      res.json({
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        type: type,
+        path: `/${uploadDir}/${req.file.filename}`
+      });
+    } catch (error: any) {
+      console.error("Error uploading system image:", error);
+      res.status(500).json({ error: error.message || "Error al subir la imagen" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

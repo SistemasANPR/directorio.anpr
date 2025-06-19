@@ -112,6 +112,11 @@ const navigationItems: NavigationItem[] = [
     requireAdmin: true,
     subItems: [
       {
+        name: "Configuración General",
+        href: "/configuracion-sistema",
+        requireAdmin: true,
+      },
+      {
         name: "Configuración PDF",
         href: "/configuracion-pdf",
         requireAdmin: true,

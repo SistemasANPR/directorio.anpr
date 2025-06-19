@@ -200,6 +200,14 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/configuracion-sistema">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <SystemSettings />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/integracion">
         <ProtectedRoute requireAdmin>
           <AppLayout>

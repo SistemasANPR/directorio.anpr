@@ -861,11 +861,19 @@ export default function SystemSettings() {
           <div className="flex justify-end gap-4">
             <Button
               type="submit"
-              disabled={updateMutation.isPending}
-              className="min-w-32"
+              disabled={updateMutation.isPending || isUploading}
+              className="min-w-32 bg-[#bcce16] hover:bg-[#a8b814] text-black"
             >
-              {updateMutation.isPending ? (
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+              {isUploading ? (
+                <>
+                  <Upload className="h-4 w-4 mr-2 animate-bounce" />
+                  Subiendo archivos...
+                </>
+              ) : updateMutation.isPending ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Guardando...
+                </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
