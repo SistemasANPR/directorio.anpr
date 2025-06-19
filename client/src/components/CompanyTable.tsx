@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, Edit, Trash2, MoreHorizontal, Building, UserCheck } from "lucide-react";
+import { Eye, Edit, Trash2, MoreHorizontal, Building, UserCheck, Tag, Code, Cog, ShoppingCart, Truck, Heart, Home, Users, Briefcase, Factory, Hammer, Lightbulb, Globe, Wrench, Calendar, Coffee } from "lucide-react";
 import { CompanyWithDetails } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -57,6 +57,31 @@ const getCategoryBadgeColor = (category?: string) => {
     default:
       return "bg-gray-100 text-gray-800";
   }
+};
+
+const getCategoryIcon = (iconName?: string) => {
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    'Tag': Tag,
+    'Code': Code,
+    'Cog': Cog,
+    'ShoppingCart': ShoppingCart,
+    'Truck': Truck,
+    'Heart': Heart,
+    'Home': Home,
+    'Users': Users,
+    'Briefcase': Briefcase,
+    'Factory': Factory,
+    'Hammer': Hammer,
+    'Lightbulb': Lightbulb,
+    'Globe': Globe,
+    'Wrench': Wrench,
+    'Calendar': Calendar,
+    'Coffee': Coffee,
+    'Building': Building,
+  };
+  
+  const IconComponent = iconMap[iconName || 'Tag'] || Tag;
+  return <IconComponent className="w-4 h-4" />;
 };
 
 export default function CompanyTable({ companies, onEdit, onDelete, onView, onImpersonate }: CompanyTableProps) {
@@ -121,19 +146,21 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
                   </div>
                 </TableCell>
                 <TableCell className="py-4 px-4">
-                  {company.categories && company.categories.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {company.categories.slice(0, 2).map((category) => (
-                        <Badge key={category.id} className={getCategoryBadgeColor(category.nombreCategoria)}>
-                          {category.nombreCategoria}
-                        </Badge>
+                  {company.categories && company.categories.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {company.categories.slice(0, 3).map((category) => (
+                        <div key={category.id} className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors" title={category.nombreCategoria}>
+                          {getCategoryIcon(category.icono ?? undefined)}
+                        </div>
                       ))}
-                      {company.categories.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{company.categories.length - 2}
-                        </Badge>
+                      {company.categories.length > 3 && (
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-xs text-gray-600" title={`${company.categories.length - 3} categorías más`}>
+                          +{company.categories.length - 3}
+                        </div>
                       )}
                     </div>
+                  ) : (
+                    <span className="text-sm text-gray-400">Sin categorías</span>
                   )}
                 </TableCell>
                 <TableCell className="py-4 px-4 text-gray-600">
@@ -153,11 +180,11 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-8 h-8">
                         <AvatarFallback className="text-xs">
-                          {company.user.username?.charAt(0).toUpperCase() || "?"}
+                          {company.user.displayName?.charAt(0).toUpperCase() || company.user.email.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{company.user.username}</p>
+                        <p className="text-sm font-medium text-gray-900">{company.user.displayName || company.user.email}</p>
                         <p className="text-xs text-gray-500">{company.user.email}</p>
                       </div>
                     </div>

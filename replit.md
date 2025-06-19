@@ -141,6 +141,9 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: CATEGORY ICON DISPLAY - Replaced category text titles with visual icons in CompanyTable for improved UI visualization
+- June 19, 2025: ICON MAPPING - Implemented dynamic icon rendering based on database category.icono field with comprehensive Lucide icon support
+- June 19, 2025: UI VISUAL ENHANCEMENT - Added circular icon containers with hover effects and tooltips showing category names for better user experience
 - June 19, 2025: COMPREHENSIVE COMPANY UPLOAD - Enhanced Companies.tsx with complete company information upload functionality including Excel/CSV import with all company fields
 - June 19, 2025: EXPORT/IMPORT ENHANCEMENT - Updated export functionality to include all 38 company data fields (contact info, social media, membership details, geographic data, etc.)
 - June 19, 2025: TEMPLATE IMPROVEMENT - Created comprehensive Excel template with proper field mapping for nombreEmpresa, descripcionEmpresa, membership details, social networks, and geographic information
