@@ -233,118 +233,152 @@ export default function Companies() {
 
   const generateCSV = () => {
     const headers = [
+      'ID',
       'Nombre Empresa',
-      'Descripción',
+      'Descripción Empresa',
+      'Categoría ID',
       'Categoría',
-      'Membresía',
+      'Membership ID',
+      'Plan de Membresía',
       'Email 1',
       'Email 2',
-      'Email 3',
       'Teléfono 1',
       'Teléfono 2',
-      'Teléfono 3',
-      'Dirección',
-      'Ciudad',
-      'Estado',
-      'País',
-      'Código Postal',
+      'Dirección Física',
+      'Países Presencia',
+      'Estados Presencia',
+      'Ciudades Presencia',
+      'Ubicación Principal',
+      'Sitio Web',
+      'Catálogo Digital URL',
+      'Galería Productos URLs',
+      'Videos URLs',
       'Facebook',
       'Instagram',
       'LinkedIn',
       'Twitter',
       'YouTube',
-      'TikTok',
-      'Representante 1 - Nombre',
-      'Representante 1 - Cargo',
-      'Representante 1 - Email',
-      'Representante 1 - Teléfono',
-      'Representante 2 - Nombre',
-      'Representante 2 - Cargo',
-      'Representante 2 - Email',
-      'Representante 2 - Teléfono',
-      'Representante 3 - Nombre',
-      'Representante 3 - Cargo',
-      'Representante 3 - Email',
-      'Representante 3 - Teléfono',
-      'Video URL',
-      'Notas Adicionales'
+      'WhatsApp',
+      'Representantes Ventas',
+      'Ubicación Geográfica',
+      'Periodicidad Membresía',
+      'Forma de Pago',
+      'Fecha Inicio Membresía',
+      'Fecha Fin Membresía',
+      'Notas Membresía',
+      'Estado',
+      'Usuario ID',
+      'Usuario',
+      'Fecha Creación',
+      'Fecha Actualización'
     ];
 
-    const rows = companies.map(company => [
-      company.nombreEmpresa || '',
-      company.descripcionEmpresa?.replace(/<[^>]*>/g, '') || '', // Remove HTML tags
-      company.category?.nombreCategoria || '',
-      company.membershipType?.nombrePlan || '',
-      company.email1 || '',
-      company.email2 || '',
-      company.email3 || '',
-      company.telefono1 || '',
-      company.telefono2 || '',
-      company.telefono3 || '',
-      company.direccion || '',
-      company.ciudad || '',
-      company.estado || '',
-      company.pais || '',
-      company.codigoPostal || '',
-      company.facebook || '',
-      company.instagram || '',
-      company.linkedin || '',
-      company.twitter || '',
-      company.youtube || '',
-      company.tiktok || '',
-      company.representante1Nombre || '',
-      company.representante1Cargo || '',
-      company.representante1Email || '',
-      company.representante1Telefono || '',
-      company.representante2Nombre || '',
-      company.representante2Cargo || '',
-      company.representante2Email || '',
-      company.representante2Telefono || '',
-      company.representante3Nombre || '',
-      company.representante3Cargo || '',
-      company.representante3Email || '',
-      company.representante3Telefono || '',
-      company.videoUrl || '',
-      company.notasAdicionales || ''
-    ]);
+    const rows = companies.map((company: CompanyWithDetails) => {
+      // Parse social networks from JSON
+      let redesSociales: any = {};
+      try {
+        redesSociales = company.redesSociales ? JSON.parse(company.redesSociales as string) : {};
+      } catch (e) {
+        redesSociales = {};
+      }
+
+      return [
+        company.id || '',
+        company.nombreEmpresa || '',
+        company.descripcionEmpresa?.replace(/<[^>]*>/g, '') || '', // Remove HTML tags
+        company.membershipTypeId || '',
+        company.membershipType?.nombrePlan || '',
+        company.membershipTypeId || '',
+        company.membershipType?.nombrePlan || '',
+        company.email1 || '',
+        company.email2 || '',
+        company.telefono1 || '',
+        company.telefono2 || '',
+        company.direccionFisica || '',
+        company.paisesPresencia || '',
+        company.estadosPresencia || '',
+        company.ciudadesPresencia || '',
+        company.ubicacionPrincipal || '',
+        company.sitioWeb || '',
+        company.catalogoDigitalUrl || '',
+        Array.isArray(company.galeriaProductosUrls) ? company.galeriaProductosUrls.join(',') : (company.galeriaProductosUrls || ''),
+        Array.isArray(company.videosUrls) ? company.videosUrls.join(',') : (company.videosUrls || ''),
+        (redesSociales as any)?.facebook || '',
+        (redesSociales as any)?.instagram || '',
+        (redesSociales as any)?.linkedin || '',
+        (redesSociales as any)?.twitter || '',
+        (redesSociales as any)?.youtube || '',
+        (redesSociales as any)?.whatsapp || '',
+        company.representantesVentas || '',
+        company.ubicacionGeografica || '',
+        company.membershipPeriodicidad || '',
+        company.formaPago || '',
+        company.fechaInicioMembresia || '',
+        company.fechaFinMembresia || '',
+        company.notasMembresia || '',
+        company.estado || '',
+        company.userId || '',
+        company.user?.displayName || company.user?.email || '',
+        company.createdAt ? new Date(company.createdAt).toLocaleDateString() : '',
+        company.updatedAt ? new Date(company.updatedAt).toLocaleDateString() : ''
+      ];
+    });
 
     return [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ...rows.map((row: any[]) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
   };
 
   const processCSV = async (csvText: string) => {
     try {
       const lines = csvText.split('\n').filter(line => line.trim());
-      const headers = lines[0].split(';').map(h => h.replace(/"/g, '').trim());
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
       const dataRows = lines.slice(1);
 
       console.log('CSV data:', { headers, dataRows });
 
       // Mapear los datos del CSV a la estructura de empresa
-      const companiesToCreate = dataRows.map(row => {
-        const cells = row.split(';').map(cell => cell.replace(/"/g, '').trim());
+      const companiesToCreate = dataRows.map((row: any) => {
+        const cells = row.split(',').map((cell: string) => cell.replace(/"/g, '').trim());
         
+        // Parse social networks from individual fields
+        const redesSociales = JSON.stringify({
+          facebook: cells[17] || '',
+          instagram: cells[18] || '',
+          linkedin: cells[19] || '',
+          twitter: cells[20] || '',
+          youtube: cells[21] || '',
+          whatsapp: cells[22] || ''
+        });
+
         return {
-          nombreEmpresa: cells[1] || '',
-          email1: cells[3] || '',
-          telefono1: cells[4] || '',
-          sitioWeb: cells[5] || '',
-          descripcionEmpresa: cells[6] || '',
-          direccionFisica: cells[2] || '',
-          paisesPresencia: cells[10] ? [cells[10]] : [],
-          estadosPresencia: cells[11] ? [cells[11]] : [],
-          ciudadesPresencia: cells[11] ? [cells[11]] : [],
-          logotipoUrl: cells[8] || '',
-          videoUrl1: cells[9] || '',
-          catalogoDigitalUrl: cells[10] || '',
-          representantesVentas: cells[7] ? [{ telefono: cells[7] }] : [],
-          categoriesIds: [],
-          membershipTypeId: null,
-          certificateIds: [],
-          userId: 1, // Usuario por defecto
-          estado: 'activo'
+          nombreEmpresa: cells[0] || '',
+          descripcionEmpresa: cells[1] || '',
+          membershipTypeId: cells[3] ? parseInt(cells[3]) : 1,
+          email1: cells[4] || '',
+          email2: cells[5] || '',
+          telefono1: cells[6] || '',
+          telefono2: cells[7] || '',
+          direccionFisica: cells[8] || '',
+          paisesPresencia: cells[9] || '',
+          estadosPresencia: cells[10] || '',
+          ciudadesPresencia: cells[11] || '',
+          ubicacionPrincipal: cells[12] || '',
+          sitioWeb: cells[13] || '',
+          catalogoDigitalUrl: cells[14] || '',
+          galeriaProductosUrls: cells[15] ? cells[15].split(',') : [],
+          videosUrls: cells[16] ? cells[16].split(',') : [],
+          redesSociales,
+          representantesVentas: cells[23] || '',
+          ubicacionGeografica: cells[24] || '',
+          membershipPeriodicidad: cells[25] || 'anual',
+          formaPago: cells[26] || 'tarjeta',
+          fechaInicioMembresia: cells[27] || new Date().toISOString().split('T')[0],
+          fechaFinMembresia: cells[28] || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          notasMembresia: cells[29] || '',
+          estado: cells[30] || 'activo',
+          userId: cells[31] ? parseInt(cells[31]) : 1
         };
       });
 
@@ -411,25 +445,43 @@ export default function Companies() {
 
         // Mapear los datos del Excel a la estructura de empresa
         const companiesToCreate = dataRows.map((row: any[]) => {
+          // Parse social networks from individual fields
+          const redesSociales = JSON.stringify({
+            facebook: row[17] || '',
+            instagram: row[18] || '',
+            linkedin: row[19] || '',
+            twitter: row[20] || '',
+            youtube: row[21] || '',
+            whatsapp: row[22] || ''
+          });
+
           return {
-            nombreEmpresa: row[1] || '',
-            email1: row[3] || '',
-            telefono1: row[4] || '',
-            sitioWeb: row[5] || '',
-            descripcionEmpresa: row[6] || '',
-            direccionFisica: row[2] || '',
-            paisesPresencia: row[10] ? [row[10]] : [],
-            estadosPresencia: row[11] ? [row[11]] : [],
-            ciudadesPresencia: row[11] ? [row[11]] : [],
-            logotipoUrl: row[8] || '',
-            videoUrl1: row[9] || '',
-            catalogoDigitalUrl: row[10] || '',
-            representantesVentas: row[7] ? [{ telefono: row[7] }] : [],
-            categoriesIds: [],
-            membershipTypeId: null,
-            certificateIds: [],
-            userId: 1, // Usuario por defecto
-            estado: 'activo'
+            nombreEmpresa: row[0] || '',
+            descripcionEmpresa: row[1] || '',
+            membershipTypeId: row[3] ? parseInt(row[3]) : 1,
+            email1: row[4] || '',
+            email2: row[5] || '',
+            telefono1: row[6] || '',
+            telefono2: row[7] || '',
+            direccionFisica: row[8] || '',
+            paisesPresencia: row[9] || '',
+            estadosPresencia: row[10] || '',
+            ciudadesPresencia: row[11] || '',
+            ubicacionPrincipal: row[12] || '',
+            sitioWeb: row[13] || '',
+            catalogoDigitalUrl: row[14] || '',
+            galeriaProductosUrls: row[15] ? row[15].split(',') : [],
+            videosUrls: row[16] ? row[16].split(',') : [],
+            redesSociales,
+            representantesVentas: row[23] || '',
+            ubicacionGeografica: row[24] || '',
+            membershipPeriodicidad: row[25] || 'anual',
+            formaPago: row[26] || 'tarjeta',
+            fechaInicioMembresia: row[27] || new Date().toISOString().split('T')[0],
+            fechaFinMembresia: row[28] || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            notasMembresia: row[29] || '',
+            estado: row[30] || 'activo',
+            userId: row[31] ? parseInt(row[31]) : 1
           };
         });
 

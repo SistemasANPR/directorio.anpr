@@ -141,6 +141,11 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: COMPREHENSIVE COMPANY UPLOAD - Enhanced Companies.tsx with complete company information upload functionality including Excel/CSV import with all company fields
+- June 19, 2025: EXPORT/IMPORT ENHANCEMENT - Updated export functionality to include all 38 company data fields (contact info, social media, membership details, geographic data, etc.)
+- June 19, 2025: TEMPLATE IMPROVEMENT - Created comprehensive Excel template with proper field mapping for nombreEmpresa, descripcionEmpresa, membership details, social networks, and geographic information
+- June 19, 2025: FILE PROCESSING - Added robust CSV and Excel processing with comprehensive data validation and error handling for company imports
+- June 19, 2025: UI ENHANCEMENT - Added intuitive file upload interface with template download, export, and import buttons in companies management view
 - June 19, 2025: OPINIONS ADMIN SEPARATION - Updated OpinionsAdmin component to focus exclusively on company opinions (tipo: "empresa") with title "Opiniones sobre empresas"
 - June 19, 2025: API FILTERING - Modified frontend API calls to filter only company opinions, ensuring complete separation from platform reviews
 - June 19, 2025: UI TERMINOLOGY - Updated dropdown and statistics labels from "reseñas" to "opiniones" for consistency in company feedback section
