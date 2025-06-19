@@ -141,6 +141,11 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: REPRESENTATIVE REVIEWS - Implemented complete review system for representatives to provide platform feedback
+- June 19, 2025: SIDEBAR NAVIGATION - Replaced "Testimonios" with "Mi Reseña" in representative sidebar, connected to new review tab
+- June 19, 2025: REVIEW COMPONENT - Created RepresentativeReview component with full CRUD functionality (create, edit, delete one review per representative)
+- June 19, 2025: REVIEW INTEGRATION - Connected representative reviews to admin ReviewsAdmin for moderation with proper validation
+- June 19, 2025: VALIDATION FIX - Resolved backend validation errors by including required fields (userId, nombre, email, companyId) in review submissions
 - June 19, 2025: REVIEWS MANAGEMENT - Created new ReviewsAdmin component for managing platform reviews (tipo: "plataforma") with same design as OpinionsAdmin, replaced TestimonialsAdmin functionality
 - June 19, 2025: SIDEBAR UPDATES - Updated admin sidebar to replace "Administrar Testimonios" with "Gestión de Reseñas" (/admin/reviews route)
 - June 19, 2025: TESTIMONIALS REMOVAL - Eliminated TestimonialsAdmin component and routes, removed dual testimonial management system

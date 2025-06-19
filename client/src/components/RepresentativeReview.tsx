@@ -69,7 +69,11 @@ export default function RepresentativeReview() {
         body: JSON.stringify({
           ...reviewData,
           tipo: 'plataforma',
-          estado: 'pendiente'
+          estado: 'pendiente',
+          userId: user?.id,
+          nombre: user?.displayName || user?.email || 'Usuario',
+          email: user?.email || '',
+          companyId: null // Platform reviews don't belong to a specific company
         })
       });
       if (!response.ok) throw new Error('Error creating review');
@@ -101,7 +105,9 @@ export default function RepresentativeReview() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          estado: 'pendiente' // Reset to pending when edited
+          estado: 'pendiente', // Reset to pending when edited
+          nombre: user?.displayName || user?.email || 'Usuario',
+          email: user?.email || ''
         })
       });
       if (!response.ok) throw new Error('Error updating review');
