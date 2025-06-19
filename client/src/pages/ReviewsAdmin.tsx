@@ -22,14 +22,19 @@ interface Review {
   tipo: string;
   companyId: number | null;
   userId: number;
+  nombre: string;
+  email: string;
+  cargo?: string;
   approvedBy: number | null;
+  fechaCreacion: string;
+  fechaAprobacion?: string;
   createdAt: string;
   updatedAt: string;
   company?: {
     id: number;
     nombreEmpresa: string;
   };
-  user: {
+  user?: {
     id: number;
     displayName: string;
     email: string;
@@ -279,8 +284,8 @@ export default function ReviewsAdmin() {
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-2">
                         <User className="w-4 h-4 text-gray-500" />
-                        <span className="font-medium">{review.user.displayName}</span>
-                        <span className="text-sm text-gray-500">({review.user.email})</span>
+                        <span className="font-medium">{review.nombre}</span>
+                        <span className="text-sm text-gray-500">({review.email})</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         {renderStars(review.calificacion)}
