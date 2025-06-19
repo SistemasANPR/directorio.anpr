@@ -314,15 +314,35 @@ export default function Memberships() {
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="nombrePlan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre del Plan *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ej. Básico, Premium, Enterprise..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="nombrePlan"
+                    name="costo"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nombre del Plan *</FormLabel>
+                        <FormLabel>Costo *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ej. Básico, Premium, Enterprise..." {...field} />
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            placeholder="99.00"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -331,13 +351,23 @@ export default function Memberships() {
 
                   <FormField
                     control={form.control}
-                    name="costo"
+                    name="periodicidad"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Costo *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej. 99.00" type="number" step="0.01" {...field} />
-                        </FormControl>
+                        <FormLabel>Periodicidad *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccionar..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="monthly">Mensual</SelectItem>
+                            <SelectItem value="yearly">Anual</SelectItem>
+                            <SelectItem value="quarterly">Trimestral</SelectItem>
+                            <SelectItem value="biannual">Semestral</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -346,35 +376,11 @@ export default function Memberships() {
 
                 <FormField
                   control={form.control}
-                  name="periodicidad"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Periodicidad *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar periodicidad" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="monthly">Mensual</SelectItem>
-                          <SelectItem value="yearly">Anual</SelectItem>
-                          <SelectItem value="quarterly">Trimestral</SelectItem>
-                          <SelectItem value="biannual">Semestral</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="visibilidad"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Visibilidad</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar visibilidad" />
@@ -390,18 +396,19 @@ export default function Memberships() {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
                   <FormField
                     control={form.control}
                     name="cantidadProductosAdmitidos"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Límite de Productos</FormLabel>
+                        <FormLabel className="text-green-800 font-semibold">Límite de Productos</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="0"
                             min="0"
+                            placeholder="0"
+                            className="border-green-300"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             value={field.value || 0}
@@ -417,12 +424,13 @@ export default function Memberships() {
                     name="cantidadProyectosAdmitidos"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Límite de Proyectos</FormLabel>
+                        <FormLabel className="text-green-800 font-semibold">Límite de Proyectos</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="0"
                             min="0"
+                            placeholder="0"
+                            className="border-green-300"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             value={field.value || 0}
@@ -475,7 +483,7 @@ export default function Memberships() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createMembershipMutation.isPending}>
-                    {createMembershipMutation.isPending ? "Creando..." : "Crear Membresía"}
+                    {createMembershipMutation.isPending ? "Creando..." : "Crear Plan"}
                   </Button>
                 </div>
               </form>
@@ -705,18 +713,19 @@ export default function Memberships() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
                 <FormField
                   control={editForm.control}
                   name="cantidadProductosAdmitidos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Límite de Productos</FormLabel>
+                      <FormLabel className="text-green-800 font-semibold">Límite de Productos</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="0"
                           min="0"
+                          placeholder="0"
+                          className="border-green-300"
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           value={field.value || 0}
@@ -732,12 +741,13 @@ export default function Memberships() {
                   name="cantidadProyectosAdmitidos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Límite de Proyectos</FormLabel>
+                      <FormLabel className="text-green-800 font-semibold">Límite de Proyectos</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="0"
                           min="0"
+                          placeholder="0"
+                          className="border-green-300"
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           value={field.value || 0}
