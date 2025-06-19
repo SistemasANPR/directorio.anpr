@@ -81,13 +81,8 @@ const navigationItems: NavigationItem[] = [
         requireAdmin: true,
       },
       {
-        name: "Testimonios",
-        href: "/testimonios",
-        requireAdmin: false,
-      },
-      {
         name: "Administrar Testimonios",
-        href: "/testimonios-admin",
+        href: "/admin/testimonials",
         requireAdmin: true,
       },
     ],
@@ -155,7 +150,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
   };
 
   // Define navigation for company representatives
-  const representativeNavItems = [
+  const representativeNavItems: NavigationItem[] = [
     {
       name: "Mi Dashboard",
       href: "/representative-dashboard",
@@ -212,7 +207,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
           const isActive = location === item.href;
           const hasSubItems = item.subItems && item.subItems.length > 0;
           const isExpanded = expandedItems.includes(item.name);
-          const isSubItemActive = hasSubItems && item.subItems.some(subItem => location === subItem.href);
+          const isSubItemActive = hasSubItems && item.subItems?.some((subItem: SubItem) => location === subItem.href);
           
           return (
             <div key={item.name}>

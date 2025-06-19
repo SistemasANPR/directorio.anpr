@@ -9,7 +9,8 @@ import {
   LogOut,
   Crown,
   CreditCard,
-  Briefcase
+  Briefcase,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,6 +41,11 @@ const representativeNavItems = [
     name: "Certificados",
     href: "/representative-dashboard?tab=certificates",
     icon: Award,
+  },
+  {
+    name: "Testimonios",
+    href: "/testimonials",
+    icon: MessageSquare,
   },
   {
     name: "Mi Plan",
@@ -118,9 +124,15 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                 }`}
                 onClick={() => {
-                  const tabName = item.href.split('?tab=')[1];
-                  window.history.pushState({}, '', item.href);
-                  window.dispatchEvent(new PopStateEvent('popstate'));
+                  if (item.href.includes('/testimonials')) {
+                    // Handle external navigation for testimonials
+                    window.location.href = item.href;
+                  } else {
+                    // Handle dashboard tab navigation
+                    const tabName = item.href.split('?tab=')[1];
+                    window.history.pushState({}, '', item.href);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }
                   setIsMobileMenuOpen(false);
                 }}
               >
