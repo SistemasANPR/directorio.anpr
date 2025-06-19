@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -42,7 +42,10 @@ import {
   Plus,
   Trash2,
   Mail,
-  Phone
+  Phone,
+  Upload,
+  RefreshCw,
+  X
 } from "lucide-react";
 import { SiFacebook, SiX, SiInstagram, SiYoutube, SiLinkedin, SiWhatsapp, SiTiktok, SiTelegram } from "react-icons/si";
 import Swal from "sweetalert2";
@@ -110,6 +113,9 @@ const currencies = [
 export default function SystemSettings() {
   const { toast } = useToast();
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
 
   const { data: settings, isLoading } = useQuery<SystemSettingsData>({
     queryKey: ["/api/system-settings"],
@@ -129,6 +135,18 @@ export default function SystemSettings() {
       return [];
     }
   };
+
+  // Update previews when settings load
+  useEffect(() => {
+    if (settings) {
+      if (settings.logoUrl) {
+        setLogoPreview(`/uploads/system-logos/${settings.logoUrl}`);
+      }
+      if (settings.faviconUrl) {
+        setFaviconPreview(`/uploads/system-favicons/${settings.faviconUrl}`);
+      }
+    }
+  }, [settings]);
 
   const form = useForm<SystemSettingsFormData>({
     resolver: zodResolver(systemSettingsSchema),
@@ -200,38 +218,90 @@ export default function SystemSettings() {
     },
   });
 
-  const onSubmit = (data: SystemSettingsFormData) => {
+  const onSubmit = async (data: SystemSettingsFormData) => {
     updateMutation.mutate(data);
   };
 
-  const handleImageUpload = async (file: File, field: 'logoUrl' | 'faviconUrl') => {
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new window.Image();
-      
-      img.onload = () => {
-        const size = field === 'faviconUrl' ? 32 : 200;
-        canvas.width = size;
-        canvas.height = size;
-        
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, size, size);
-        }
-        
-        const dataUrl = canvas.toDataURL('image/png');
-        form.setValue(field, dataUrl);
-      };
-      
-      img.src = URL.createObjectURL(file);
-    } catch (error) {
+  // Handle file upload for logos and favicons
+  const handleFileUpload = useCallback(async (file: File, type: 'logo' | 'favicon') => {
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Error",
-        description: "Error al procesar la imagen",
+        description: "Solo se permiten archivos PNG, JPG, JPEG o SVG",
         variant: "destructive",
       });
+      return;
     }
-  };
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error", 
+        description: "El archivo no puede ser mayor a 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+
+      const response = await fetch('/api/system-settings/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Error uploading file');
+      }
+
+      const result = await response.json();
+      
+      if (type === 'logo') {
+        form.setValue('logoUrl', result.filename);
+        setLogoPreview(`/uploads/system-logos/${result.filename}`);
+      } else {
+        form.setValue('faviconUrl', result.filename);
+        setFaviconPreview(`/uploads/system-favicons/${result.filename}`);
+      }
+
+      toast({
+        title: "Éxito",
+        description: `${type === 'logo' ? 'Logo' : 'Favicon'} subido correctamente`,
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Error",
+        description: "Error al subir el archivo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }, [form, toast]);
+
+  // Handle drag and drop
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, type: 'logo' | 'favicon') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files[0], type);
+    }
+  }, [handleFileUpload]);
 
   const addSocialMedia = () => {
     append({
@@ -459,31 +529,74 @@ export default function SystemSettings() {
                   Logo y favicon de tu organización
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
+                {/* Logo Upload */}
                 <FormField
                   control={form.control}
                   name="logoUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Logo</FormLabel>
+                      <FormLabel>Logo Principal</FormLabel>
                       <FormControl>
-                        <div className="space-y-2">
-                          <Input
+                        <div className="space-y-3">
+                          <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors"
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, 'logo')}
+                            onClick={() => document.getElementById('logo-upload')?.click()}
+                          >
+                            {logoPreview ? (
+                              <div className="space-y-3">
+                                <img 
+                                  src={logoPreview} 
+                                  alt="Logo preview" 
+                                  className="mx-auto w-24 h-24 object-contain border rounded"
+                                />
+                                <div className="space-y-1">
+                                  <p className="text-sm text-green-600 font-medium">✓ Logo cargado correctamente</p>
+                                  <p className="text-xs text-gray-500">Haz clic o arrastra un archivo para cambiar</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                                <div className="space-y-1">
+                                  <p className="text-sm font-medium text-gray-700">
+                                    Arrastra tu logo aquí o haz clic para seleccionar
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    PNG, JPG, JPEG, SVG hasta 5MB
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <input
+                            id="logo-upload"
                             type="file"
-                            accept="image/*"
+                            accept="image/png,image/jpeg,image/jpg,image/svg+xml"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                handleImageUpload(file, 'logoUrl');
+                                handleFileUpload(file, 'logo');
                               }
                             }}
+                            className="hidden"
                           />
-                          {field.value && (
-                            <img 
-                              src={field.value} 
-                              alt="Logo preview" 
-                              className="w-16 h-16 object-contain border rounded"
-                            />
+                          {logoPreview && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setLogoPreview(null);
+                                form.setValue('logoUrl', '');
+                              }}
+                              className="w-full"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Remover Logo
+                            </Button>
                           )}
                         </div>
                       </FormControl>
@@ -492,6 +605,7 @@ export default function SystemSettings() {
                   )}
                 />
 
+                {/* Favicon Upload */}
                 <FormField
                   control={form.control}
                   name="faviconUrl"
@@ -499,23 +613,61 @@ export default function SystemSettings() {
                     <FormItem>
                       <FormLabel>Favicon</FormLabel>
                       <FormControl>
-                        <div className="space-y-2">
-                          <Input
+                        <div className="space-y-3">
+                          <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition-colors"
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, 'favicon')}
+                            onClick={() => document.getElementById('favicon-upload')?.click()}
+                          >
+                            {faviconPreview ? (
+                              <div className="space-y-2">
+                                <img 
+                                  src={faviconPreview} 
+                                  alt="Favicon preview" 
+                                  className="mx-auto w-8 h-8 object-contain border rounded"
+                                />
+                                <div className="space-y-1">
+                                  <p className="text-sm text-green-600 font-medium">✓ Favicon cargado</p>
+                                  <p className="text-xs text-gray-500">Haz clic para cambiar</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                                <div className="space-y-1">
+                                  <p className="text-sm font-medium text-gray-700">Subir favicon</p>
+                                  <p className="text-xs text-gray-500">32x32px recomendado</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <input
+                            id="favicon-upload"
                             type="file"
-                            accept="image/*"
+                            accept="image/png,image/jpeg,image/jpg,image/svg+xml"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                handleImageUpload(file, 'faviconUrl');
+                                handleFileUpload(file, 'favicon');
                               }
                             }}
+                            className="hidden"
                           />
-                          {field.value && (
-                            <img 
-                              src={field.value} 
-                              alt="Favicon preview" 
-                              className="w-8 h-8 object-contain border rounded"
-                            />
+                          {faviconPreview && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setFaviconPreview(null);
+                                form.setValue('faviconUrl', '');
+                              }}
+                              className="w-full"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Remover Favicon
+                            </Button>
                           )}
                         </div>
                       </FormControl>
