@@ -6,19 +6,7 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Configure CSP for development
-app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', 
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: ws: wss: https:; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "font-src 'self' data: https://fonts.gstatic.com; " +
-    "img-src 'self' data: blob: https:; " +
-    "connect-src 'self' ws: wss: https: data:; " +
-    "frame-src https://js.stripe.com https://hooks.stripe.com;"
-  );
-  next();
-});
+
 
 // Middleware to extract user info from headers for API requests
 app.use('/api', (req: any, res, next) => {
