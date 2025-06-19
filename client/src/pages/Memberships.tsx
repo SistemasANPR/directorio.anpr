@@ -676,6 +676,50 @@ export default function Memberships() {
                 )}
               />
 
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="cantidadProductosAdmitidos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cantidad de Productos Admitidos</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value || 0}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="cantidadProyectosAdmitidos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cantidad de Proyectos Admitidos</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value || 0}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <div className="flex items-center justify-end space-x-2 pt-4">
                 <Button 
                   type="button" 

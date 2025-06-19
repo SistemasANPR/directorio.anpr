@@ -119,6 +119,8 @@ export default function MembershipDataTable({ memberships, onEdit, onView }: Mem
                   <TableHead>Descripción</TableHead>
                   <TableHead>Costo</TableHead>
                   <TableHead>Periodicidad</TableHead>
+                  <TableHead>Productos</TableHead>
+                  <TableHead>Proyectos</TableHead>
                   <TableHead>Beneficios</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -141,14 +143,49 @@ export default function MembershipDataTable({ memberships, onEdit, onView }: Mem
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-semibold text-primary">
-                        ${membership.costo || "0"}
-                      </span>
+                      <div className="text-sm">
+                        {Array.isArray(membership.opcionesPrecios) && membership.opcionesPrecios.length > 0 ? (
+                          <div className="space-y-1">
+                            {membership.opcionesPrecios.map((precio, index) => (
+                              <div key={index} className="flex items-center space-x-1">
+                                <span className="font-semibold text-primary">${precio.costo}</span>
+                                <span className="text-xs text-gray-500">/ {formatPeriodicity(precio.periodicidad)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Sin precios</span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-gray-600">
-                        {formatPeriodicity(membership.periodicidad || "")}
-                      </span>
+                      <div className="text-sm">
+                        {Array.isArray(membership.opcionesPrecios) && membership.opcionesPrecios.length > 0 ? (
+                          <div className="space-y-1">
+                            {membership.opcionesPrecios.map((precio, index) => (
+                              <div key={index} className="text-xs text-gray-600">
+                                {formatPeriodicity(precio.periodicidad)}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-center">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {membership.cantidadProductosAdmitidos || 0}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-center">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {membership.cantidadProyectosAdmitidos || 0}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="max-w-sm">
