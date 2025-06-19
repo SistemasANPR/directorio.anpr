@@ -1038,6 +1038,11 @@ export default function RepresentativeDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Review Tab */}
+          <TabsContent value="review">
+            <RepresentativeReview />
+          </TabsContent>
         </Tabs>
 
         {/* Modals - Using exact admin modals */}
