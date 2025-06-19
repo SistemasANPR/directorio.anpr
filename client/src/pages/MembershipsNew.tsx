@@ -356,19 +356,18 @@ export default function MembershipsNew() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="cantidadProductosAdmitidos"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-green-800 font-semibold">Límite de Productos</FormLabel>
+                        <FormLabel>Límite de Productos</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             min="0"
                             placeholder="0"
-                            className="border-green-300"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             value={field.value || 0}
@@ -384,13 +383,12 @@ export default function MembershipsNew() {
                     name="cantidadProyectosAdmitidos"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-green-800 font-semibold">Límite de Proyectos</FormLabel>
+                        <FormLabel>Límite de Proyectos</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             min="0"
                             placeholder="0"
-                            className="border-green-300"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             value={field.value || 0}
@@ -644,19 +642,18 @@ export default function MembershipsNew() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
                   name="cantidadProductosAdmitidos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-green-800 font-semibold">Límite de Productos</FormLabel>
+                      <FormLabel>Límite de Productos</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           min="0"
                           placeholder="0"
-                          className="border-green-300"
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           value={field.value || 0}
@@ -672,13 +669,12 @@ export default function MembershipsNew() {
                   name="cantidadProyectosAdmitidos"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-green-800 font-semibold">Límite de Proyectos</FormLabel>
+                      <FormLabel>Límite de Proyectos</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           min="0"
                           placeholder="0"
-                          className="border-green-300"
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           value={field.value || 0}
