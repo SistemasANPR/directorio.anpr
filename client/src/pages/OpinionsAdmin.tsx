@@ -33,11 +33,11 @@ export default function OpinionsAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query para obtener todas las opiniones
+  // Query para obtener opiniones sobre empresas únicamente
   const { data: opinions = [], isLoading } = useQuery({
-    queryKey: ["/api/opinions"],
+    queryKey: ["/api/opinions", { tipo: "empresa" }],
     queryFn: async () => {
-      const response = await fetch("/api/opinions");
+      const response = await fetch("/api/opinions?tipo=empresa");
       if (!response.ok) throw new Error("Failed to fetch opinions");
       const data = await response.json();
       return data.opinions || [];
@@ -173,7 +173,7 @@ export default function OpinionsAdmin() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Gestión de Reseñas</h1>
+        <h1 className="text-3xl font-bold">Opiniones sobre empresas</h1>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
@@ -184,14 +184,14 @@ export default function OpinionsAdmin() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Gestión de Reseñas</h1>
+        <h1 className="text-3xl font-bold">Opiniones sobre empresas</h1>
         <div className="flex items-center space-x-4">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Filtrar por estado" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas las reseñas</SelectItem>
+              <SelectItem value="all">Todas las opiniones</SelectItem>
               <SelectItem value="pendiente">Pendientes</SelectItem>
               <SelectItem value="aprobada">Aprobadas</SelectItem>
               <SelectItem value="rechazada">Rechazadas</SelectItem>
@@ -207,7 +207,7 @@ export default function OpinionsAdmin() {
             <div className="flex items-center">
               <MessageSquare className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Reseñas</p>
+                <p className="text-sm font-medium text-gray-600">Total Opiniones</p>
                 <p className="text-2xl font-bold">{opinions.length}</p>
               </div>
             </div>
