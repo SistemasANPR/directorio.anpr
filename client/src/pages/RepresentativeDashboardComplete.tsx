@@ -21,12 +21,14 @@ import {
   Package,
   X,
   Download,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import RepresentativeCompanyManagementComplete from "@/components/RepresentativeCompanyManagementComplete";
 import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
+import RepresentativeReview from "@/components/RepresentativeReview";
 import AddCertificateModal from "@/components/AddCertificateModal";
 import EditCertificateModal from "@/components/EditCertificateModal";
 import AddProjectModal from "@/components/AddProjectModal";
@@ -64,7 +66,7 @@ export default function RepresentativeDashboard() {
     const updateTab = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const tabParam = urlParams.get('tab');
-      if (tabParam && ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'].includes(tabParam)) {
+      if (tabParam && ['overview', 'company', 'projects', 'certificates', 'membership', 'payments', 'review'].includes(tabParam)) {
         setActiveTab(tabParam);
       }
     };
@@ -499,7 +501,7 @@ export default function RepresentativeDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="overview">
               <BarChart3 className="h-4 w-4 mr-2" />
               Resumen
@@ -523,6 +525,10 @@ export default function RepresentativeDashboard() {
             <TabsTrigger value="payments">
               <CreditCard className="h-4 w-4 mr-2" />
               Pagos
+            </TabsTrigger>
+            <TabsTrigger value="review">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Mi Reseña
             </TabsTrigger>
           </TabsList>
 

@@ -43,8 +43,8 @@ const representativeNavItems = [
     icon: Award,
   },
   {
-    name: "Testimonios",
-    href: "/testimonials",
+    name: "Mi Reseña",
+    href: "/representative-dashboard?tab=review",
     icon: MessageSquare,
   },
   {
