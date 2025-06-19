@@ -111,7 +111,7 @@ export default function SystemSettings() {
   const { toast } = useToast();
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading } = useQuery<SystemSettingsData>({
     queryKey: ["/api/system-settings"],
   });
 
@@ -132,17 +132,28 @@ export default function SystemSettings() {
 
   const form = useForm<SystemSettingsFormData>({
     resolver: zodResolver(systemSettingsSchema),
-    values: {
-      systemName: settings?.systemName || "Mi Organización",
-      systemDescription: settings?.systemDescription || "",
-      primaryColor: settings?.primaryColor || "#3b82f6",
-      secondaryColor: settings?.secondaryColor || "#64748b",
-      logoUrl: settings?.logoUrl || "",
-      faviconUrl: settings?.faviconUrl || "",
-      currency: settings?.currency || "USD",
-      contactEmail: settings?.contactEmail || "",
-      contactPhone: settings?.contactPhone || "",
-      socialMediaList: parseSocialMedia(settings?.socialMedia || ""),
+    values: settings ? {
+      systemName: settings.systemName || "Mi Organización",
+      systemDescription: settings.systemDescription || "",
+      primaryColor: settings.primaryColor || "#3b82f6",
+      secondaryColor: settings.secondaryColor || "#64748b",
+      logoUrl: settings.logoUrl || "",
+      faviconUrl: settings.faviconUrl || "",
+      currency: settings.currency || "USD",
+      contactEmail: settings.contactEmail || "",
+      contactPhone: settings.contactPhone || "",
+      socialMediaList: parseSocialMedia(settings.socialMedia || ""),
+    } : {
+      systemName: "Mi Organización",
+      systemDescription: "",
+      primaryColor: "#3b82f6",
+      secondaryColor: "#64748b",
+      logoUrl: "",
+      faviconUrl: "",
+      currency: "USD",
+      contactEmail: "",
+      contactPhone: "",
+      socialMediaList: [],
     },
   });
 
@@ -197,14 +208,16 @@ export default function SystemSettings() {
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = new Image();
+      const img = new window.Image();
       
       img.onload = () => {
         const size = field === 'faviconUrl' ? 32 : 200;
         canvas.width = size;
         canvas.height = size;
         
-        ctx?.drawImage(img, 0, 0, size, size);
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, size, size);
+        }
         
         const dataUrl = canvas.toDataURL('image/png');
         form.setValue(field, dataUrl);
