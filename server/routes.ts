@@ -7,7 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertHomeConfigurationSchema, insertHomeHighlightsSchema, insertHomeBannersSchema, insertIntegrationSettingsSchema } from "@shared/schema";
+import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 
 if (!process.env.STRIPE_SECRET_KEY) {
