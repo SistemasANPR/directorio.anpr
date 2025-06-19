@@ -32,6 +32,8 @@ export const membershipTypes = pgTable("membership_types", {
   opcionesPrecios: jsonb("opciones_precios"), // Array of {periodicidad: string, costo: number}
   beneficios: jsonb("beneficios"), // Array of benefits
   visibilidad: text("visibilidad").notNull().default("publica"), // "publica" o "privada"
+  cantidadProductosAdmitidos: integer("cantidad_productos_admitidos").default(0), // Cantidad de productos permitidos
+  cantidadProyectosAdmitidos: integer("cantidad_proyectos_admitidos").default(0), // Cantidad de proyectos permitidos
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

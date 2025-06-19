@@ -61,6 +61,8 @@ const membershipSchema = z.object({
   })).min(1, "Debe agregar al menos una opción de precio"),
   beneficios: z.string().optional(),
   visibilidad: z.enum(["publica", "privada"]).default("publica"),
+  cantidadProductosAdmitidos: z.number().min(0, "La cantidad de productos debe ser mayor o igual a 0").default(0),
+  cantidadProyectosAdmitidos: z.number().min(0, "La cantidad de proyectos debe ser mayor o igual a 0").default(0),
 });
 
 type MembershipFormData = z.infer<typeof membershipSchema>;
@@ -81,6 +83,8 @@ export default function Memberships() {
       opcionesPrecios: [{ periodicidad: "", costo: 0 }],
       beneficios: "",
       visibilidad: "publica",
+      cantidadProductosAdmitidos: 0,
+      cantidadProyectosAdmitidos: 0,
     },
   });
 
@@ -89,9 +93,11 @@ export default function Memberships() {
     defaultValues: {
       nombrePlan: "",
       descripcionPlan: "",
-      costo: "",
-      periodicidad: "",
+      opcionesPrecios: [{ periodicidad: "", costo: 0 }],
       beneficios: "",
+      visibilidad: "publica",
+      cantidadProductosAdmitidos: 0,
+      cantidadProyectosAdmitidos: 0,
     },
   });
 
@@ -196,9 +202,11 @@ export default function Memberships() {
     editForm.reset({
       nombrePlan: membership.nombrePlan,
       descripcionPlan: membership.descripcionPlan || "",
-      costo: membership.costo || "",
-      periodicidad: membership.periodicidad || "",
+      opcionesPrecios: Array.isArray(membership.opcionesPrecios) ? membership.opcionesPrecios : [{ periodicidad: "", costo: 0 }],
       beneficios: beneficiosText,
+      visibilidad: membership.visibilidad || "publica",
+      cantidadProductosAdmitidos: membership.cantidadProductosAdmitidos || 0,
+      cantidadProyectosAdmitidos: membership.cantidadProyectosAdmitidos || 0,
     });
     setIsEditModalOpen(true);
   };
@@ -371,6 +379,50 @@ export default function Memberships() {
                     </FormItem>
                   )}
                 />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="cantidadProductosAdmitidos"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cantidad de Productos Admitidos</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            min="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || 0}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cantidadProyectosAdmitidos"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cantidad de Proyectos Admitidos</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            min="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || 0}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <div className="flex items-center justify-end space-x-2 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
