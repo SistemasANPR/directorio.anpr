@@ -73,7 +73,7 @@ export default function PdfSettings() {
       setFormData(settings);
       // Set logo preview if exists
       if (settings.logoUrl) {
-        setLogoPreview(`/uploads/${settings.logoUrl}`);
+        setLogoPreview(`/uploads/pdf-logos/${settings.logoUrl}`);
       }
     }
   }, [settings]);
@@ -594,13 +594,18 @@ export default function PdfSettings() {
               <CardContent className="pt-6">
                 <Button
                   type="submit"
-                  disabled={updateMutation.isPending}
+                  disabled={updateMutation.isPending || isUploading}
                   className="w-full bg-[#bcce16] hover:bg-[#a8b814] text-black"
                 >
-                  {updateMutation.isPending ? (
+                  {isUploading ? (
+                    <>
+                      <Upload className="h-4 w-4 mr-2 animate-bounce" />
+                      Subiendo logotipo...
+                    </>
+                  ) : updateMutation.isPending ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Guardando...
+                      Guardando configuración...
                     </>
                   ) : (
                     <>

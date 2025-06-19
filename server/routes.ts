@@ -61,6 +61,36 @@ const uploadImage = multer({
   }
 });
 
+// Configuración específica para logotipos PDF
+const pdfLogoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(process.cwd(), 'uploads', 'pdf-logos');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `pdf_logo_${Date.now()}_${uuidv4()}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+const uploadPdfLogo = multer({
+  storage: pdfLogoStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos PNG, JPG, JPEG y SVG'));
+    }
+  }
+});
+
 const uploadDocument = multer({
   storage: documentStorage,
   limits: {
@@ -1613,6 +1643,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Datos inválidos", details: error.errors });
       }
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Upload PDF logo endpoint
+  app.post("/api/pdf-settings/upload-logo", uploadPdfLogo.single('logo'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No se seleccionó ningún archivo" });
+      }
+
+      // Validate file exists and is accessible
+      const filePath = path.join(process.cwd(), 'uploads', 'pdf-logos', req.file.filename);
+      if (!fs.existsSync(filePath)) {
+        return res.status(500).json({ error: "Error al guardar el archivo" });
+      }
+
+      res.json({
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        path: `/uploads/pdf-logos/${req.file.filename}`
+      });
+    } catch (error: any) {
+      console.error("Error uploading PDF logo:", error);
+      res.status(500).json({ error: error.message || "Error al subir el logotipo" });
     }
   });
 

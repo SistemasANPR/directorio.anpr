@@ -141,6 +141,11 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 19, 2025: PDF LOGO UPLOAD SYSTEM COMPLETED - Successfully implemented comprehensive file upload system for PDF configuration logotipos with validation, secure storage, and preview functionality
+- June 19, 2025: FILE UPLOAD ENHANCEMENT - Added multer configuration for PDF logo uploads with 5MB limit, image validation (PNG, JPG, JPEG, SVG), and unique filename generation
+- June 19, 2025: BACKEND API EXPANSION - Created /api/pdf-settings/upload-logo endpoint with complete file handling, error validation, and response formatting
+- June 19, 2025: FRONTEND FILE INTERFACE - Replaced URL input field with drag-and-drop file upload area, preview functionality, and progress indicators
+- June 19, 2025: STORAGE ORGANIZATION - Implemented dedicated /uploads/pdf-logos directory for logo storage with automatic directory creation and static file serving
 - June 19, 2025: MEMBERSHIP LIMITS ENFORCEMENT SYSTEM COMPLETED - Successfully implemented comprehensive system to ensure membership plan quantity limits are applied as actual restrictions for each company
 - June 19, 2025: BACKEND VALIDATION - Added validateProjectLimits() and validateProductLimits() functions in storage.ts that automatically check plan restrictions before allowing creation/updates
 - June 19, 2025: API ENFORCEMENT - Integrated validation functions into createProject() and updateCompany() methods to enforce limits dynamically based on each company's membership plan
