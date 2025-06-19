@@ -58,6 +58,8 @@ const membershipSchema = z.object({
   })).min(1, "Debe agregar al menos una opción de precio"),
   beneficios: z.string().optional(),
   visibilidad: z.enum(["publica", "privada"]).default("publica"),
+  cantidadProductosAdmitidos: z.number().min(0, "La cantidad debe ser mayor o igual a 0").default(0),
+  cantidadProyectosAdmitidos: z.number().min(0, "La cantidad debe ser mayor o igual a 0").default(0),
 });
 
 type MembershipFormData = z.infer<typeof membershipSchema>;
@@ -77,6 +79,8 @@ export default function MembershipsNew() {
       opcionesPrecios: [{ periodicidad: "", costo: 0 }],
       beneficios: "",
       visibilidad: "publica",
+      cantidadProductosAdmitidos: 0,
+      cantidadProyectosAdmitidos: 0,
     },
   });
 
@@ -88,6 +92,8 @@ export default function MembershipsNew() {
       opcionesPrecios: [{ periodicidad: "", costo: 0 }],
       beneficios: "",
       visibilidad: "publica",
+      cantidadProductosAdmitidos: 0,
+      cantidadProyectosAdmitidos: 0,
     },
   });
 
@@ -178,6 +184,8 @@ export default function MembershipsNew() {
       opcionesPrecios,
       beneficios: Array.isArray(membership.beneficios) ? membership.beneficios.join('\n') : "",
       visibilidad: (membership as any).visibilidad || "publica",
+      cantidadProductosAdmitidos: (membership as any).cantidadProductosAdmitidos || 0,
+      cantidadProyectosAdmitidos: (membership as any).cantidadProyectosAdmitidos || 0,
     });
     setIsEditModalOpen(true);
   };
@@ -346,6 +354,52 @@ export default function MembershipsNew() {
                     <Plus className="h-4 w-4 mr-2" />
                     Agregar opción
                   </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
+                  <FormField
+                    control={form.control}
+                    name="cantidadProductosAdmitidos"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-green-800 font-semibold">Límite de Productos</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            className="border-green-300"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || 0}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cantidadProyectosAdmitidos"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-green-800 font-semibold">Límite de Proyectos</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            className="border-green-300"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || 0}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <FormField
@@ -588,6 +642,52 @@ export default function MembershipsNew() {
                   <Plus className="h-4 w-4 mr-2" />
                   Agregar opción
                 </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
+                <FormField
+                  control={editForm.control}
+                  name="cantidadProductosAdmitidos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-green-800 font-semibold">Límite de Productos</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          className="border-green-300"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value || 0}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="cantidadProyectosAdmitidos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-green-800 font-semibold">Límite de Proyectos</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          className="border-green-300"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value || 0}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField
