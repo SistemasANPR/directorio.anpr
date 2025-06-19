@@ -49,6 +49,10 @@ export const signOutUser = async (): Promise<void> => {
 
 // Auth state observer
 export const onAuthStateChange = (callback: (user: FirebaseUser | null) => void): (() => void) => {
+  if (!auth) {
+    // Return empty function if auth is not available
+    return () => {};
+  }
   return onAuthStateChanged(auth, callback);
 };
 
