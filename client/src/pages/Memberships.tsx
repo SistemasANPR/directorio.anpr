@@ -362,25 +362,7 @@ export default function Memberships() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="beneficios"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Beneficios</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe los beneficios del plan de membresía (cada línea será un beneficio)..."
-                          className="min-h-[150px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="cantidadProductosAdmitidos"
@@ -423,6 +405,24 @@ export default function Memberships() {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="beneficios"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Beneficios</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe los beneficios del plan de membresía (cada línea será un beneficio)..."
+                          className="min-h-[150px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="flex items-center justify-end space-x-2 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
