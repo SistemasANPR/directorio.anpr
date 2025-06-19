@@ -300,7 +300,7 @@ export default function Memberships() {
                 <span>Nuevo Plan</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Agregar Nuevo Tipo de Membresía</DialogTitle>
             </DialogHeader>
@@ -360,31 +360,13 @@ export default function Memberships() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="descripcionPlan"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descripción del Plan</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Descripción breve del plan de membresía..."
-                          className="min-h-[120px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="cantidadProductosAdmitidos"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cantidad de Productos Admitidos</FormLabel>
+                        <FormLabel>Límite de Productos</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -405,7 +387,7 @@ export default function Memberships() {
                     name="cantidadProyectosAdmitidos"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cantidad de Proyectos Admitidos</FormLabel>
+                        <FormLabel>Límite de Proyectos</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -421,6 +403,24 @@ export default function Memberships() {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="descripcionPlan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descripción del Plan</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Descripción breve del plan de membresía..."
+                          className="min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}
@@ -615,7 +615,7 @@ export default function Memberships() {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Tipo de Membresía</DialogTitle>
           </DialogHeader>
@@ -674,6 +674,50 @@ export default function Memberships() {
                   </FormItem>
                 )}
               />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="cantidadProductosAdmitidos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Límite de Productos</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value || 0}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="cantidadProyectosAdmitidos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Límite de Proyectos</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value || 0}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={editForm.control}
