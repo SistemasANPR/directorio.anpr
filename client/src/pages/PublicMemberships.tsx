@@ -67,11 +67,9 @@ export default function PublicMemberships() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">
           <div className="max-w-2xl">
             <h1 className="hero-title text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">
-              Directorio de
+              Directorio de Proveedores de
               <br />
               Equipamiento Urbano
-              <br />
-              LATAM
             </h1>
             
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
@@ -378,7 +376,14 @@ export default function PublicMemberships() {
                     <div className="mt-4">
                       {membership.opcionesPrecios && Array.isArray(membership.opcionesPrecios) && membership.opcionesPrecios.length > 0 ? (
                         <div className="space-y-2">
-                          {(membership.opcionesPrecios as any[]).map((opcion: any, idx: number) => (
+                          {(membership.opcionesPrecios as any[])
+                            .sort((a: any, b: any) => {
+                              // Ordenar: anual primero, mensual después
+                              if (a.periodicidad.toLowerCase() === 'anual') return -1;
+                              if (b.periodicidad.toLowerCase() === 'anual') return 1;
+                              return 0;
+                            })
+                            .map((opcion: any, idx: number) => (
                             <div key={idx} className="flex items-baseline justify-center gap-1">
                               <span className={`text-3xl font-bold ${colorScheme.accent}`}>
                                 ${opcion.costo}

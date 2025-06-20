@@ -17,7 +17,7 @@ export default function MainNavigation() {
   const navigationItems = [
     { href: "/", label: "Inicio", icon: Home },
     { href: "/directorio", label: "Directorio", icon: Building2 },
-    { href: "/planes", label: "Membresías", icon: CreditCard },
+    { href: "/planes", label: "Planes", icon: CreditCard },
   ];
 
   const isActive = (href: string) => {

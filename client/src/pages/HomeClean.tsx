@@ -880,7 +880,7 @@ export default function HomeClean() {
             Muestre sus soluciones a la audiencia correcta.
           </p>
 
-          <Link href="/login">
+          <Link href="/planes">
             <button style={{
               backgroundColor: "#bcce16",
               color: "#0f2161",
