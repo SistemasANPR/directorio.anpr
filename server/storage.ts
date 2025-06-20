@@ -2,6 +2,7 @@ import {
   users, 
   companies, 
   categories, 
+  tags,
   membershipTypes, 
   certificates,
   roles,
@@ -14,6 +15,7 @@ import {
   type User, 
   type Company, 
   type Category, 
+  type Tag,
   type MembershipType, 
   type Certificate,
   type Role,
@@ -22,6 +24,7 @@ import {
   type InsertUser,
   type InsertCompany,
   type InsertCategory,
+  type InsertTag,
   type InsertMembershipType,
   type InsertCertificate,
   type InsertRole,
@@ -267,12 +270,13 @@ export class DatabaseStorage implements IStorage {
     search?: string;
     categoryId?: number;
     membershipTypeId?: number;
+    tagIds?: number[];
     estado?: string;
     limit?: number;
     offset?: number;
     includeInactive?: boolean;
   } = {}): Promise<{ companies: CompanyWithDetails[]; total: number }> {
-    const { search, categoryId, membershipTypeId, estado, limit = 10, offset = 0, includeInactive = false } = options;
+    const { search, categoryId, membershipTypeId, tagIds, estado, limit = 10, offset = 0, includeInactive = false } = options;
     
     // Primero actualizar automáticamente las empresas con membresías vencidas
     const today = new Date().toISOString().split('T')[0];
@@ -299,6 +303,14 @@ export class DatabaseStorage implements IStorage {
 
     if (membershipTypeId) {
       whereConditions.push(eq(companies.membershipTypeId, membershipTypeId));
+    }
+
+    // Tag-based filtering
+    if (tagIds && tagIds.length > 0) {
+      const tagConditions = tagIds.map(tagId => 
+        sql`${companies.tagIds} ? ${tagId.toString()}`
+      );
+      whereConditions.push(or(...tagConditions));
     }
 
     if (estado) {
@@ -465,6 +477,57 @@ export class DatabaseStorage implements IStorage {
   async deleteCategory(id: number): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  // Tag Management Methods
+  async getTag(id: number): Promise<Tag | undefined> {
+    const [tag] = await db.select().from(tags).where(eq(tags.id, id));
+    return tag || undefined;
+  }
+
+  async getAllTags(): Promise<Tag[]> {
+    return await db.select().from(tags).where(eq(tags.isActive, true)).orderBy(asc(tags.nombre));
+  }
+
+  async createTag(insertTag: InsertTag): Promise<Tag> {
+    const [tag] = await db.insert(tags).values(insertTag).returning();
+    return tag;
+  }
+
+  async updateTag(id: number, tagData: Partial<InsertTag>): Promise<Tag | undefined> {
+    const [updatedTag] = await db
+      .update(tags)
+      .set({ ...tagData, updatedAt: new Date() })
+      .where(eq(tags.id, id))
+      .returning();
+    return updatedTag || undefined;
+  }
+
+  async deleteTag(id: number): Promise<boolean> {
+    // First check if tag is in use
+    const companiesUsingTag = await db.select({ id: companies.id })
+      .from(companies)
+      .where(sql`${companies.tagIds} ? ${id.toString()}`);
+    
+    if (companiesUsingTag.length > 0) {
+      throw new Error(`No se puede eliminar la etiqueta porque está siendo utilizada por ${companiesUsingTag.length} empresa(s)`);
+    }
+    
+    const [deletedTag] = await db.delete(tags).where(eq(tags.id, id)).returning();
+    return !!deletedTag;
+  }
+
+  async getTagsInUse(): Promise<number[]> {
+    const companiesWithTags = await db.select({ tagIds: companies.tagIds }).from(companies);
+    const allTagIds = new Set<number>();
+    
+    companiesWithTags.forEach(company => {
+      if (company.tagIds && Array.isArray(company.tagIds)) {
+        (company.tagIds as number[]).forEach(tagId => allTagIds.add(tagId));
+      }
+    });
+    
+    return Array.from(allTagIds);
   }
 
   // Membership Types

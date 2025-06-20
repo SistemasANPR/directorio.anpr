@@ -12,6 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
 import MyCompany from "@/pages/MyCompany";
 import Categories from "@/pages/Categories";
+import Tags from "@/pages/Tags";
 import MembershipsNew from "@/pages/MembershipsNew";
 import Users from "@/pages/Users";
 import Certificates from "@/pages/Certificates";
@@ -117,6 +118,14 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <Categories />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/etiquetas">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <Tags />
           </AppLayout>
         </ProtectedRoute>
       </Route>

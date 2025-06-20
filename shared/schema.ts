@@ -72,6 +72,7 @@ export const companies = pgTable("companies", {
   membershipTypeId: integer("membership_type_id").references(() => membershipTypes.id),
   sitioWeb: text("sitio_web"),
   certificateIds: jsonb("certificate_ids"), // Array of certificate IDs
+  tagIds: jsonb("tag_ids"), // Array of tag IDs for keywords/search enhancement
   // Campos de información de membresía
   membershipPeriodicidad: text("membership_periodicidad", { enum: ["mensual", "anual"] }),
   formaPago: text("forma_pago"), // "efectivo", "transferencia", "otro"

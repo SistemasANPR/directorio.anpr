@@ -5,6 +5,7 @@ import {
   BarChart3, 
   Users, 
   Tags, 
+  Tag,
   Crown, 
   FileText,
   Award,
