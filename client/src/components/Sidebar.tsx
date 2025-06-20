@@ -17,7 +17,8 @@ import {
   Shield,
   MessageSquare,
   Settings,
-  Globe
+  Globe,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -119,6 +120,11 @@ const navigationItems: NavigationItem[] = [
       {
         name: "Configuración PDF",
         href: "/configuracion-pdf",
+        requireAdmin: true,
+      },
+      {
+        name: "Configuración de Correos",
+        href: "/admin/email-config",
         requireAdmin: true,
       },
       {

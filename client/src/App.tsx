@@ -33,6 +33,7 @@ import RegisterAndPay from "@/pages/RegisterAndPay";
 import RegistroExitoso from "@/pages/RegistroExitoso";
 import SystemSettings from "@/pages/SystemSettings";
 import PdfSettings from "@/pages/PdfSettings";
+import EmailConfigurationPage from "@/pages/EmailConfigurationPage";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import MainNavigation from "@/components/MainNavigation";
@@ -196,6 +197,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <PdfSettings />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin/email-config">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <EmailConfigurationPage />
           </AppLayout>
         </ProtectedRoute>
       </Route>
