@@ -1,8 +1,8 @@
-# ANPR México - Plataforma de Directorio Empresarial
+# ANPR México - Directorio de Proveedores de Equipamiento Urbano
 
 ## Descripción del Proyecto
 
-ANPR México es una plataforma web integral de administración empresarial que ofrece un directorio inteligente de proveedores con funcionalidades avanzadas de geolocalización, gestión de membresías y perfiles corporativos detallados.
+El Directorio de Proveedores de Equipamiento Urbano es una plataforma web integral de administración empresarial que ofrece un directorio inteligente de proveedores con funcionalidades avanzadas de geolocalización, gestión de membresías y perfiles corporativos detallados.
 
 ### Características Principales
 

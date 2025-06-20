@@ -36,7 +36,7 @@ export default function MainNavigation() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                 <Building2 className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">DirectorioPro</span>
+              <span className="text-xl font-bold text-gray-900">Directorio de Proveedores de Equipamiento Urbano</span>
             </div>
           </Link>
 

@@ -1,4 +1,4 @@
-# ANPR México - Directorio Empresarial
+# ANPR México - Directorio de Proveedores de Equipamiento Urbano
 
 ## Overview
 

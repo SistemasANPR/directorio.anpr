@@ -1,8 +1,8 @@
-# Manual de Usuario - ANPR México
+# Manual de Usuario - Directorio de Proveedores de Equipamiento Urbano
 
 ## Introducción
 
-ANPR México es una plataforma integral que conecta empresas y facilita la búsqueda de proveedores especializados. Este manual cubre todas las funcionalidades disponibles para los diferentes tipos de usuarios.
+El Directorio de Proveedores de Equipamiento Urbano es una plataforma integral que conecta empresas y facilita la búsqueda de proveedores especializados. Este manual cubre todas las funcionalidades disponibles para los diferentes tipos de usuarios.
 
 ## Tipos de Usuario
 

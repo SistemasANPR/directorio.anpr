@@ -266,7 +266,7 @@ export default function Home() {
               textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
             }}
           >
-            Directorio de Proveedores
+            Directorio de Proveedores de Equipamiento Urbano
           </h1>
           <p
             className="text-sm md:text-lg lg:text-xl mb-8 opacity-95 max-w-4xl mx-auto px-4"
