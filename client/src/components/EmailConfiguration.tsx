@@ -206,6 +206,11 @@ export default function EmailConfiguration() {
       subject: "",
       htmlContent: "",
       variables: [],
+      notificationTiming: {
+        enabled: false,
+        value: 7,
+        unit: "days"
+      }
     },
   });
 

@@ -346,6 +346,7 @@ export const emailTemplates = pgTable("email_templates", {
   subject: text("subject").notNull(),
   htmlContent: text("html_content").notNull(),
   variables: jsonb("variables"), // Array of variable names
+  notificationTiming: jsonb("notification_timing"), // {enabled: boolean, value: number, unit: 'days'|'weeks'|'months'}
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
