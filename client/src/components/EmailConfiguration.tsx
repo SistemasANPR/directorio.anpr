@@ -48,7 +48,8 @@ import {
   User,
   Key,
   Edit3,
-  Save
+  Save,
+  Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -74,6 +75,11 @@ const emailTemplateSchema = z.object({
   subject: z.string().min(1, "Asunto requerido"),
   htmlContent: z.string().min(1, "Contenido requerido"),
   variables: z.array(z.string()).optional(),
+  notificationTiming: z.object({
+    enabled: z.boolean().default(false),
+    value: z.number().min(1, "Valor debe ser mayor a 0").max(365, "Valor máximo 365"),
+    unit: z.enum(["days", "weeks", "months"])
+  }).optional()
 });
 
 type EmailTemplateData = z.infer<typeof emailTemplateSchema>;
@@ -128,25 +134,29 @@ const emailTemplateTypes = [
     id: "welcome", 
     name: "Bienvenida", 
     description: "Cuando un representante es asignado o compra un plan",
-    variables: ["{{nombre_usuario}}", "{{nombre_empresa}}", "{{plan_nombre}}", "{{fecha_inicio}}"]
+    variables: ["{{nombre_usuario}}", "{{nombre_empresa}}", "{{plan_nombre}}", "{{fecha_inicio}}"],
+    supportsScheduling: false
   },
   { 
     id: "renewal", 
     name: "Renovación", 
     description: "Cuando el sistema renueva el plan automáticamente",
-    variables: ["{{nombre_usuario}}", "{{nombre_empresa}}", "{{plan_nombre}}", "{{fecha_vencimiento}}"]
+    variables: ["{{nombre_usuario}}", "{{nombre_empresa}}", "{{plan_nombre}}", "{{fecha_vencimiento}}"],
+    supportsScheduling: true
   },
   { 
     id: "cancellation", 
     name: "Cancelación", 
     description: "Cuando se cancela un plan de membresía",
-    variables: ["{{nombre_usuario}}", "{{nombre_empresa}}", "{{plan_nombre}}", "{{fecha_cancelacion}}"]
+    variables: ["{{nombre_usuario}}", "{{nombre_empresa}}", "{{plan_nombre}}", "{{fecha_cancelacion}}"],
+    supportsScheduling: false
   },
   { 
     id: "notification", 
-    name: "Notificación", 
-    description: "Notificaciones generales del sistema",
-    variables: ["{{nombre_usuario}}", "{{mensaje}}", "{{fecha}}", "{{enlace_accion}}"]
+    name: "Notificación de Vencimiento", 
+    description: "Recordatorio antes del vencimiento de membresía",
+    variables: ["{{nombre_usuario}}", "{{nombre_empresa}}", "{{plan_nombre}}", "{{fecha_vencimiento}}", "{{dias_restantes}}"],
+    supportsScheduling: true
   }
 ];
 
@@ -714,6 +724,11 @@ export default function EmailConfiguration() {
                                 subject: existingTemplate.subject,
                                 htmlContent: existingTemplate.htmlContent,
                                 variables: templateType.variables,
+                                notificationTiming: existingTemplate.notificationTiming || {
+                                  enabled: false,
+                                  value: 7,
+                                  unit: "days"
+                                }
                               });
                             } else {
                               templateForm.reset({
@@ -721,6 +736,11 @@ export default function EmailConfiguration() {
                                 subject: "",
                                 htmlContent: "",
                                 variables: templateType.variables,
+                                notificationTiming: {
+                                  enabled: false,
+                                  value: 7,
+                                  unit: "days"
+                                }
                               });
                             }
                           }
@@ -800,6 +820,101 @@ Equipo del Directorio ANPR`}
                               </FormItem>
                             )}
                           />
+
+                          {/* Notification Timing Configuration - Only for supported templates */}
+                          {templateType.supportsScheduling && (
+                            <div className="space-y-4 p-4 border rounded-lg bg-blue-50">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-blue-600" />
+                                <h4 className="font-medium text-blue-900">Configuración de Envío</h4>
+                              </div>
+                              
+                              <FormField
+                                control={templateForm.control}
+                                name="notificationTiming.enabled"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                                    <div className="space-y-0.5">
+                                      <FormLabel className="text-base">
+                                        Programar envío automático
+                                      </FormLabel>
+                                      <FormDescription>
+                                        Enviar esta notificación antes del vencimiento de la membresía
+                                      </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                      <input
+                                        type="checkbox"
+                                        checked={field.value}
+                                        onChange={field.onChange}
+                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+
+                              {templateForm.watch("notificationTiming.enabled") && (
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                    control={templateForm.control}
+                                    name="notificationTiming.value"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Cantidad</FormLabel>
+                                        <FormControl>
+                                          <Input 
+                                            type="number" 
+                                            min="1" 
+                                            max="365" 
+                                            placeholder="7" 
+                                            {...field}
+                                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={templateForm.control}
+                                    name="notificationTiming.unit"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Período</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                          <FormControl>
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            <SelectItem value="days">Días</SelectItem>
+                                            <SelectItem value="weeks">Semanas</SelectItem>
+                                            <SelectItem value="months">Meses</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              )}
+
+                              {templateForm.watch("notificationTiming.enabled") && (
+                                <Alert>
+                                  <CheckCircle className="h-4 w-4" />
+                                  <AlertDescription>
+                                    Esta notificación se enviará {templateForm.watch("notificationTiming.value")} {
+                                      templateForm.watch("notificationTiming.unit") === "days" ? "días" :
+                                      templateForm.watch("notificationTiming.unit") === "weeks" ? "semanas" : "meses"
+                                    } antes del vencimiento de la membresía.
+                                  </AlertDescription>
+                                </Alert>
+                              )}
+                            </div>
+                          )}
 
                           {/* Variables Help */}
                           <Alert>
