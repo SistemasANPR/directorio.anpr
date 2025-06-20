@@ -32,6 +32,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertCompanySchema, Category, MembershipType, Certificate } from "@shared/schema";
+import TagSelector from "@/components/TagSelector";
 import { paisesAmericaLatina, estadosMexico, ciudadesPorEstado } from "@/lib/locationData";
 import { 
   Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
@@ -53,6 +54,7 @@ const companySchema = insertCompanySchema.extend({
   ciudadesPresencia: z.array(z.string()).optional(),
   ubicacionPrincipal: z.string().optional().nullable(),
   categoriesIds: z.array(z.number()).min(1, "Selecciona al menos una categoría"),
+  tagIds: z.array(z.number()).optional(),
   certificateIds: z.array(z.number()).optional(),
   redesSociales: z.array(z.object({
     plataforma: z.string(),
@@ -143,6 +145,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       estadosPresencia: [],
       ciudadesPresencia: [],
       categoriesIds: [],
+      tagIds: [],
       certificateIds: [],
       redesSociales: [],
       membershipTypeId: undefined,
@@ -170,6 +173,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         estadosPresencia: [],
         ciudadesPresencia: [],
         categoriesIds: [],
+        tagIds: [],
         certificateIds: [],
         redesSociales: [],
         membershipTypeId: undefined,

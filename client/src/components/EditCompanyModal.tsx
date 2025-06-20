@@ -30,6 +30,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertCompanySchema, CompanyWithDetails } from "@shared/schema";
+import TagSelector from "@/components/TagSelector";
 import { Building } from "lucide-react";
 
 interface EditCompanyModalProps {
@@ -45,6 +46,7 @@ const formSchema = insertCompanySchema.pick({
   sitioWeb: true,
   direccionFisica: true,
   descripcionEmpresa: true,
+  tagIds: true,
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -61,6 +63,7 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
       sitioWeb: "",
       direccionFisica: "",
       descripcionEmpresa: "",
+      tagIds: [],
     },
   });
 
@@ -73,6 +76,7 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
         sitioWeb: company.sitioWeb || "",
         direccionFisica: company.direccionFisica || "",
         descripcionEmpresa: company.descripcionEmpresa || "",
+        tagIds: company.tags?.map(tag => tag.id) || [],
       });
     }
   }, [company, open, form]);
@@ -223,6 +227,24 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
                       value={field.value || ""}
                       placeholder="Descripción detallada de la empresa"
                       className="min-h-[120px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Tags Section */}
+            <FormField
+              control={form.control}
+              name="tagIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Etiquetas</FormLabel>
+                  <FormControl>
+                    <TagSelector
+                      selectedTagIds={field.value || []}
+                      onTagsChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
