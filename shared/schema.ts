@@ -324,6 +324,45 @@ export const insertPdfSettingsSchema = createInsertSchema(pdfSettings).omit({
   updatedAt: true,
 });
 
+// Email configuration and templates tables
+export const emailConfiguration = pgTable("email_configuration", {
+  id: serial("id").primaryKey(),
+  provider: text("provider").notNull(),
+  fromEmail: text("from_email").notNull(),
+  fromName: text("from_name").notNull(),
+  smtpHost: text("smtp_host").notNull(),
+  smtpPort: integer("smtp_port").notNull(),
+  encryption: text("encryption").notNull(),
+  username: text("username").notNull(),
+  password: text("password").notNull(), // Should be encrypted in production
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const emailTemplates = pgTable("email_templates", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull().unique(), // welcome, renewal, cancellation, notification
+  subject: text("subject").notNull(),
+  htmlContent: text("html_content").notNull(),
+  variables: jsonb("variables"), // Array of variable names
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertEmailConfigurationSchema = createInsertSchema(emailConfiguration).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -362,6 +401,12 @@ export type InsertIntegrationSettings = z.infer<typeof insertIntegrationSettings
 
 export type PdfSettings = typeof pdfSettings.$inferSelect;
 export type InsertPdfSettings = z.infer<typeof insertPdfSettingsSchema>;
+
+export type EmailConfiguration = typeof emailConfiguration.$inferSelect;
+export type InsertEmailConfiguration = z.infer<typeof insertEmailConfigurationSchema>;
+
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

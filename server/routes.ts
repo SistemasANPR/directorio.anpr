@@ -7,7 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema } from "@shared/schema";
+import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema } from "@shared/schema";
 import { z } from "zod";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -1739,6 +1739,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error uploading system image:", error);
       res.status(500).json({ error: error.message || "Error al subir la imagen" });
+    }
+  });
+
+  // Email Configuration Routes
+  app.get("/api/email-config", async (req, res) => {
+    try {
+      const config = await storage.getEmailConfiguration();
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching email config:", error);
+      res.status(500).json({ error: "Failed to fetch email configuration" });
+    }
+  });
+
+  app.post("/api/email-config", async (req, res) => {
+    try {
+      const validatedData = insertEmailConfigurationSchema.parse(req.body);
+      const config = await storage.saveEmailConfiguration(validatedData);
+      res.json(config);
+    } catch (error) {
+      console.error("Error saving email config:", error);
+      res.status(500).json({ error: "Failed to save email configuration" });
+    }
+  });
+
+  app.post("/api/email-config/test", async (req, res) => {
+    try {
+      const validatedData = insertEmailConfigurationSchema.parse(req.body);
+      const result = await storage.testEmailConfiguration(validatedData);
+      res.json(result);
+    } catch (error) {
+      console.error("Error testing email config:", error);
+      res.status(500).json({ error: "Failed to test email configuration" });
+    }
+  });
+
+  // Email Templates Routes
+  app.get("/api/email-templates", async (req, res) => {
+    try {
+      const templates = await storage.getEmailTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching email templates:", error);
+      res.status(500).json({ error: "Failed to fetch email templates" });
+    }
+  });
+
+  app.post("/api/email-templates", async (req, res) => {
+    try {
+      const validatedData = insertEmailTemplateSchema.parse(req.body);
+      const template = await storage.saveEmailTemplate(validatedData);
+      res.json(template);
+    } catch (error) {
+      console.error("Error saving email template:", error);
+      res.status(500).json({ error: "Failed to save email template" });
+    }
+  });
+
+  app.get("/api/email-templates/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      const template = await storage.getEmailTemplateByType(type);
+      res.json(template);
+    } catch (error) {
+      console.error("Error fetching email template:", error);
+      res.status(500).json({ error: "Failed to fetch email template" });
     }
   });
 
