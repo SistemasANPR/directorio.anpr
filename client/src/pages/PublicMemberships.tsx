@@ -334,7 +334,7 @@ export default function PublicMemberships() {
 
 
       {/* Planes de Membresía */}
-      <div id="planes-section" className="bg-gray-50 py-16">
+      <div id="membership-plans" className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 text-center mb-12">
           <h2 className="hero-title text-3xl text-gray-700 mb-4">
             Elige tu plan
@@ -606,9 +606,14 @@ export default function PublicMemberships() {
                 e.currentTarget.style.backgroundColor = '#bcce16';
               }}
               onClick={() => {
-                const planesSection = document.getElementById('planes-section');
-                if (planesSection) {
-                  planesSection.scrollIntoView({ behavior: 'smooth' });
+                const membershipPlansSection = document.getElementById('membership-plans');
+                if (membershipPlansSection) {
+                  membershipPlansSection.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  const planesSection = document.getElementById('planes-section');
+                  if (planesSection) {
+                    planesSection.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }
               }}
             >
@@ -617,15 +622,21 @@ export default function PublicMemberships() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-white text-white font-semibold px-8 py-4 text-lg transition-colors"
-              style={{ borderColor: '#ffffff' }}
+              className="text-white font-semibold px-8 py-4 text-lg transition-colors rounded-lg"
+              style={{ 
+                borderColor: '#ffffff',
+                borderWidth: '2px',
+                backgroundColor: 'transparent'
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#ffffff';
                 e.currentTarget.style.color = '#0f2161';
+                e.currentTarget.style.borderColor = '#ffffff';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
                 e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.borderColor = '#ffffff';
               }}
               onClick={() => {
                 window.location.href = 'mailto:vinculacion@anpr.org.mx';

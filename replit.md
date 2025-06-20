@@ -141,6 +141,9 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 20, 2025: NAVIGATION AND UX IMPROVEMENTS COMPLETED - Updated main navigation menu from "Membresías" to "Planes", redirected "Regístrate como empresa" buttons to /planes, implemented smooth scroll to plans section from hero and registration buttons, reordered pricing display to show annual prices first then monthly
+- June 20, 2025: PRICING DISPLAY ENHANCEMENT - Modified plan cards in PublicMemberships.tsx to prioritize annual pricing over monthly with proper sorting functionality
+- June 20, 2025: SCROLL NAVIGATION IMPLEMENTATION - Added smooth scroll behavior to hero "ÚNETE AHORA" button and "Registrarse Ahora" button targeting membership-plans section with fallback navigation
 - June 20, 2025: PLATFORM BRANDING FINALIZATION COMPLETED - Fixed final hero title in PublicMemberships.tsx to display complete "Directorio de Proveedores de Equipamiento Urbano" removing outdated "LATAM" reference
 - June 20, 2025: COMPREHENSIVE PLATFORM BRANDING UPDATE COMPLETED - Successfully updated all platform titles from "Directorio" to "Directorio de Proveedores de Equipamiento Urbano" across entire application including navigation components, public pages, documentation, and user interfaces
 - June 20, 2025: TITLE CONSISTENCY ACHIEVED - Updated main navigation (MainNavigation.tsx), sidebar components (Sidebar.tsx, RepresentativeSidebar.tsx), public pages (Home.tsx, HomeClean.tsx, Directory.tsx, PublicMemberships.tsx), and documentation files (README.md, replit.md, docs/user-manual.md)
