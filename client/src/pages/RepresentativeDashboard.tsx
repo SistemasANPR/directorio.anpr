@@ -203,6 +203,115 @@ export default function RepresentativeDashboard() {
   const { companies, payments, currentMembership, stats } = dashboardData;
   const primaryCompany = companies[0];
 
+  // Form for company updates
+  const form = useForm<CompanyUpdateData>({
+    resolver: zodResolver(companyUpdateSchema),
+    defaultValues: {
+      nombreEmpresa: "",
+      email1: "",
+      email2: "",
+      telefono1: "",
+      telefono2: "",
+      sitioWeb: "",
+      direccionFisica: "",
+      descripcionEmpresa: "",
+      catalogoDigitalUrl: "",
+      redesSociales: {
+        facebook: "",
+        twitter: "",
+        instagram: "",
+        linkedin: "",
+        youtube: "",
+        whatsapp: "",
+      },
+    },
+  });
+
+  // Reset form when company data loads
+  useEffect(() => {
+    if (primaryCompany) {
+      form.reset({
+        nombreEmpresa: primaryCompany.nombreEmpresa || "",
+        email1: (primaryCompany as any).email1 || "",
+        email2: (primaryCompany as any).email2 || "",
+        telefono1: (primaryCompany as any).telefono1 || "",
+        telefono2: (primaryCompany as any).telefono2 || "",
+        sitioWeb: (primaryCompany as any).sitioWeb || "",
+        direccionFisica: (primaryCompany as any).direccionFisica || "",
+        descripcionEmpresa: (primaryCompany as any).descripcionEmpresa || "",
+        catalogoDigitalUrl: (primaryCompany as any).catalogoDigitalUrl || "",
+        redesSociales: (primaryCompany as any).redesSociales || {
+          facebook: "",
+          twitter: "",
+          instagram: "",
+          linkedin: "",
+          youtube: "",
+          whatsapp: "",
+        },
+      });
+    }
+  }, [primaryCompany, form]);
+
+  // Update company mutation
+  const updateCompanyMutation = useMutation({
+    mutationFn: async (data: CompanyUpdateData) => {
+      if (!primaryCompany) throw new Error("No company found");
+      const response = await apiRequest("PUT", `/api/companies/${primaryCompany.id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Empresa actualizada",
+        description: "La información de tu empresa se ha actualizado correctamente",
+      });
+      setIsEditingCompany(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/representative/dashboard"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Error al actualizar la empresa",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Upload images mutation
+  const uploadImagesMutation = useMutation({
+    mutationFn: async (files: FileList) => {
+      if (!primaryCompany) throw new Error("No company found");
+      const formData = new FormData();
+      Array.from(files).forEach(file => {
+        formData.append('galeriaImagenes', file);
+      });
+
+      const response = await fetch(`/api/companies/${primaryCompany.id}/images`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!response.ok) throw new Error("Error al subir imágenes");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Imágenes subidas",
+        description: "Las imágenes se han subido correctamente",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/representative/dashboard"] });
+      setUploadingImages(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Error al subir imágenes",
+        variant: "destructive",
+      });
+      setUploadingImages(false);
+    },
+  });
+
   const cancelMembershipMutation = useMutation({
     mutationFn: async () => {
       if (!primaryCompany) throw new Error("No company found");
@@ -245,6 +354,18 @@ export default function RepresentativeDashboard() {
 
   const handleChangePlan = () => {
     window.location.href = '/register-and-pay?change=true';
+  };
+
+  const onSubmit = (data: CompanyUpdateData) => {
+    updateCompanyMutation.mutate(data);
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      setUploadingImages(true);
+      uploadImagesMutation.mutate(files);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -578,99 +699,439 @@ export default function RepresentativeDashboard() {
 
         {/* Company Management Tab */}
         <TabsContent value="company">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Gestión de Mi Empresa
-              </CardTitle>
-              <p className="text-gray-600">Administra la información completa de tu empresa</p>
-            </CardHeader>
-            <CardContent>
-              {primaryCompany ? (
-                <div className="space-y-6">
-                  {/* Company Info Display */}
+          <div className="space-y-6">
+            {/* Company Overview Card */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="h-6 w-6" />
+                    {primaryCompany ? primaryCompany.nombreEmpresa : "Mi Empresa"}
+                  </CardTitle>
+                  <p className="text-gray-600 mt-1">Información general de tu empresa</p>
+                </div>
+                {primaryCompany && (
+                  <Button
+                    onClick={() => setIsEditingCompany(!isEditingCompany)}
+                    variant={isEditingCompany ? "outline" : "default"}
+                    className={isEditingCompany ? "" : "bg-[#bcce16] hover:bg-[#a8b814] text-black"}
+                  >
+                    {isEditingCompany ? (
+                      <>
+                        <X className="h-4 w-4 mr-2" />
+                        Cancelar
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </>
+                    )}
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {!primaryCompany ? (
+                  <div className="text-center py-12">
+                    <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
+                    <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
+                    <Button 
+                      onClick={handleChangePlan}
+                      className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                    >
+                      Registrar empresa
+                    </Button>
+                  </div>
+                ) : !isEditingCompany ? (
+                  /* View Mode */
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Nombre de la Empresa</label>
-                        <p className="text-lg font-semibold">{primaryCompany.nombreEmpresa}</p>
+                        <Label className="text-sm font-medium text-gray-500">Información de Contacto</Label>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-gray-400" />
+                            <span>{(primaryCompany as any).email1 || 'No configurado'}</span>
+                          </div>
+                          {(primaryCompany as any).email2 && (
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-gray-400" />
+                              <span>{(primaryCompany as any).email2}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-gray-400" />
+                            <span>{(primaryCompany as any).telefono1 || 'No configurado'}</span>
+                          </div>
+                          {(primaryCompany as any).telefono2 && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-gray-400" />
+                              <span>{(primaryCompany as any).telefono2}</span>
+                            </div>
+                          )}
+                          {(primaryCompany as any).sitioWeb && (
+                            <div className="flex items-center gap-2">
+                              <Globe className="h-4 w-4 text-gray-400" />
+                              <a href={(primaryCompany as any).sitioWeb} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                {(primaryCompany as any).sitioWeb}
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
+
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Email Principal</label>
-                        <p>{primaryCompany.email1 || 'No configurado'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Teléfono Principal</label>
-                        <p>{primaryCompany.telefono1 || 'No configurado'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Sitio Web</label>
-                        <p>{primaryCompany.sitioWeb || 'No configurado'}</p>
+                        <Label className="text-sm font-medium text-gray-500">Estado y Membresía</Label>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={primaryCompany.estado === 'activo' ? 'default' : 'secondary'}>
+                              {primaryCompany.estado === 'activo' ? 'Activa' : 'Inactiva'}
+                            </Badge>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Plan: </span>
+                            <span className="font-medium text-[#bcce16]">{currentMembership?.nombrePlan}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Periodicidad: </span>
+                            <span>{primaryCompany.membershipPeriodicidad}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Vencimiento: </span>
+                            <span>{format(new Date(primaryCompany.fechaFinMembresia), 'dd/MM/yyyy', { locale: es })}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Estado</label>
-                        <Badge variant={primaryCompany.estado === 'activo' ? 'default' : 'secondary'}>
-                          {primaryCompany.estado === 'activo' ? 'Activa' : 'Inactiva'}
-                        </Badge>
+                        <Label className="text-sm font-medium text-gray-500">Descripción de la Empresa</Label>
+                        <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                          <p className="text-gray-700">{(primaryCompany as any).descripcionEmpresa || 'No configurada'}</p>
+                        </div>
                       </div>
+
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Plan de Membresía</label>
-                        <p className="font-medium text-[#bcce16]">{currentMembership?.nombrePlan}</p>
+                        <Label className="text-sm font-medium text-gray-500">Dirección Física</Label>
+                        <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
+                            <p className="text-gray-700">{(primaryCompany as any).direccionFisica || 'No configurada'}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Periodicidad</label>
-                        <p>{primaryCompany.membershipPeriodicidad}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Vencimiento</label>
-                        <p>{format(new Date(primaryCompany.fechaFinMembresia), 'dd/MM/yyyy', { locale: es })}</p>
-                      </div>
+
+                      {(primaryCompany as any).catalogoDigitalUrl && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Catálogo Digital</Label>
+                          <div className="mt-2">
+                            <a 
+                              href={(primaryCompany as any).catalogoDigitalUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center gap-2 text-blue-600 hover:underline"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Ver catálogo
+                            </a>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+                ) : (
+                  /* Edit Mode */
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="nombreEmpresa"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nombre de la Empresa</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                  {/* Description */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Descripción de la Empresa</label>
-                    <p className="mt-1 text-gray-700">{primaryCompany.descripcionEmpresa || 'No configurada'}</p>
+                          <FormField
+                            control={form.control}
+                            name="email1"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Principal</FormLabel>
+                                <FormControl>
+                                  <Input type="email" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="email2"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Secundario (Opcional)</FormLabel>
+                                <FormControl>
+                                  <Input type="email" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="telefono1"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Teléfono Principal</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="telefono2"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Teléfono Secundario (Opcional)</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="sitioWeb"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Sitio Web (Opcional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://www.ejemplo.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="direccionFisica"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Dirección Física</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} rows={3} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="descripcionEmpresa"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Descripción de la Empresa</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} rows={4} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="catalogoDigitalUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Catálogo Digital (Opcional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://www.ejemplo.com/catalogo" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* Social Media Section */}
+                          <FormField
+                            control={form.control}
+                            name="redesSociales"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Redes Sociales</FormLabel>
+                                <FormControl>
+                                  <DynamicSocialMedia
+                                    value={field.value || {}}
+                                    onChange={field.onChange}
+                                    disabled={updateCompanyMutation.isPending}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-4 border-t">
+                        <Button type="button" variant="outline" onClick={() => setIsEditingCompany(false)}>
+                          Cancelar
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          disabled={updateCompanyMutation.isPending}
+                          className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                        >
+                          {updateCompanyMutation.isPending ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2" />
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-2" />
+                              Guardar Cambios
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Image Gallery Management */}
+            {primaryCompany && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    Galería de Productos
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">Gestiona las imágenes de tus productos y servicios</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <label htmlFor="image-upload">
+                        <Button 
+                          asChild
+                          variant="outline"
+                          disabled={uploadingImages}
+                        >
+                          <span>
+                            {uploadingImages ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2" />
+                                Subiendo...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 mr-2" />
+                                Subir Imágenes
+                              </>
+                            )}
+                          </span>
+                        </Button>
+                      </label>
+                      <p className="text-sm text-gray-500">
+                        Formatos admitidos: JPG, PNG, GIF (máximo 5MB por imagen)
+                      </p>
+                    </div>
+
+                    {/* Gallery display would go here */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {(primaryCompany as any).galeriaProductosUrls?.map((url: string, index: number) => (
+                        <div key={index} className="relative group">
+                          <img 
+                            src={url} 
+                            alt={`Producto ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                // TODO: Implement image deletion
+                                console.log('Delete image', index);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {!(primaryCompany as any).galeriaProductosUrls?.length && (
+                      <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                        <Camera className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">No hay imágenes en la galería</p>
+                        <p className="text-sm text-gray-400">Sube imágenes para mostrar tus productos</p>
+                      </div>
+                    )}
                   </div>
+                </CardContent>
+              </Card>
+            )}
 
-                  {/* Address */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Dirección Física</label>
-                    <p className="mt-1 text-gray-700">{primaryCompany.direccionFisica || 'No configurada'}</p>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 pt-4 border-t">
-                    <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar Información
-                    </Button>
+            {/* Additional Actions */}
+            {primaryCompany && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Acciones Adicionales
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-3">
                     <Button variant="outline">
                       <Eye className="h-4 w-4 mr-2" />
                       Ver en Directorio
                     </Button>
+                    <Button variant="outline">
+                      <Tag className="h-4 w-4 mr-2" />
+                      Gestionar Categorías
+                    </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
-                  <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
-                  <Button 
-                    onClick={handleChangePlan}
-                    className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
-                  >
-                    Registrar empresa
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
 
         {/* Projects Tab */}
