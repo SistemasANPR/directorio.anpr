@@ -619,14 +619,31 @@ export default function PublicMemberships() {
             >
               Registrarse Ahora
             </Button>
-            <button
-              className="px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200 border-2 border-white text-white bg-transparent hover:bg-white hover:text-blue-800"
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="text-white font-semibold px-8 py-4 text-lg transition-colors rounded-lg"
+              style={{ 
+                borderColor: '#ffffff',
+                borderWidth: '2px',
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#ffffff';
+                e.currentTarget.style.color = '#1e3a8a';
+                e.currentTarget.style.borderColor = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.borderColor = '#ffffff';
+              }}
               onClick={() => {
                 window.location.href = 'mailto:vinculacion@anpr.org.mx';
               }}
             >
               Solicitar Información
-            </button>
+            </Button>
           </div>
           
           <div className="border-t pt-8 mt-8" style={{ borderColor: '#ffffff40' }}>

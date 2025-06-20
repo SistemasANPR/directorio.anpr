@@ -1,10 +1,31 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -44,14 +65,37 @@ import {
   Phone,
   Mail,
   MapPin,
-  Eye
+  Eye,
+  Save,
+  X,
+  Upload,
+  Globe,
+  Camera,
+  Tag
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CompanyManagement from "@/components/CompanyManagement";
+import DynamicSocialMedia from "@/components/DynamicSocialMedia";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Swal from 'sweetalert2';
+
+// Company update schema
+const companyUpdateSchema = z.object({
+  nombreEmpresa: z.string().min(1, "El nombre de la empresa es requerido"),
+  email1: z.string().email("Email inválido"),
+  email2: z.string().email("Email inválido").optional().or(z.literal("")),
+  telefono1: z.string().min(1, "El teléfono principal es requerido"),
+  telefono2: z.string().optional(),
+  sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
+  direccionFisica: z.string().min(1, "La dirección es requerida"),
+  descripcionEmpresa: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
+  catalogoDigitalUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  redesSociales: z.record(z.string()).optional(),
+});
+
+type CompanyUpdateData = z.infer<typeof companyUpdateSchema>;
 
 interface DashboardData {
   companies: Array<{
@@ -91,6 +135,8 @@ interface DashboardData {
 export default function RepresentativeDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const { toast } = useToast();
 
   // Handle URL parameters for direct tab navigation
@@ -109,6 +155,30 @@ export default function RepresentativeDashboard() {
 
   const { data: availablePlans = [] } = useQuery({
     queryKey: ["/api/membership-types"],
+  });
+
+  // Fetch categories for selection
+  const { data: categories = [] } = useQuery({
+    queryKey: ["/api/categories"],
+    queryFn: async () => {
+      const response = await fetch("/api/categories", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch categories");
+      return response.json();
+    },
+  });
+
+  // Fetch certificates for selection
+  const { data: certificates = [] } = useQuery({
+    queryKey: ["/api/certificates"],
+    queryFn: async () => {
+      const response = await fetch("/api/certificates", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch certificates");
+      return response.json();
+    },
   });
 
   if (isLoading) {
