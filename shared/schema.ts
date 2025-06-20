@@ -25,6 +25,16 @@ export const categories = pgTable("categories", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  nombre: text("nombre").notNull().unique(),
+  descripcion: text("descripcion"),
+  color: text("color").default("#3B82F6"), // Hex color for visual representation
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const membershipTypes = pgTable("membership_types", {
   id: serial("id").primaryKey(),
   nombrePlan: text("nombre_plan").notNull(),
@@ -193,6 +203,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
 });
 
 export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTagSchema = createInsertSchema(tags).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -371,6 +387,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = z.infer<typeof insertTagSchema>;
+
 export type MembershipType = typeof membershipTypes.$inferSelect;
 export type InsertMembershipType = z.infer<typeof insertMembershipTypeSchema>;
 
@@ -467,6 +486,7 @@ export type CompanyWithDetails = Company & {
   user?: User;
   certificates?: Certificate[];
   projects?: ProjectWithDetails[];
+  tags?: Tag[];
 };
 
 export type ProjectWithDetails = Project & {

@@ -57,6 +57,7 @@ export interface IStorage {
     search?: string;
     categoryId?: number;
     membershipTypeId?: number;
+    tagIds?: number[];
     estado?: string;
     limit?: number;
     offset?: number;
@@ -73,6 +74,14 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: number): Promise<boolean>;
+
+  // Tags
+  getTag(id: number): Promise<Tag | undefined>;
+  getAllTags(): Promise<Tag[]>;
+  createTag(tag: InsertTag): Promise<Tag>;
+  updateTag(id: number, tag: Partial<InsertTag>): Promise<Tag | undefined>;
+  deleteTag(id: number): Promise<boolean>;
+  getTagsInUse(): Promise<number[]>;
 
   // Membership Types
   getMembershipType(id: number): Promise<MembershipType | undefined>;
