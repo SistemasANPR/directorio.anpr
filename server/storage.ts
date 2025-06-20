@@ -42,7 +42,7 @@ import {
   type ProjectWithDetails
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, sql, and, or } from "drizzle-orm";
+import { eq, like, sql, and, or, asc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -491,12 +491,22 @@ export class DatabaseStorage implements IStorage {
 
   // Tag Management Methods
   async getTag(id: number): Promise<Tag | undefined> {
-    const [tag] = await db.select().from(tags).where(eq(tags.id, id));
-    return tag || undefined;
+    try {
+      const [tag] = await db.select().from(tags).where(eq(tags.id, id));
+      return tag || undefined;
+    } catch (error) {
+      console.error("Error fetching tag:", error);
+      return undefined;
+    }
   }
 
   async getAllTags(): Promise<Tag[]> {
-    return await db.select().from(tags).where(eq(tags.isActive, true)).orderBy(asc(tags.nombre));
+    try {
+      return await db.select().from(tags).where(eq(tags.isActive, true)).orderBy(tags.nombre);
+    } catch (error) {
+      console.error("Error fetching all tags:", error);
+      return [];
+    }
   }
 
   async createTag(insertTag: InsertTag): Promise<Tag> {
