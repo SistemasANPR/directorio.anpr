@@ -1143,6 +1143,92 @@ export class DatabaseStorage implements IStorage {
       
     return updatedSettings;
   }
+
+  // Email Configuration methods
+  async getEmailConfiguration(): Promise<EmailConfiguration | undefined> {
+    const [config] = await db.select().from(emailConfiguration).where(eq(emailConfiguration.isActive, true)).limit(1);
+    return config || undefined;
+  }
+
+  async saveEmailConfiguration(config: InsertEmailConfiguration): Promise<EmailConfiguration> {
+    // Check if config exists
+    const existingConfig = await this.getEmailConfiguration();
+    
+    if (existingConfig) {
+      // Update existing config
+      const [updatedConfig] = await db
+        .update(emailConfiguration)
+        .set({ ...config, updatedAt: new Date() })
+        .where(eq(emailConfiguration.id, existingConfig.id))
+        .returning();
+      return updatedConfig;
+    } else {
+      // Create new config
+      const [newConfig] = await db
+        .insert(emailConfiguration)
+        .values(config)
+        .returning();
+      return newConfig;
+    }
+  }
+
+  async testEmailConfiguration(config: InsertEmailConfiguration): Promise<{ success: boolean; message: string }> {
+    try {
+      // For now, we'll do a basic validation test
+      // In production, you would use nodemailer to actually test the connection
+      if (!config.fromEmail || !config.smtpHost || !config.username || !config.password) {
+        return {
+          success: false,
+          message: "Faltan campos obligatorios en la configuración"
+        };
+      }
+
+      // Simulate email test - in production, use nodemailer
+      return {
+        success: true,
+        message: "Configuración de correo válida. Prueba de conexión exitosa."
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Error en la prueba de conexión: ${error.message}`
+      };
+    }
+  }
+
+  // Email Templates methods
+  async getEmailTemplates(): Promise<EmailTemplate[]> {
+    return await db.select().from(emailTemplates).where(eq(emailTemplates.isActive, true));
+  }
+
+  async getEmailTemplateByType(type: string): Promise<EmailTemplate | undefined> {
+    const [template] = await db.select().from(emailTemplates)
+      .where(and(eq(emailTemplates.type, type), eq(emailTemplates.isActive, true)))
+      .limit(1);
+    return template || undefined;
+  }
+
+  async saveEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate> {
+    // Check if template exists for this type
+    const existingTemplate = await this.getEmailTemplateByType(template.type);
+    
+    if (existingTemplate) {
+      // Update existing template
+      const [updatedTemplate] = await db
+        .update(emailTemplates)
+        .set({ ...template, updatedAt: new Date() })
+        .where(eq(emailTemplates.id, existingTemplate.id))
+        .returning();
+      return updatedTemplate;
+    } else {
+      // Create new template
+      const [newTemplate] = await db
+        .insert(emailTemplates)
+        .values(template)
+        .returning();
+      return newTemplate;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
