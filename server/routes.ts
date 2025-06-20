@@ -7,7 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema } from "@shared/schema";
+import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema } from "@shared/schema";
 import { z } from "zod";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -481,6 +481,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(categories);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  // Tags API
+  app.get("/api/tags", async (req, res) => {
+    try {
+      const tags = await storage.getAllTags();
+      res.json(tags);
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      res.status(500).json({ error: "Failed to fetch tags" });
+    }
+  });
+
+  app.get("/api/tags/in-use", async (req, res) => {
+    try {
+      const tagsInUse = await storage.getTagsInUse();
+      res.json(tagsInUse);
+    } catch (error) {
+      console.error("Error fetching tags in use:", error);
+      res.status(500).json({ error: "Failed to fetch tags in use" });
+    }
+  });
+
+  app.post("/api/tags", async (req, res) => {
+    try {
+      const validatedData = insertTagSchema.parse(req.body);
+      const tag = await storage.createTag(validatedData);
+      res.json(tag);
+    } catch (error) {
+      console.error("Error creating tag:", error);
+      res.status(500).json({ error: "Failed to create tag" });
+    }
+  });
+
+  app.put("/api/tags/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertTagSchema.parse(req.body);
+      const tag = await storage.updateTag(id, validatedData);
+      res.json(tag);
+    } catch (error) {
+      console.error("Error updating tag:", error);
+      res.status(500).json({ error: "Failed to update tag" });
+    }
+  });
+
+  app.delete("/api/tags/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTag(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting tag:", error);
+      res.status(500).json({ error: error.message || "Failed to delete tag" });
     }
   });
 

@@ -343,10 +343,12 @@ export class DatabaseStorage implements IStorage {
 
         const companyCategoriesIds = (company.categoriesIds as number[]) || [];
         const companyCertificateIds = (company.certificateIds as number[]) || [];
+        const companyTagIds = (company.tagIds as number[]) || [];
 
-        // Get categories and certificates
+        // Get categories, certificates, and tags
         let companyCategories = [];
         let companyCertificates = [];
+        let companyTags = [];
         
         if (companyCategoriesIds.length > 0) {
           for (const catId of companyCategoriesIds) {
@@ -362,12 +364,20 @@ export class DatabaseStorage implements IStorage {
           }
         }
 
+        if (companyTagIds.length > 0) {
+          for (const tagId of companyTagIds) {
+            const [tag] = await db.select().from(tags).where(eq(tags.id, tagId));
+            if (tag) companyTags.push(tag);
+          }
+        }
+
         return {
           ...company,
           membershipType: membershipType || undefined,
           user: user || undefined,
           categories: companyCategories,
-          certificates: companyCertificates
+          certificates: companyCertificates,
+          tags: companyTags
         };
       })
     );

@@ -68,6 +68,11 @@ const navigationItems: NavigationItem[] = [
         requireAdmin: false,
       },
       {
+        name: "Etiquetas",
+        href: "/etiquetas",
+        requireAdmin: true,
+      },
+      {
         name: "Planes",
         href: "/membresias",
         requireAdmin: false,
