@@ -201,7 +201,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       {/* Header */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center space-x-3">
-          <h1 className="text-xl font-medium text-gray-800">AdminPlat</h1>
+          <h1 className="text-xl font-medium text-gray-800">Directorio de Proveedores de Equipamiento Urbano</h1>
         </div>
       </div>
 

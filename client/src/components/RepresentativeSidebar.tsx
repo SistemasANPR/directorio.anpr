@@ -104,7 +104,7 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
             <span className="text-black font-bold text-sm">A</span>
           </div>
           <h1 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Montserrat', fontWeight: 700 }}>
-            ANPR México
+            Directorio de Proveedores de Equipamiento Urbano
           </h1>
         </div>
       </div>
