@@ -1331,7 +1331,6 @@ export class DatabaseStorage implements IStorage {
       return newTemplate;
     }
   }
-}
 
   // Stripe Configuration Methods
   async getStripeConfiguration(): Promise<StripeConfiguration | undefined> {

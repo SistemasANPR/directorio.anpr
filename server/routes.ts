@@ -1639,6 +1639,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auto-renewal toggle endpoint
+  app.patch("/api/users/:userId/auto-renewal", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { autoRenewal, subscriptionId } = req.body;
+
+      // Update user auto-renewal preference
+      const updatedUser = await storage.updateUser(userId, { autoRenewal });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // If there's a Stripe subscription, update it
+      if (subscriptionId) {
+        const config = await storage.getStripeConfiguration();
+        if (config) {
+          const stripe = new Stripe(config.secretKey, {
+            apiVersion: "2023-10-16",
+          });
+
+          await stripe.subscriptions.update(subscriptionId, {
+            cancel_at_period_end: !autoRenewal,
+          });
+        }
+      }
+
+      res.json({ 
+        autoRenewal: updatedUser.autoRenewal,
+        message: autoRenewal ? "Auto-renewal enabled" : "Auto-renewal disabled"
+      });
+    } catch (error) {
+      console.error("Error updating auto-renewal:", error);
+      res.status(500).json({ error: "Failed to update auto-renewal setting" });
+    }
+  });
+
   // Representative dashboard data
   app.get("/api/representative/dashboard/:userId", async (req, res) => {
     try {
@@ -1860,6 +1897,189 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching email template:", error);
       res.status(500).json({ error: "Failed to fetch email template" });
+    }
+  });
+
+  // Stripe Configuration Routes
+  app.get("/api/stripe-configuration", async (req, res) => {
+    try {
+      const config = await storage.getStripeConfiguration();
+      if (!config) {
+        return res.json(null);
+      }
+      
+      // Don't send the secret key to the frontend
+      const { secretKey, ...safeConfig } = config;
+      res.json(safeConfig);
+    } catch (error) {
+      console.error("Error fetching Stripe configuration:", error);
+      res.status(500).json({ error: "Failed to fetch configuration" });
+    }
+  });
+
+  app.post("/api/stripe-configuration", async (req, res) => {
+    try {
+      const configSchema = z.object({
+        publicKey: z.string().min(1),
+        secretKey: z.string().min(1),
+        webhookSecret: z.string().optional(),
+        environment: z.enum(["test", "live"]),
+        isActive: z.boolean(),
+      });
+
+      const validatedData = configSchema.parse(req.body);
+      
+      const existingConfig = await storage.getStripeConfiguration();
+      let config;
+      
+      if (existingConfig) {
+        config = await storage.updateStripeConfiguration(existingConfig.id, validatedData);
+      } else {
+        config = await storage.createStripeConfiguration(validatedData);
+      }
+      
+      // Don't send the secret key back
+      const { secretKey, ...safeConfig } = config!;
+      res.json(safeConfig);
+    } catch (error) {
+      console.error("Error saving Stripe configuration:", error);
+      res.status(500).json({ error: "Failed to save configuration" });
+    }
+  });
+
+  app.post("/api/stripe-configuration/test", async (req, res) => {
+    try {
+      const configSchema = z.object({
+        publicKey: z.string().min(1),
+        secretKey: z.string().min(1),
+        webhookSecret: z.string().optional(),
+        environment: z.enum(["test", "live"]),
+        isActive: z.boolean(),
+      });
+
+      const validatedData = configSchema.parse(req.body);
+      
+      // Test connection with Stripe
+      try {
+        const testStripe = new Stripe(validatedData.secretKey, {
+          apiVersion: "2023-10-16",
+        });
+
+        const account = await testStripe.accounts.retrieve();
+        
+        res.json({
+          success: true,
+          message: "Conexión exitosa con Stripe",
+          details: {
+            accountId: account.id,
+            businessName: account.business_profile?.name || "N/A",
+            country: account.country,
+            currency: account.default_currency
+          }
+        });
+      } catch (stripeError: any) {
+        res.json({
+          success: false,
+          message: `Error de Stripe: ${stripeError.message}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error testing Stripe connection:", error);
+      res.status(500).json({ error: "Failed to test connection" });
+    }
+  });
+
+  app.post("/api/stripe-configuration/sync-products", async (req, res) => {
+    try {
+      const config = await storage.getStripeConfiguration();
+      if (!config) {
+        return res.status(400).json({ error: "No Stripe configuration found" });
+      }
+
+      const syncStripe = new Stripe(config.secretKey, {
+        apiVersion: "2023-10-16",
+      });
+
+      // Get all membership types
+      const membershipTypes = await storage.getAllMembershipTypes();
+      let syncedCount = 0;
+
+      for (const membership of membershipTypes) {
+        try {
+          // Create or update product in Stripe
+          let product;
+          if (membership.stripeProductId) {
+            // Update existing product
+            product = await syncStripe.products.update(membership.stripeProductId, {
+              name: membership.nombrePlan,
+              description: membership.descripcionPlan || undefined,
+              metadata: {
+                membershipTypeId: membership.id.toString(),
+              },
+            });
+          } else {
+            // Create new product
+            product = await syncStripe.products.create({
+              name: membership.nombrePlan,
+              description: membership.descripcionPlan || undefined,
+              metadata: {
+                membershipTypeId: membership.id.toString(),
+              },
+            });
+          }
+
+          // Create or update price for each pricing option
+          if (membership.opcionesPrecios && Array.isArray(membership.opcionesPrecios)) {
+            for (const option of membership.opcionesPrecios as any[]) {
+              if (!option.stripePriceId) {
+                const interval = option.periodicidad === "mensual" ? "month" :
+                               option.periodicidad === "trimestral" ? "month" :
+                               option.periodicidad === "semestral" ? "month" :
+                               "year";
+                
+                const intervalCount = option.periodicidad === "trimestral" ? 3 :
+                                     option.periodicidad === "semestral" ? 6 : 1;
+
+                const price = await syncStripe.prices.create({
+                  product: product.id,
+                  unit_amount: Math.round(Number(option.costo) * 100), // Convert to cents
+                  currency: "mxn",
+                  recurring: {
+                    interval: interval as any,
+                    interval_count: intervalCount,
+                  },
+                  metadata: {
+                    membershipTypeId: membership.id.toString(),
+                    periodicidad: option.periodicidad,
+                  },
+                });
+                
+                // Update the pricing option with Stripe price ID
+                option.stripePriceId = price.id;
+              }
+            }
+          }
+
+          // Update membership type with Stripe IDs
+          await storage.updateMembershipType(membership.id, {
+            stripeProductId: product.id,
+            opcionesPrecios: membership.opcionesPrecios,
+          });
+
+          syncedCount++;
+        } catch (error) {
+          console.error(`Error syncing membership ${membership.id}:`, error);
+        }
+      }
+
+      res.json({
+        success: true,
+        synced: syncedCount,
+        message: `Se sincronizaron ${syncedCount} productos con Stripe`,
+      });
+    } catch (error) {
+      console.error("Error syncing products:", error);
+      res.status(500).json({ error: "Failed to sync products" });
     }
   });
 

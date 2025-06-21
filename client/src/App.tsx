@@ -35,6 +35,7 @@ import RegistroExitoso from "@/pages/RegistroExitoso";
 import SystemSettings from "@/pages/SystemSettings";
 import PdfSettings from "@/pages/PdfSettings";
 import EmailConfigurationPage from "@/pages/EmailConfigurationPage";
+import StripeConfiguration from "@/pages/StripeConfiguration";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import MainNavigation from "@/components/MainNavigation";
@@ -214,6 +215,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <EmailConfigurationPage />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin/configuracion-stripe">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <StripeConfiguration />
           </AppLayout>
         </ProtectedRoute>
       </Route>
