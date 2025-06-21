@@ -183,6 +183,16 @@ export interface IStorage {
   updateIntegrationSettings(id: number, settings: Partial<InsertIntegrationSettings>): Promise<IntegrationSettings | undefined>;
   testWordPressConnection(url: string, credentials: { apiKey: string; apiSecret: string }): Promise<{ success: boolean; message: string }>;
   syncWordPressUsers(): Promise<{ syncedUsers: number; message: string }>;
+
+  // Stripe Configuration
+  getStripeConfiguration(): Promise<StripeConfiguration | undefined>;
+  createStripeConfiguration(config: InsertStripeConfiguration): Promise<StripeConfiguration>;
+  updateStripeConfiguration(id: number, config: Partial<InsertStripeConfiguration>): Promise<StripeConfiguration | undefined>;
+  testStripeConnection(config: InsertStripeConfiguration): Promise<{ success: boolean; message: string; details?: any }>;
+  
+  // User Stripe Info
+  updateUserStripeInfo(userId: number, stripeCustomerId: string, stripeSubscriptionId?: string): Promise<User | undefined>;
+  getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
