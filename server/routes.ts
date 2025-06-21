@@ -1500,7 +1500,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userData, companyData, membershipTypeId, selectedPeriod, paymentIntentId } = req.body;
 
       if (!userData || !companyData || !membershipTypeId || !paymentIntentId) {
-        return res.status(400).json({ error: "Missing required data" });
+        return res.status(400).json({ 
+          error: "Faltan datos requeridos para completar el registro",
+          userMessage: "Por favor, completa todos los campos requeridos e intenta nuevamente."
+        });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ 
+          error: "El correo electrónico ya está registrado",
+          userMessage: "Ya existe una cuenta con este correo electrónico. Si ya tienes una cuenta, inicia sesión en lugar de registrarte nuevamente. Si necesitas ayuda, contacta a soporte."
+        });
       }
 
       // Create user account with temporary UID that will be updated by Firebase
@@ -1586,7 +1598,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error completing registration:", error);
-      res.status(500).json({ error: error.message });
+      
+      // Provide specific user-friendly error messages
+      let userMessage = "Hubo un problema al procesar tu registro. Por favor, intenta nuevamente.";
+      let statusCode = 500;
+      
+      if (error.code === '23505') { // Unique constraint violation
+        if (error.constraint === 'users_email_unique') {
+          userMessage = "Ya existe una cuenta con este correo electrónico. Si ya tienes una cuenta, inicia sesión en lugar de registrarte nuevamente.";
+          statusCode = 400;
+        } else if (error.constraint === 'companies_nombre_empresa_unique') {
+          userMessage = "Ya existe una empresa registrada con este nombre. Por favor, utiliza un nombre diferente.";
+          statusCode = 400;
+        }
+      } else if (error.code === '23503') { // Foreign key constraint
+        userMessage = "Algunos datos seleccionados no son válidos. Por favor, verifica tu información e intenta nuevamente.";
+        statusCode = 400;
+      } else if (error.message?.includes('payment')) {
+        userMessage = "Hubo un problema al procesar el pago. Por favor, verifica los datos de tu tarjeta e intenta nuevamente.";
+        statusCode = 400;
+      } else if (error.message?.includes('Stripe')) {
+        userMessage = "Error en el procesamiento del pago. Por favor, contacta a soporte si el problema persiste.";
+        statusCode = 400;
+      }
+      
+      res.status(statusCode).json({ 
+        error: error.message,
+        userMessage: userMessage,
+        supportContact: "Para obtener ayuda adicional, contacta a soporte en soporte@anpr.org.mx"
+      });
     }
   });
 

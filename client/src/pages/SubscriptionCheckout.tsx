@@ -56,10 +56,52 @@ const SubscriptionForm = ({ planDetails, selectedOption, autoRenewal }: Subscrip
       });
 
       if (error) {
+        // Provide specific error messages based on error type
+        let userMessage = "Hubo un problema con el pago. Por favor, intenta nuevamente.";
+        
+        if (error.type === 'card_error') {
+          switch (error.code) {
+            case 'card_declined':
+              userMessage = "Tu tarjeta fue rechazada. Por favor, verifica los datos de tu tarjeta o utiliza una tarjeta diferente.";
+              break;
+            case 'insufficient_funds':
+              userMessage = "Fondos insuficientes en tu tarjeta. Por favor, verifica tu saldo o utiliza una tarjeta diferente.";
+              break;
+            case 'expired_card':
+              userMessage = "Tu tarjeta ha expirado. Por favor, utiliza una tarjeta válida.";
+              break;
+            case 'incorrect_cvc':
+              userMessage = "El código de seguridad (CVC) es incorrecto. Por favor, verifica el número.";
+              break;
+            case 'incorrect_number':
+              userMessage = "El número de tarjeta es incorrecto. Por favor, verifica el número.";
+              break;
+            case 'processing_error':
+              userMessage = "Error al procesar el pago. Por favor, intenta nuevamente en unos minutos.";
+              break;
+            default:
+              userMessage = `Error con la tarjeta: ${error.message}`;
+          }
+        } else if (error.type === 'validation_error') {
+          userMessage = "Por favor, completa todos los campos de pago correctamente.";
+        } else if (error.type === 'api_connection_error') {
+          userMessage = "Problema de conexión. Por favor, verifica tu internet e intenta nuevamente.";
+        } else if (error.type === 'rate_limit_error') {
+          userMessage = "Demasiados intentos. Por favor, espera un momento e intenta nuevamente.";
+        }
+        
         toast({
           title: "Error en el pago",
-          description: error.message,
+          description: (
+            <div className="space-y-2">
+              <p>{userMessage}</p>
+              <p className="text-sm text-gray-600">
+                Si el problema persiste, contacta a soporte en soporte@anpr.org.mx
+              </p>
+            </div>
+          ),
           variant: "destructive",
+          duration: 8000,
         });
       } else {
         toast({
@@ -68,11 +110,27 @@ const SubscriptionForm = ({ planDetails, selectedOption, autoRenewal }: Subscrip
         });
         setLocation("/representative-dashboard?tab=membership");
       }
-    } catch (error) {
+    } catch (error: any) {
+      let errorMessage = "Hubo un problema al procesar tu pago. Intenta nuevamente.";
+      
+      if (error?.response?.data?.userMessage) {
+        errorMessage = error.response.data.userMessage;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error procesando pago",
-        description: "Hubo un problema al procesar tu pago. Intenta nuevamente.",
+        description: (
+          <div className="space-y-2">
+            <p>{errorMessage}</p>
+            <p className="text-sm text-gray-600">
+              Si el problema persiste, contacta a soporte en soporte@anpr.org.mx
+            </p>
+          </div>
+        ),
         variant: "destructive",
+        duration: 8000,
       });
     } finally {
       setIsProcessing(false);
@@ -257,10 +315,29 @@ export default function SubscriptionCheckout() {
 
       } catch (error: any) {
         console.error("Error initializing checkout:", error);
+        
+        let errorMessage = "No se pudo inicializar el proceso de pago";
+        
+        if (error?.response?.data?.userMessage) {
+          errorMessage = error.response.data.userMessage;
+        } else if (error?.message?.includes('not found')) {
+          errorMessage = "El plan seleccionado no está disponible. Por favor, selecciona otro plan.";
+        } else if (error?.message?.includes('network')) {
+          errorMessage = "Problema de conexión. Por favor, verifica tu internet e intenta nuevamente.";
+        }
+        
         toast({
           title: "Error",
-          description: error.message || "No se pudo inicializar el checkout",
+          description: (
+            <div className="space-y-2">
+              <p>{errorMessage}</p>
+              <p className="text-sm text-gray-600">
+                Si el problema persiste, contacta a soporte en soporte@anpr.org.mx
+              </p>
+            </div>
+          ),
           variant: "destructive",
+          duration: 8000,
         });
       } finally {
         setIsLoading(false);
