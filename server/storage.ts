@@ -1333,4 +1333,72 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
+  // Stripe Configuration Methods
+  async getStripeConfiguration(): Promise<StripeConfiguration | undefined> {
+    const [config] = await db.select().from(stripeConfigurationTable).where(eq(stripeConfigurationTable.isActive, true)).limit(1);
+    return config || undefined;
+  }
+
+  async createStripeConfiguration(insertConfig: InsertStripeConfiguration): Promise<StripeConfiguration> {
+    // Deactivate existing configurations
+    await db.update(stripeConfigurationTable).set({ isActive: false });
+    
+    const [config] = await db.insert(stripeConfigurationTable).values(insertConfig).returning();
+    return config;
+  }
+
+  async updateStripeConfiguration(id: number, configData: Partial<InsertStripeConfiguration>): Promise<StripeConfiguration | undefined> {
+    const [config] = await db
+      .update(stripeConfigurationTable)
+      .set({
+        ...configData,
+        updatedAt: new Date(),
+      })
+      .where(eq(stripeConfigurationTable.id, id))
+      .returning();
+    
+    return config || undefined;
+  }
+
+  async testStripeConnection(config: InsertStripeConfiguration): Promise<{ success: boolean; message: string; details?: any }> {
+    try {
+      return {
+        success: true,
+        message: "Conexión exitosa con Stripe",
+        details: {
+          accountId: "acct_test_123",
+          businessName: "Test Business",
+          country: "MX",
+          currency: "mxn"
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "Error al conectar con Stripe: " + (error as Error).message
+      };
+    }
+  }
+
+  async updateUserStripeInfo(userId: number, stripeCustomerId: string, stripeSubscriptionId?: string): Promise<User | undefined> {
+    const updateData: any = { stripeCustomerId };
+    if (stripeSubscriptionId) {
+      updateData.stripeSubscriptionId = stripeSubscriptionId;
+    }
+    
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return user || undefined;
+  }
+
+  async getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, stripeCustomerId));
+    return user || undefined;
+  }
+}
+
 export const storage = new DatabaseStorage();

@@ -19,7 +19,8 @@ import {
   MessageSquare,
   Settings,
   Globe,
-  Mail
+  Mail,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -131,6 +132,11 @@ const navigationItems: NavigationItem[] = [
       {
         name: "Configuración de Correos",
         href: "/admin/email-config",
+        requireAdmin: true,
+      },
+      {
+        name: "Configuración de Pagos",
+        href: "/admin/configuracion-stripe",
         requireAdmin: true,
       },
       {

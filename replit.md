@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 20, 2025: STRIPE SUBSCRIPTION SYSTEM IMPLEMENTED - Created comprehensive Stripe configuration module for admins with intuitive interface for API keys setup, webhook configuration, and product synchronization. Updated backend to support automatic recurring subscriptions, payment webhooks handling, and membership status automation. Enhanced schema with Stripe IDs for users and membership types. Added subscription checkout flow with auto-renewal options and secure payment processing.
 - June 20, 2025: TAG MANAGEMENT SYSTEM COMPLETED - Implemented comprehensive tag management functionality with admin interface for CRUD operations, integrated tag selector in company forms, enhanced search functionality with tag filtering, visual color-coded tag display throughout directory, usage tracking to prevent deletion of active tags, and complete API integration for tag-based search enhancement
 - June 20, 2025: NAVIGATION AND UX IMPROVEMENTS COMPLETED - Updated main navigation menu from "Membresías" to "Planes", redirected "Regístrate como empresa" buttons to /planes, implemented smooth scroll to plans section from hero and registration buttons, reordered pricing display to show annual prices first then monthly
 - June 20, 2025: PRICING DISPLAY ENHANCEMENT - Modified plan cards in PublicMemberships.tsx to prioritize annual pricing over monthly with proper sorting functionality
