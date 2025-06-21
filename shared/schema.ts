@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   photoURL: text("photo_url"),
   role: text("role").notNull().default("user"), // "admin" or "user"
   stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  autoRenewal: boolean("auto_renewal").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -42,6 +44,8 @@ export const membershipTypes = pgTable("membership_types", {
   opcionesPrecios: jsonb("opciones_precios"), // Array of {periodicidad: string, costo: number}
   beneficios: jsonb("beneficios"), // Array of benefits
   visibilidad: text("visibilidad").notNull().default("publica"), // "publica" o "privada"
+  stripePriceId: text("stripe_price_id"), // ID del precio en Stripe
+  stripeProductId: text("stripe_product_id"), // ID del producto en Stripe
   cantidadProductosAdmitidos: integer("cantidad_productos_admitidos").default(0), // Cantidad de productos permitidos
   cantidadProyectosAdmitidos: integer("cantidad_proyectos_admitidos").default(0), // Cantidad de proyectos permitidos
   createdAt: timestamp("created_at").defaultNow().notNull(),
