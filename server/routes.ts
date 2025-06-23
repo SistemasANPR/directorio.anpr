@@ -2071,32 +2071,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create or update price for each pricing option
           if (membership.opcionesPrecios && Array.isArray(membership.opcionesPrecios)) {
             for (const option of membership.opcionesPrecios as any[]) {
-              if (!option.stripePriceId) {
-                const interval = option.periodicidad === "mensual" ? "month" :
-                               option.periodicidad === "trimestral" ? "month" :
-                               option.periodicidad === "semestral" ? "month" :
-                               "year";
-                
-                const intervalCount = option.periodicidad === "trimestral" ? 3 :
-                                     option.periodicidad === "semestral" ? 6 : 1;
+              // Always recreate prices to ensure correct periodicidad
+              const periodicidad = option.periodicidad.toLowerCase();
+              const interval = periodicidad === "mensual" ? "month" :
+                             periodicidad === "trimestral" ? "month" :
+                             periodicidad === "semestral" ? "month" :
+                             "year";
+              
+              const intervalCount = periodicidad === "trimestral" ? 3 :
+                                   periodicidad === "semestral" ? 6 : 1;
 
-                const price = await syncStripe.prices.create({
-                  product: product.id,
-                  unit_amount: Math.round(Number(option.costo) * 100), // Convert to cents
-                  currency: "mxn",
-                  recurring: {
-                    interval: interval as any,
-                    interval_count: intervalCount,
-                  },
-                  metadata: {
-                    membershipTypeId: membership.id.toString(),
-                    periodicidad: option.periodicidad,
-                  },
-                });
-                
-                // Update the pricing option with Stripe price ID
-                option.stripePriceId = price.id;
+              // Archive old price if it exists
+              if (option.stripePriceId) {
+                try {
+                  await syncStripe.prices.update(option.stripePriceId, {
+                    active: false
+                  });
+                  console.log(`Archived old price: ${option.stripePriceId}`);
+                } catch (archiveError) {
+                  console.log(`Could not archive price ${option.stripePriceId}, creating new one`);
+                }
               }
+
+              const price = await syncStripe.prices.create({
+                product: product.id,
+                unit_amount: Math.round(Number(option.costo) * 100), // Convert to cents
+                currency: "mxn",
+                recurring: {
+                  interval: interval as any,
+                  interval_count: intervalCount,
+                },
+                metadata: {
+                  membershipTypeId: membership.id.toString(),
+                  periodicidad: option.periodicidad,
+                },
+              });
+              
+              // Update the pricing option with new Stripe price ID
+              option.stripePriceId = price.id;
+              console.log(`Created new price for ${membership.nombrePlan} - ${option.periodicidad} (${interval}${intervalCount > 1 ? ` x${intervalCount}` : ''}): ${price.id}`);
             }
           }
 
