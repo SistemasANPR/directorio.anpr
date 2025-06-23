@@ -1334,26 +1334,26 @@ export class DatabaseStorage implements IStorage {
 
   // Stripe Configuration Methods
   async getStripeConfiguration(): Promise<StripeConfiguration | undefined> {
-    const [config] = await db.select().from(stripeConfigurationTable).where(eq(stripeConfigurationTable.isActive, true)).limit(1);
+    const [config] = await db.select().from(stripeConfiguration).where(eq(stripeConfiguration.isActive, true)).limit(1);
     return config || undefined;
   }
 
   async createStripeConfiguration(insertConfig: InsertStripeConfiguration): Promise<StripeConfiguration> {
     // Deactivate existing configurations
-    await db.update(stripeConfigurationTable).set({ isActive: false });
+    await db.update(stripeConfiguration).set({ isActive: false });
     
-    const [config] = await db.insert(stripeConfigurationTable).values(insertConfig).returning();
+    const [config] = await db.insert(stripeConfiguration).values(insertConfig).returning();
     return config;
   }
 
   async updateStripeConfiguration(id: number, configData: Partial<InsertStripeConfiguration>): Promise<StripeConfiguration | undefined> {
     const [config] = await db
-      .update(stripeConfigurationTable)
+      .update(stripeConfiguration)
       .set({
         ...configData,
         updatedAt: new Date(),
       })
-      .where(eq(stripeConfigurationTable.id, id))
+      .where(eq(stripeConfiguration.id, id))
       .returning();
     
     return config || undefined;
