@@ -356,6 +356,7 @@ export const emailConfiguration = pgTable("email_configuration", {
   encryption: text("encryption").notNull(),
   username: text("username").notNull(),
   password: text("password").notNull(), // Should be encrypted in production
+  testEmail: text("test_email"), // Email para pruebas
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

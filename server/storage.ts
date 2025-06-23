@@ -1283,26 +1283,72 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async testEmailConfiguration(config: InsertEmailConfiguration): Promise<{ success: boolean; message: string }> {
+  async testEmailConfiguration(configData: InsertEmailConfiguration): Promise<{ success: boolean; message: string }> {
     try {
-      // For now, we'll do a basic validation test
-      // In production, you would use nodemailer to actually test the connection
-      if (!config.fromEmail || !config.smtpHost || !config.username || !config.password) {
-        return {
-          success: false,
-          message: "Faltan campos obligatorios en la configuración"
+      // Import nodemailer
+      const nodemailer = require('nodemailer');
+      
+      // Create transporter
+      const transporter = nodemailer.createTransporter({
+        host: configData.smtpHost,
+        port: configData.smtpPort,
+        secure: configData.encryption === 'ssl',
+        auth: {
+          user: configData.username,
+          pass: configData.password,
+        },
+        tls: {
+          ciphers: 'SSLv3',
+          rejectUnauthorized: false
+        }
+      });
+
+      // Verify connection
+      await transporter.verify();
+
+      // Send test email if testEmail is provided
+      if (configData.testEmail) {
+        const mailOptions = {
+          from: `"${configData.fromName}" <${configData.fromEmail}>`,
+          to: configData.testEmail,
+          subject: 'Configuración de correo exitosa - Directorio ANPR',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">¡Configuración exitosa!</h2>
+              <p>La configuración del servidor de correos se ha establecido correctamente.</p>
+              <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">Detalles de la configuración:</h3>
+                <ul>
+                  <li><strong>Proveedor:</strong> ${configData.provider}</li>
+                  <li><strong>Servidor SMTP:</strong> ${configData.smtpHost}:${configData.smtpPort}</li>
+                  <li><strong>Cifrado:</strong> ${configData.encryption.toUpperCase()}</li>
+                  <li><strong>Email remitente:</strong> ${configData.fromEmail}</li>
+                </ul>
+              </div>
+              <p>Este sistema ahora está listo para enviar notificaciones automáticas.</p>
+              <hr style="border: none; height: 1px; background-color: #e5e7eb; margin: 30px 0;">
+              <p style="color: #6b7280; font-size: 14px;">
+                Directorio de Proveedores de Equipamiento Urbano<br>
+                Sistema de notificaciones automáticas
+              </p>
+            </div>
+          `
         };
+
+        await transporter.sendMail(mailOptions);
       }
 
-      // Simulate email test - in production, use nodemailer
       return {
         success: true,
-        message: "Configuración de correo válida. Prueba de conexión exitosa."
+        message: configData.testEmail 
+          ? `Configuración válida. Email de prueba enviado a ${configData.testEmail}`
+          : "Configuración de correo válida"
       };
     } catch (error: any) {
+      console.error("Email test failed:", error);
       return {
         success: false,
-        message: `Error en la prueba de conexión: ${error.message}`
+        message: `Error al probar configuración: ${error.message}`
       };
     }
   }
