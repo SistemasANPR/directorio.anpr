@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,10 +15,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -26,28 +28,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { insertCompanySchema, CompanyWithDetails } from "@shared/schema";
+import { insertCompanySchema, Category, MembershipType, Certificate, CompanyWithDetails } from "@shared/schema";
 import TagSelector from "@/components/TagSelector";
-import { Building } from "lucide-react";
+import { paisesAmericaLatina, estadosMexico, ciudadesPorEstado } from "@/lib/locationData";
+import { 
+  Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
+  Tags, Building2, Car, Truck, Hammer, Factory, Cpu, Wrench, ShoppingBag,
+  Briefcase, Heart, GraduationCap, Home, Coffee, Camera, Music,
+  Gamepad2, Book, Palette, Plane, Ship, Train, Zap
+} from "lucide-react";
+import MapLocationPicker from "./MapLocationPicker";
+import RichTextEditor from "./RichTextEditor";
+
+// Schema completo igual que en AddCompanyModal
+const companySchema = insertCompanySchema.extend({
+  email1: z.string().email("Email inválido"),
+  nombreEmpresa: z.string().min(1, "El nombre de la empresa es requerido"),
+  sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
+  catalogoDigitalUrl: z.string().optional().or(z.literal("")),
+  membershipTypeId: z.number().min(1, "Tipo de membresía es requerido"),
+});
+
+type CompanyFormData = z.infer<typeof companySchema>;
+
+// Map of icon names to components  
+const iconMap = {
+  Tags, Building2, Car, Truck, Hammer, Factory, Cpu, Wrench, ShoppingBag,
+  Briefcase, Heart, GraduationCap, Home, Coffee, Camera, Music,
+  Gamepad2, Book, Palette, MapPin, Plane, Ship, Train, Zap
+};
 
 interface EditCompanyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   company: CompanyWithDetails | null;
 }
-
-const formSchema = insertCompanySchema.pick({
-  nombreEmpresa: true,
-  telefono1: true,
-  email1: true,
-  sitioWeb: true,
-  direccionFisica: true,
-  descripcionEmpresa: true,
-  tagIds: true,
-});
 
 type FormData = z.infer<typeof formSchema>;
 
