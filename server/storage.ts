@@ -1285,9 +1285,6 @@ export class DatabaseStorage implements IStorage {
 
   async testEmailConfiguration(configData: InsertEmailConfiguration): Promise<{ success: boolean; message: string }> {
     try {
-      // Import nodemailer
-      const nodemailer = require('nodemailer');
-      
       // Create transporter
       const transporter = nodemailer.createTransporter({
         host: configData.smtpHost,
