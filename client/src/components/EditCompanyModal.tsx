@@ -94,50 +94,188 @@ interface EditCompanyModalProps {
   company: CompanyWithDetails | null;
 }
 
-type FormData = z.infer<typeof formSchema>;
-
 export default function EditCompanyModal({ open, onOpenChange, company }: EditCompanyModalProps) {
   const { toast } = useToast();
+  
+  // Estados para manejar archivos y selecciones
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [selectedEstados, setSelectedEstados] = useState<string[]>([]);
+  const [selectedCiudades, setSelectedCiudades] = useState<string[]>([]);
+  const [catalogoFile, setCatalogoFile] = useState<File | null>(null);
+  const [redesSociales, setRedesSociales] = useState<Array<{nombre: string, url: string}>>([]);
+  const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
+  const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
+  const [emailsAdicionales, setEmailsAdicionales] = useState<string[]>([]);
+  const [telefonosAdicionales, setTelefonosAdicionales] = useState<string[]>([]);
+  const [representantes, setRepresentantes] = useState<Array<{nombre: string, cargo: string, telefono: string, email: string}>>([]);
+  const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[ciudad: string]: string}>({});
+  const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[ciudad: string]: { lat: number; lng: number; address: string }}>({});
+  const [videosUrls, setVideosUrls] = useState<string[]>([]);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CompanyFormData>({
+    resolver: zodResolver(companySchema),
     defaultValues: {
       nombreEmpresa: "",
       telefono1: "",
+      telefono2: "",
       email1: "",
+      email2: "",
       sitioWeb: "",
       direccionFisica: "",
       descripcionEmpresa: "",
+      ubicacionPrincipal: "",
+      ubicacionGeografica: "",
+      representantesVentas: "",
+      catalogoDigitalUrl: "",
+      categoriesIds: [],
+      certificateIds: [],
       tagIds: [],
+      membershipTypeId: 1,
+      membershipPeriodicidad: "",
+      formaPago: "",
+      fechaInicioMembresia: "",
+      fechaFinMembresia: "",
+      notasMembresia: "",
+      paisesPresencia: [],
+      estadosPresencia: [],
+      ciudadesPresencia: [],
+      paisesPresenciaOtro: "",
+      estadosPresenciaOtro: "",
+      ciudadesPresenciaOtro: "",
+      redesSociales: [],
+      videosUrls: [],
     },
   });
 
+  // Function to render the correct icon for categories
+  const renderCategoryIcon = (category: Category) => {
+    if (category.iconoUrl) {
+      return (
+        <img
+          src={category.iconoUrl}
+          alt={category.nombreCategoria}
+          className="w-5 h-5 object-cover rounded"
+        />
+      );
+    }
+
+    const iconName = category.icono || "Tags";
+    const IconComponent = iconMap[iconName as keyof typeof iconMap] || Tags;
+    return <IconComponent className="w-5 h-5 text-primary" />;
+  };
+
+  // Plataformas de redes sociales disponibles
+  const socialPlatforms = [
+    { name: "Facebook", icon: Facebook },
+    { name: "Instagram", icon: Instagram },
+    { name: "LinkedIn", icon: Linkedin },
+    { name: "Twitter", icon: Twitter },
+    { name: "YouTube", icon: Youtube },
+    { name: "Sitio Web", icon: Globe },
+  ];
+
+  // Poblar formulario cuando se abre con empresa
   useEffect(() => {
     if (company && open) {
+      const currentDate = new Date().toISOString().split('T')[0];
       form.reset({
         nombreEmpresa: company.nombreEmpresa || "",
         telefono1: company.telefono1 || "",
+        telefono2: company.telefono2 || "",
         email1: company.email1 || "",
+        email2: company.email2 || "",
         sitioWeb: company.sitioWeb || "",
         direccionFisica: company.direccionFisica || "",
         descripcionEmpresa: company.descripcionEmpresa || "",
-        tagIds: company.tags?.map(tag => tag.id) || [],
+        ubicacionPrincipal: company.ubicacionPrincipal || "",
+        ubicacionGeografica: company.ubicacionGeografica || "",
+        representantesVentas: company.representantesVentas || "",
+        catalogoDigitalUrl: company.catalogoDigitalUrl || "",
+        categoriesIds: company.categoriesIds || [],
+        certificateIds: company.certificateIds || [],
+        tagIds: company.tagIds || [],
+        membershipTypeId: company.membershipTypeId || 1,
+        membershipPeriodicidad: company.membershipPeriodicidad || "",
+        formaPago: company.formaPago || "",
+        fechaInicioMembresia: company.fechaInicioMembresia || currentDate,
+        fechaFinMembresia: company.fechaFinMembresia || "",
+        notasMembresia: company.notasMembresia || "",
+        paisesPresencia: company.paisesPresencia || [],
+        estadosPresencia: company.estadosPresencia || [],
+        ciudadesPresencia: company.ciudadesPresencia || [],
+        paisesPresenciaOtro: company.paisesPresenciaOtro || "",
+        estadosPresenciaOtro: company.estadosPresenciaOtro || "",
+        ciudadesPresenciaOtro: company.ciudadesPresenciaOtro || "",
+        redesSociales: company.redesSociales || [],
+        videosUrls: company.videosUrls || [],
       });
+      
+      // Set logo preview if exists
+      if (company.logotipoUrl) {
+        setLogoPreview(company.logotipoUrl);
+      }
+      
+      // Set gallery previews if exist
+      if (company.galeriaProductosUrls) {
+        const urls = Array.isArray(company.galeriaProductosUrls) 
+          ? company.galeriaProductosUrls 
+          : [];
+        setGaleriaPreviews(urls);
+      }
+
+      // Set redes sociales
+      if (company.redesSociales) {
+        setRedesSociales(Array.isArray(company.redesSociales) ? company.redesSociales : []);
+      }
+
+      // Set estados and ciudades if they exist
+      if (company.estadosPresencia) {
+        const estados = Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [];
+        setSelectedEstados(estados);
+      }
+      
+      if (company.ciudadesPresencia) {
+        const ciudades = Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [];
+        setSelectedCiudades(ciudades);
+      }
+
+      // Set videos URLs
+      if (company.videosUrls) {
+        setVideosUrls(Array.isArray(company.videosUrls) ? company.videosUrls : []);
+      }
     }
   }, [company, open, form]);
 
+  // Fetch data
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+    enabled: open,
+  });
+
+  const { data: membershipTypes = [] } = useQuery<MembershipType[]>({
+    queryKey: ["/api/membership-types"],
+    enabled: open,
+  });
+
+  const { data: certificates = [] } = useQuery<Certificate[]>({
+    queryKey: ["/api/certificates"],
+    enabled: open,
+  });
+
   const updateCompanyMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      if (!company) throw new Error("No company selected");
-      return apiRequest("PUT", `/api/companies/${company.id}`, data);
+    mutationFn: async (data: CompanyFormData) => {
+      if (!company) throw new Error("No hay empresa para actualizar");
+      const response = await apiRequest("PUT", `/api/companies/${company.id}`, data);
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/companies/by-user"] });
       toast({
         title: "Empresa actualizada",
-        description: "La información de la empresa ha sido actualizada exitosamente",
+        description: "La información se ha actualizado correctamente.",
       });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/companies"] });
       onOpenChange(false);
     },
     onError: (error: any) => {
@@ -149,7 +287,7 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: CompanyFormData) => {
     updateCompanyMutation.mutate(data);
   };
 
@@ -157,11 +295,11 @@ export default function EditCompanyModal({ open, onOpenChange, company }: EditCo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            Editar Información de la Empresa
+            Editar Información de la Empresa - {company.nombreEmpresa}
           </DialogTitle>
         </DialogHeader>
 
