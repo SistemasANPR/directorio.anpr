@@ -1287,7 +1287,7 @@ export class DatabaseStorage implements IStorage {
   async testEmailConfiguration(configData: InsertEmailConfiguration): Promise<{ success: boolean; message: string }> {
     try {
       // Create transporter
-      const transporter = nodemailer.createTransporter({
+      const transporter = nodemailer.createTransport({
         host: configData.smtpHost,
         port: configData.smtpPort,
         secure: configData.encryption === 'ssl',
