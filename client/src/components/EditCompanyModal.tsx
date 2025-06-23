@@ -43,13 +43,40 @@ import {
 import MapLocationPicker from "./MapLocationPicker";
 import RichTextEditor from "./RichTextEditor";
 
-// Schema completo igual que en AddCompanyModal
-const companySchema = insertCompanySchema.extend({
-  email1: z.string().email("Email inválido"),
+// Schema simplificado para edición
+const companySchema = z.object({
   nombreEmpresa: z.string().min(1, "El nombre de la empresa es requerido"),
+  telefono1: z.string().min(1, "Teléfono principal es requerido"),
+  telefono2: z.string().optional(),
+  email1: z.string().email("Email principal inválido"),
+  email2: z.string().email("Email secundario inválido").optional().or(z.literal("")),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
-  catalogoDigitalUrl: z.string().optional().or(z.literal("")),
+  direccionFisica: z.string().min(1, "Dirección física es requerida"),
+  descripcionEmpresa: z.string().min(1, "Descripción es requerida"),
+  ubicacionPrincipal: z.string().optional(),
+  ubicacionGeografica: z.string().optional(),
+  representantesVentas: z.string().optional(),
+  catalogoDigitalUrl: z.string().optional(),
+  categoriesIds: z.array(z.number()).optional(),
+  certificateIds: z.array(z.number()).optional(),
+  tagIds: z.array(z.number()).optional(),
   membershipTypeId: z.number().min(1, "Tipo de membresía es requerido"),
+  membershipPeriodicidad: z.string().optional(),
+  formaPago: z.string().optional(),
+  fechaInicioMembresia: z.string().optional(),
+  fechaFinMembresia: z.string().optional(),
+  notasMembresia: z.string().optional(),
+  paisesPresencia: z.array(z.string()).optional(),
+  estadosPresencia: z.array(z.string()).optional(),
+  ciudadesPresencia: z.array(z.string()).optional(),
+  paisesPresenciaOtro: z.string().optional(),
+  estadosPresenciaOtro: z.string().optional(),
+  ciudadesPresenciaOtro: z.string().optional(),
+  redesSociales: z.array(z.object({
+    nombre: z.string(),
+    url: z.string()
+  })).optional(),
+  videosUrls: z.array(z.string()).optional(),
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
