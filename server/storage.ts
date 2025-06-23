@@ -13,6 +13,8 @@ import {
   integrationSettings,
   pdfSettings,
   stripeConfigurationTable,
+  emailConfiguration,
+  emailTemplates,
   type User, 
   type Company, 
   type Category, 
@@ -41,6 +43,10 @@ import {
   type InsertSystemSettings,
   type StripeConfiguration,
   type InsertStripeConfiguration,
+  type EmailConfiguration,
+  type InsertEmailConfiguration,
+  type EmailTemplate,
+  type InsertEmailTemplate,
   type CompanyWithDetails,
   type ProjectWithDetails
 } from "@shared/schema";
