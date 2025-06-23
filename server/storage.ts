@@ -52,6 +52,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, sql, and, or, asc } from "drizzle-orm";
+import nodemailer from "nodemailer";
 
 export interface IStorage {
   // Users
