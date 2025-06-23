@@ -377,6 +377,8 @@ export const insertEmailConfigurationSchema = createInsertSchema(emailConfigurat
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  smtpPort: z.coerce.number().min(1).max(65535),
 });
 
 export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
