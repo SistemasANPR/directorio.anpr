@@ -498,3 +498,18 @@ export type ProjectWithDetails = Project & {
   company?: Company;
   category?: Category;
 };
+
+// Stripe Configuration Schema
+export const stripeConfigurationTable = pgTable("stripe_configuration", {
+  id: serial("id").primaryKey(),
+  publicKey: text("public_key").notNull(),
+  secretKey: text("secret_key").notNull(),
+  webhookSecret: text("webhook_secret"),
+  environment: text("environment").notNull().default("test"), // "test" or "live"
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type StripeConfiguration = typeof stripeConfigurationTable.$inferSelect;
+export type InsertStripeConfiguration = typeof stripeConfigurationTable.$inferInsert;
