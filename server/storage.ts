@@ -12,6 +12,7 @@ import {
   projects,
   integrationSettings,
   pdfSettings,
+  stripeConfigurationTable,
   type User, 
   type Company, 
   type Category, 
@@ -38,6 +39,8 @@ import {
   type InsertMembershipPayment,
   type SystemSettings,
   type InsertSystemSettings,
+  type StripeConfiguration,
+  type InsertStripeConfiguration,
   type CompanyWithDetails,
   type ProjectWithDetails
 } from "@shared/schema";
@@ -1334,26 +1337,26 @@ export class DatabaseStorage implements IStorage {
 
   // Stripe Configuration Methods
   async getStripeConfiguration(): Promise<StripeConfiguration | undefined> {
-    const [config] = await db.select().from(stripeConfiguration).where(eq(stripeConfiguration.isActive, true)).limit(1);
+    const [config] = await db.select().from(stripeConfigurationTable).where(eq(stripeConfigurationTable.isActive, true)).limit(1);
     return config || undefined;
   }
 
   async createStripeConfiguration(insertConfig: InsertStripeConfiguration): Promise<StripeConfiguration> {
     // Deactivate existing configurations
-    await db.update(stripeConfiguration).set({ isActive: false });
+    await db.update(stripeConfigurationTable).set({ isActive: false });
     
-    const [config] = await db.insert(stripeConfiguration).values(insertConfig).returning();
+    const [config] = await db.insert(stripeConfigurationTable).values(insertConfig).returning();
     return config;
   }
 
   async updateStripeConfiguration(id: number, configData: Partial<InsertStripeConfiguration>): Promise<StripeConfiguration | undefined> {
     const [config] = await db
-      .update(stripeConfiguration)
+      .update(stripeConfigurationTable)
       .set({
         ...configData,
         updatedAt: new Date(),
       })
-      .where(eq(stripeConfiguration.id, id))
+      .where(eq(stripeConfigurationTable.id, id))
       .returning();
     
     return config || undefined;
