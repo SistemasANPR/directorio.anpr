@@ -354,7 +354,7 @@ export default function EmailConfiguration() {
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Left Column - Configuration Forms */}
-      <div className="w-full lg:w-1/2 space-y-6">
+      <div className="w-full lg:w-2/3 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -1038,7 +1038,7 @@ Equipo del Directorio ANPR`}
       </div>
       
       {/* Right Column - Configuration Guide */}
-      <div className="w-full lg:w-1/2 space-y-6">
+      <div className="w-full lg:w-1/3 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
