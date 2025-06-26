@@ -351,7 +351,9 @@ export default function EmailConfiguration() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col lg:flex-row gap-6">
+      {/* Left Column - Configuration Forms */}
+      <div className="w-full lg:w-1/2 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -636,6 +638,50 @@ export default function EmailConfiguration() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Provider-specific configuration tips */}
+                  {selectedProviderInfo && selectedProviderInfo.id !== "custom" && (
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertTitle>Configuración para {selectedProviderInfo.name}</AlertTitle>
+                      <AlertDescription>
+                        {selectedProviderInfo.id === "gmail" && (
+                          <>
+                            <strong>Para Gmail:</strong><br />
+                            • Habilita la verificación en 2 pasos<br />
+                            • Genera una "Contraseña de aplicación" específica<br />
+                            • Usa tu email completo como usuario<br />
+                            • Si hay problemas, intenta habilitar "Acceso de apps menos seguras"
+                          </>
+                        )}
+                        {selectedProviderInfo.id === "outlook" && (
+                          <>
+                            <strong>Para Outlook/Hotmail:</strong><br />
+                            • Usa tu email completo como usuario<br />
+                            • Usa tu contraseña normal de la cuenta<br />
+                            • Asegúrate de tener habilitado SMTP<br />
+                            • Puerto 587 con STARTTLS es recomendado
+                          </>
+                        )}
+                        {selectedProviderInfo.id === "sendgrid" && (
+                          <>
+                            <strong>Para SendGrid:</strong><br />
+                            • Usuario: "apikey" (literalmente)<br />
+                            • Contraseña: Tu API Key de SendGrid<br />
+                            • Asegúrate de tener un dominio verificado
+                          </>
+                        )}
+                        {selectedProviderInfo.id === "mailgun" && (
+                          <>
+                            <strong>Para Mailgun:</strong><br />
+                            • Usuario: Tu usuario SMTP de Mailgun<br />
+                            • Contraseña: Tu contraseña SMTP de Mailgun<br />
+                            • Verifica tu dominio en Mailgun
+                          </>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   {/* Security Alert */}
                   <Alert>
@@ -988,6 +1034,91 @@ Equipo del Directorio ANPR`}
           </div>
         </TabsContent>
       </Tabs>
+      </div>
+      
+      {/* Right Column - Configuration Guide */}
+      <div className="w-full lg:w-1/2 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-600" />
+              Guía de Configuración SMTP
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-sm mb-2">📧 Proveedores Comunes</h3>
+              <div className="grid grid-cols-1 gap-3 text-sm">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <strong>Gmail</strong>
+                  <div className="text-gray-600 mt-1">
+                    • Host: smtp.gmail.com<br />
+                    • Puerto: 587 (STARTTLS)<br />
+                    • Requiere contraseña de aplicación
+                  </div>
+                </div>
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <strong>Outlook/Hotmail</strong>
+                  <div className="text-gray-600 mt-1">
+                    • Host: smtp-mail.outlook.com<br />
+                    • Puerto: 587 (STARTTLS)<br />
+                    • Usa tu contraseña normal
+                  </div>
+                </div>
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <strong>SendGrid</strong>
+                  <div className="text-gray-600 mt-1">
+                    • Host: smtp.sendgrid.net<br />
+                    • Puerto: 587 (STARTTLS)<br />
+                    • Usuario: "apikey", Contraseña: API Key
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-sm mb-2">🔧 Solución de Problemas</h3>
+              <div className="text-sm text-gray-600 space-y-2">
+                <div className="p-3 bg-yellow-50 rounded-lg">
+                  <strong>Error "Greeting never received":</strong>
+                  <ul className="mt-1 space-y-1 text-xs">
+                    <li>• Verifica el servidor SMTP y puerto</li>
+                    <li>• Comprueba la configuración de firewall</li>
+                    <li>• Intenta un puerto diferente (25, 465, 587, 2525)</li>
+                    <li>• Verifica el tipo de cifrado (SSL/TLS/STARTTLS)</li>
+                  </ul>
+                </div>
+                <div className="p-3 bg-red-50 rounded-lg">
+                  <strong>Error de autenticación:</strong>
+                  <ul className="mt-1 space-y-1 text-xs">
+                    <li>• Confirma usuario y contraseña</li>
+                    <li>• Para Gmail: usa contraseña de aplicación</li>
+                    <li>• Verifica que SMTP esté habilitado</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-sm mb-2">⚙️ Configuraciones Recomendadas</h3>
+              <div className="text-sm text-gray-600 space-y-2">
+                <div className="flex justify-between">
+                  <span>Timeout de conexión:</span>
+                  <span className="font-mono">60 segundos</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Cifrado más seguro:</span>
+                  <span className="font-mono">STARTTLS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Puerto estándar:</span>
+                  <span className="font-mono">587</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

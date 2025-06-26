@@ -1329,7 +1329,7 @@ export class DatabaseStorage implements IStorage {
         transporterConfig.service = 'hotmail';
       }
 
-      const transporter = nodemailer.createTransporter(transporterConfig);
+      const transporter = nodemailer.createTransport(transporterConfig);
 
       // Verify connection with timeout handling
       console.log(`Testing SMTP connection to ${configData.smtpHost}:${configData.smtpPort} with ${configData.encryption} encryption`);
