@@ -241,6 +241,39 @@ export default function StripeConfiguration() {
         </Alert>
       )}
 
+      {/* Setup Instructions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Info className="h-5 w-5" />
+            Instrucciones de Configuración
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">🔑 Cómo obtener las claves de Stripe:</h4>
+              <ol className="text-sm text-blue-800 space-y-2">
+                <li>1. Ve a <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener noreferrer" className="underline font-medium">dashboard.stripe.com/apikeys</a></li>
+                <li>2. <strong>Clave Pública:</strong> Copia tu "Publishable key" (comienza con pk_)</li>
+                <li>3. <strong>Clave Secreta:</strong> Copia tu "Secret key" (comienza con sk_)</li>
+                <li>4. Para webhooks: Ve a "Webhooks" y crea un endpoint con tu URL</li>
+              </ol>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h4 className="font-medium text-amber-900 mb-2">⚠️ Importante:</h4>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li>• Usa claves de <strong>prueba</strong> (test) durante desarrollo</li>
+                <li>• Cambia a <strong>producción</strong> (live) solo cuando esté listo</li>
+                <li>• Nunca compartas la clave secreta</li>
+                <li>• Sincroniza productos después de guardar la configuración</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Configuration Form */}
       <Card>
         <CardHeader>
