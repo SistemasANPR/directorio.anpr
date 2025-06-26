@@ -141,6 +141,8 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 26, 2025: COUNTRY SELECTION ENHANCED - Updated company registration forms to include Estados Unidos in country list, made Mexico states visible only when Mexico is selected, and removed city selection section to streamline location configuration process
+- June 26, 2025: FRONTEND CONFIGURATION SYSTEM COMPLETED - Implemented comprehensive visual customization system allowing administrators to configure header, menu, footer, contact information, social media links, and custom styling from dashboard
 - June 26, 2025: EMAIL CONFIGURATION LAYOUT OPTIMIZED - Adjusted email configuration interface layout to improve user experience with 2/3 column for forms and 1/3 for configuration guide, providing more working space while maintaining helpful documentation accessible
 - June 26, 2025: SMTP CONNECTION ENHANCED - Implemented comprehensive SMTP configuration improvements with extended timeouts (60s connection, 30s greeting), provider-specific configurations for Gmail/Outlook/SendGrid/Mailgun, enhanced error handling with specific troubleshooting messages, and automatic test email functionality during verification
 - June 23, 2025: WORDPRESS CONFIGURATION GUIDE ADDED - Enhanced WordPress integration settings with comprehensive step-by-step configuration guide including API credentials setup, MemberPress integration instructions, security recommendations, and testing URLs. Added professional UI cards with color-coded sections for easy understanding and implementation.
