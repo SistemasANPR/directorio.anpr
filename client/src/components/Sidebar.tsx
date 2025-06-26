@@ -144,6 +144,11 @@ const navigationItems: NavigationItem[] = [
         href: "/integracion",
         requireAdmin: true,
       },
+      {
+        name: "Configuración Frontend",
+        href: "/configuracion-frontend",
+        requireAdmin: true,
+      },
     ],
   },
 ];

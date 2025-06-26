@@ -244,6 +244,14 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/configuracion-frontend">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <FrontendConfiguration />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/empresa/:id">
         <PublicLayout>
           <CompanyDetails />
