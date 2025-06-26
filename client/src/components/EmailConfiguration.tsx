@@ -290,10 +290,14 @@ export default function EmailConfiguration() {
       setTestingConnection(false);
     },
     onError: (error: any) => {
+      console.error("Email test error:", error);
+      const errorMessage = error.message || "No se pudo enviar el correo de prueba";
+      
       toast({
         title: "❌ Error en la prueba",
-        description: error.message || "No se pudo enviar el correo de prueba",
+        description: errorMessage,
         variant: "destructive",
+        duration: 8000, // Show error longer
       });
       setTestingConnection(false);
     },
@@ -653,7 +657,7 @@ export default function EmailConfiguration() {
                       {testingConnection || testConnectionMutation.isPending ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2" />
-                          Probando...
+                          Conectando... (puede tomar hasta 60s)
                         </>
                       ) : (
                         <>

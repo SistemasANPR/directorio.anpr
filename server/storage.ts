@@ -1286,8 +1286,8 @@ export class DatabaseStorage implements IStorage {
 
   async testEmailConfiguration(configData: InsertEmailConfiguration): Promise<{ success: boolean; message: string }> {
     try {
-      // Create transporter
-      const transporter = nodemailer.createTransport({
+      // Create transporter with enhanced configuration
+      const transporterConfig: any = {
         host: configData.smtpHost,
         port: configData.smtpPort,
         secure: configData.encryption === 'ssl',
@@ -1295,14 +1295,62 @@ export class DatabaseStorage implements IStorage {
           user: configData.username,
           pass: configData.password,
         },
-        tls: {
-          ciphers: 'SSLv3',
-          rejectUnauthorized: false
-        }
-      });
+        connectionTimeout: 60000, // 60 seconds
+        greetingTimeout: 30000, // 30 seconds
+        socketTimeout: 60000, // 60 seconds
+      };
 
-      // Verify connection
-      await transporter.verify();
+      // Configure TLS/SSL based on encryption type
+      if (configData.encryption === 'starttls' || configData.encryption === 'tls') {
+        transporterConfig.requireTLS = true;
+        transporterConfig.tls = {
+          rejectUnauthorized: false,
+          servername: configData.smtpHost
+        };
+      } else if (configData.encryption === 'ssl') {
+        transporterConfig.secure = true;
+        transporterConfig.tls = {
+          rejectUnauthorized: false,
+          servername: configData.smtpHost
+        };
+      } else {
+        // No encryption
+        transporterConfig.secure = false;
+        transporterConfig.ignoreTLS = true;
+      }
+
+      // Special configurations for common providers
+      if (configData.provider === 'gmail') {
+        transporterConfig.service = 'gmail';
+        transporterConfig.tls = {
+          rejectUnauthorized: false
+        };
+      } else if (configData.provider === 'outlook') {
+        transporterConfig.service = 'hotmail';
+      }
+
+      const transporter = nodemailer.createTransporter(transporterConfig);
+
+      // Verify connection with timeout handling
+      console.log(`Testing SMTP connection to ${configData.smtpHost}:${configData.smtpPort} with ${configData.encryption} encryption`);
+      
+      try {
+        await transporter.verify();
+        console.log('SMTP connection verified successfully');
+      } catch (verifyError: any) {
+        console.error('SMTP verification failed:', verifyError);
+        
+        // Provide more specific error messages
+        if (verifyError.code === 'ETIMEDOUT' || verifyError.message.includes('Greeting never received')) {
+          throw new Error(`No se pudo conectar al servidor SMTP ${configData.smtpHost}:${configData.smtpPort}. Verifique que el servidor y puerto sean correctos, y que no haya firewall bloqueando la conexión.`);
+        } else if (verifyError.code === 'EAUTH') {
+          throw new Error('Error de autenticación: Verifique su usuario y contraseña SMTP.');
+        } else if (verifyError.code === 'ECONNREFUSED') {
+          throw new Error(`Conexión rechazada al servidor ${configData.smtpHost}:${configData.smtpPort}. Verifique que el servidor esté activo y el puerto sea correcto.`);
+        } else {
+          throw new Error(`Error de conexión SMTP: ${verifyError.message}`);
+        }
+      }
 
       // Determine email address for test email (use testEmail if provided, otherwise use fromEmail)
       const testEmailAddress = configData.testEmail || configData.fromEmail;
