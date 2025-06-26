@@ -64,7 +64,7 @@ const emailConfigSchema = z.object({
   encryption: z.enum(["none", "ssl", "tls", "starttls"]),
   username: z.string().min(1, "Usuario requerido"),
   password: z.string().min(1, "Contraseña requerida"),
-  testEmail: z.string().email("Email de prueba inválido").optional(),
+  testEmail: z.string().email("Email de prueba inválido").optional().or(z.literal("")),
 });
 
 type EmailConfigData = z.infer<typeof emailConfigSchema>;
@@ -626,7 +626,7 @@ export default function EmailConfiguration() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Email donde enviar el mensaje de prueba
+                          Email donde enviar el mensaje de prueba (opcional - si no se especifica, se enviará al email remitente)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -658,7 +658,7 @@ export default function EmailConfiguration() {
                       ) : (
                         <>
                           <Send className="h-4 w-4 mr-2" />
-                          Probar Conexión
+                          Probar y Enviar Email
                         </>
                       )}
                     </Button>
