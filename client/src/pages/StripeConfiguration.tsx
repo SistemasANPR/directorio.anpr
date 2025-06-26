@@ -287,6 +287,7 @@ export default function StripeConfiguration() {
                 <li>• Usa claves de <strong>prueba</strong> (test) durante desarrollo</li>
                 <li>• Cambia a <strong>producción</strong> (live) solo cuando esté listo</li>
                 <li>• Nunca compartas la clave secreta</li>
+                <li>• <strong>Normal:</strong> La clave secreta se borra después de guardar por seguridad</li>
                 <li>• Sincroniza productos después de guardar la configuración</li>
               </ul>
             </div>
