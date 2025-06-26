@@ -1,4 +1,4 @@
-// Países de América Latina
+// Países disponibles
 export const paisesAmericaLatina = [
   "Argentina",
   "Bolivia", 
@@ -9,6 +9,7 @@ export const paisesAmericaLatina = [
   "Cuba",
   "Ecuador",
   "El Salvador",
+  "Estados Unidos",
   "Guatemala",
   "Honduras",
   "México",

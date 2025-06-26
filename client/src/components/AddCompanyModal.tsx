@@ -929,7 +929,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 />
 
-                {/* Estados de México */}
+                {/* Estados de México - Solo mostrar si México está seleccionado */}
+                {form.watch("paisesPresencia")?.includes("México") && (
                 <FormField
                   control={form.control}
                   name="estadosPresencia"
@@ -951,12 +952,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 } else {
                                   newValues = currentValues.filter(e => e !== estado);
                                   setSelectedEstados(prev => prev.filter(e => e !== estado));
-                                  // También remover ciudades de este estado
-                                  const ciudadesForm = form.getValues("ciudadesPresencia") || [];
-                                  const ciudadesActualizadas = ciudadesForm.filter(
-                                    ciudad => !ciudad.includes(`, ${estado}`)
-                                  );
-                                  form.setValue("ciudadesPresencia", ciudadesActualizadas);
                                 }
                                 field.onChange(newValues);
                               }}
@@ -971,51 +966,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     </FormItem>
                   )}
                 />
-
-                {/* Ciudades de México (condicionadas a estados) */}
-                {selectedEstados.length > 0 && (
-                  <FormField
-                    control={form.control}
-                    name="ciudadesPresencia"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2">
-                        <FormLabel>Ciudades de México</FormLabel>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
-                          {getAvailableCiudades().map((ciudad) => (
-                            <div key={ciudad} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`ciudad-${ciudad}`}
-                                checked={field.value?.includes(ciudad) || false}
-                                onCheckedChange={(checked) => {
-                                  const currentValues = field.value || [];
-                                  let newValues;
-                                  if (checked) {
-                                    newValues = [...currentValues, ciudad];
-                                    setSelectedCiudades(prev => [...prev, ciudad]);
-                                  } else {
-                                    newValues = currentValues.filter(c => c !== ciudad);
-                                    setSelectedCiudades(prev => prev.filter(c => c !== ciudad));
-                                    // Remover dirección de esta ciudad
-                                    setDireccionesPorCiudad(prev => {
-                                      const newDirecciones = { ...prev };
-                                      delete newDirecciones[ciudad];
-                                      return newDirecciones;
-                                    });
-                                  }
-                                  field.onChange(newValues);
-                                }}
-                              />
-                              <label htmlFor={`ciudad-${ciudad}`} className="text-sm cursor-pointer">
-                                {ciudad}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 )}
+
+
 
                 {/* Descripción de la empresa */}
                 <FormField
