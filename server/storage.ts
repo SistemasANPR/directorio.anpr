@@ -1304,43 +1304,72 @@ export class DatabaseStorage implements IStorage {
       // Verify connection
       await transporter.verify();
 
-      // Send test email if testEmail is provided
-      if (configData.testEmail) {
-        const mailOptions = {
-          from: `"${configData.fromName}" <${configData.fromEmail}>`,
-          to: configData.testEmail,
-          subject: 'Configuración de correo exitosa - Directorio ANPR',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563eb;">¡Configuración exitosa!</h2>
-              <p>La configuración del servidor de correos se ha establecido correctamente.</p>
-              <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0;">Detalles de la configuración:</h3>
-                <ul>
-                  <li><strong>Proveedor:</strong> ${configData.provider}</li>
-                  <li><strong>Servidor SMTP:</strong> ${configData.smtpHost}:${configData.smtpPort}</li>
-                  <li><strong>Cifrado:</strong> ${configData.encryption.toUpperCase()}</li>
-                  <li><strong>Email remitente:</strong> ${configData.fromEmail}</li>
-                </ul>
+      // Determine email address for test email (use testEmail if provided, otherwise use fromEmail)
+      const testEmailAddress = configData.testEmail || configData.fromEmail;
+      
+      // Always send test email when testing connection
+      const currentDate = new Date().toLocaleString('es-MX', {
+        timeZone: 'America/Mexico_City',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const mailOptions = {
+        from: `"${configData.fromName}" <${configData.fromEmail}>`,
+        to: testEmailAddress,
+        subject: '✅ Prueba de Configuración SMTP - Directorio ANPR',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #22c55e; margin: 0; font-size: 28px;">✅ ¡Configuración Exitosa!</h1>
+              <p style="color: #6b7280; margin: 5px 0 0 0;">Prueba de conexión SMTP realizada correctamente</p>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 25px; border-radius: 12px; border-left: 4px solid #22c55e; margin: 20px 0;">
+              <h2 style="color: #16a34a; margin: 0 0 15px 0; font-size: 20px;">🔧 Detalles de la Configuración</h2>
+              <div style="background-color: white; padding: 15px; border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 8px 0; color: #374151; font-weight: bold;">Proveedor:</td><td style="padding: 8px 0; color: #1f2937;">${configData.provider.toUpperCase()}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #374151; font-weight: bold;">Servidor SMTP:</td><td style="padding: 8px 0; color: #1f2937;">${configData.smtpHost}:${configData.smtpPort}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #374151; font-weight: bold;">Cifrado:</td><td style="padding: 8px 0; color: #1f2937;">${configData.encryption.toUpperCase()}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #374151; font-weight: bold;">Email remitente:</td><td style="padding: 8px 0; color: #1f2937;">${configData.fromEmail}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #374151; font-weight: bold;">Nombre remitente:</td><td style="padding: 8px 0; color: #1f2937;">${configData.fromName}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #374151; font-weight: bold;">Fecha de prueba:</td><td style="padding: 8px 0; color: #1f2937;">${currentDate}</td></tr>
+                </table>
               </div>
-              <p>Este sistema ahora está listo para enviar notificaciones automáticas.</p>
-              <hr style="border: none; height: 1px; background-color: #e5e7eb; margin: 30px 0;">
-              <p style="color: #6b7280; font-size: 14px;">
-                Directorio de Proveedores de Equipamiento Urbano<br>
-                Sistema de notificaciones automáticas
+            </div>
+
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1e40af; margin: 0 0 10px 0;">📧 Sistema de Correos Activo</h3>
+              <p style="color: #374151; margin: 0; line-height: 1.6;">
+                El sistema de correos transaccionales está configurado correctamente y listo para:
+              </p>
+              <ul style="color: #374151; margin: 10px 0 0 0; padding-left: 20px;">
+                <li>Enviar notificaciones de bienvenida a nuevos usuarios</li>
+                <li>Notificar sobre vencimientos de membresías</li>
+                <li>Confirmar pagos y renovaciones automáticas</li>
+                <li>Enviar recordatorios y alertas del sistema</li>
+              </ul>
+            </div>
+
+            <div style="border-top: 2px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center;">
+              <p style="color: #6b7280; font-size: 14px; margin: 0;">
+                <strong>Directorio de Proveedores de Equipamiento Urbano</strong><br>
+                ANPR México - Sistema de Gestión Empresarial
               </p>
             </div>
-          `
-        };
+          </div>
+        `
+      };
 
-        await transporter.sendMail(mailOptions);
-      }
+      await transporter.sendMail(mailOptions);
 
       return {
         success: true,
-        message: configData.testEmail 
-          ? `Configuración válida. Email de prueba enviado a ${configData.testEmail}`
-          : "Configuración de correo válida"
+        message: `Configuración válida y email de prueba enviado a ${testEmailAddress}`
       };
     } catch (error: any) {
       console.error("Email test failed:", error);

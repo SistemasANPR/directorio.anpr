@@ -284,14 +284,14 @@ export default function EmailConfiguration() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Prueba exitosa",
+        title: "✅ Correo de prueba enviado",
         description: data.message || "La configuración de correo funciona correctamente",
       });
       setTestingConnection(false);
     },
     onError: (error: any) => {
       toast({
-        title: "Error en la prueba",
+        title: "❌ Error en la prueba",
         description: error.message || "No se pudo enviar el correo de prueba",
         variant: "destructive",
       });
