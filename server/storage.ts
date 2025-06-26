@@ -15,6 +15,7 @@ import {
   stripeConfigurationTable,
   emailConfiguration,
   emailTemplates,
+  frontendConfigurationTable,
   type User, 
   type Company, 
   type Category, 
@@ -47,6 +48,8 @@ import {
   type InsertEmailConfiguration,
   type EmailTemplate,
   type InsertEmailTemplate,
+  type FrontendConfiguration,
+  type InsertFrontendConfiguration,
   type CompanyWithDetails,
   type ProjectWithDetails
 } from "@shared/schema";
@@ -1527,6 +1530,32 @@ export class DatabaseStorage implements IStorage {
   async getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, stripeCustomerId));
     return user || undefined;
+  }
+
+  // Frontend Configuration methods
+  async getFrontendConfiguration(): Promise<FrontendConfiguration | undefined> {
+    const [config] = await db.select().from(frontendConfigurationTable).limit(1);
+    return config || undefined;
+  }
+
+  async createFrontendConfiguration(config: InsertFrontendConfiguration): Promise<FrontendConfiguration> {
+    const [created] = await db.insert(frontendConfigurationTable).values(config).returning();
+    return created;
+  }
+
+  async updateFrontendConfiguration(id: number, config: Partial<InsertFrontendConfiguration>): Promise<FrontendConfiguration | undefined> {
+    const updateData = {
+      ...config,
+      updatedAt: new Date(),
+    };
+
+    const [updated] = await db
+      .update(frontendConfigurationTable)
+      .set(updateData)
+      .where(eq(frontendConfigurationTable.id, id))
+      .returning();
+
+    return updated || undefined;
   }
 }
 

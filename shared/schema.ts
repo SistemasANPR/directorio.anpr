@@ -516,3 +516,102 @@ export const stripeConfigurationTable = pgTable("stripe_configuration", {
 
 export type StripeConfiguration = typeof stripeConfigurationTable.$inferSelect;
 export type InsertStripeConfiguration = typeof stripeConfigurationTable.$inferInsert;
+
+// Frontend Visual Configuration Schema
+export const frontendConfigurationTable = pgTable("frontend_configuration", {
+  id: serial("id").primaryKey(),
+  // Header Configuration
+  headerBackgroundColor: text("header_background_color").default("#ffffff"),
+  headerBackgroundImage: text("header_background_image"),
+  headerTextColor: text("header_text_color").default("#000000"),
+  logoUrl: text("logo_url"),
+  logoAltText: text("logo_alt_text").default("Logo"),
+  siteName: text("site_name").default("Directorio de Proveedores"),
+  siteSlogan: text("site_slogan"),
+  
+  // Navigation Menu Configuration
+  menuItems: jsonb("menu_items"), // Array of {label, href, icon, isVisible, order}
+  menuStyle: text("menu_style").default("horizontal"), // "horizontal" or "vertical"
+  menuBackgroundColor: text("menu_background_color").default("#ffffff"),
+  menuTextColor: text("menu_text_color").default("#000000"),
+  menuHoverColor: text("menu_hover_color").default("#3B82F6"),
+  showLoginButton: boolean("show_login_button").default(true),
+  showRegisterButton: boolean("show_register_button").default(true),
+  
+  // Footer Configuration
+  footerBackgroundColor: text("footer_background_color").default("#1e3a8a"),
+  footerTextColor: text("footer_text_color").default("#ffffff"),
+  footerBackgroundImage: text("footer_background_image"),
+  showFooterLogo: boolean("show_footer_logo").default(true),
+  
+  // Contact Information
+  companyName: text("company_name").default("ANPR México"),
+  contactPhone: text("contact_phone"),
+  contactEmail: text("contact_email"),
+  contactAddress: text("contact_address"),
+  contactHours: text("contact_hours"),
+  
+  // Social Media Configuration
+  socialMediaConfig: jsonb("social_media_config"), // Array of {platform, url, icon, isVisible, order}
+  
+  // Footer Sections
+  footerSections: jsonb("footer_sections"), // Array of {title, content, links, isVisible}
+  copyrightText: text("copyright_text").default("© 2025 Todos los derechos reservados"),
+  privacyPolicyUrl: text("privacy_policy_url").default("/privacy"),
+  termsOfServiceUrl: text("terms_of_service_url").default("/terms"),
+  
+  // General Style Configuration
+  primaryColor: text("primary_color").default("#3B82F6"),
+  secondaryColor: text("secondary_color").default("#10B981"),
+  accentColor: text("accent_color").default("#F59E0B"),
+  fontFamily: text("font_family").default("Inter"),
+  borderRadius: text("border_radius").default("8px"),
+  
+  // Custom CSS
+  customCss: text("custom_css"),
+  customHead: text("custom_head"), // Custom meta tags, scripts, etc.
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type FrontendConfiguration = typeof frontendConfigurationTable.$inferSelect;
+export type InsertFrontendConfiguration = typeof frontendConfigurationTable.$inferInsert;
+
+// Menu Items Schema for validation
+export const menuItemSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  href: z.string(),
+  icon: z.string().optional(),
+  isVisible: z.boolean().default(true),
+  order: z.number().default(0),
+  isExternal: z.boolean().default(false),
+});
+
+// Social Media Schema for validation
+export const socialMediaSchema = z.object({
+  id: z.string(),
+  platform: z.string(),
+  url: z.string(),
+  icon: z.string(),
+  isVisible: z.boolean().default(true),
+  order: z.number().default(0),
+});
+
+// Footer Section Schema for validation
+export const footerSectionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  content: z.string().optional(),
+  links: z.array(z.object({
+    label: z.string(),
+    url: z.string(),
+    isExternal: z.boolean().default(false),
+  })).optional(),
+  isVisible: z.boolean().default(true),
+  order: z.number().default(0),
+});
+
+export const insertFrontendConfigurationSchema = createInsertSchema(frontendConfigurationTable);
+export type InsertFrontendConfigurationType = z.infer<typeof insertFrontendConfigurationSchema>;
