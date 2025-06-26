@@ -1,20 +1,22 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -23,24 +25,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Settings, 
-  Globe, 
-  Key, 
-  CheckCircle, 
-  XCircle, 
-  Loader2, 
-  Users, 
-  RefreshCw,
-  AlertTriangle,
-  Info
-} from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Globe,
+  Users,
+  RefreshCw,
+  Key,
+  AlertTriangle,
+  Info,
+  Settings,
+  Save,
+} from "lucide-react";
 
 const integrationSchema = z.object({
   wordpressUrl: z.string().url("Debe ser una URL válida (ej: https://misitio.com)"),
@@ -61,6 +66,7 @@ type IntegrationFormData = z.infer<typeof integrationSchema>;
 
 export default function IntegrationSettings() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [connectionError, setConnectionError] = useState<string>("");
   const [lastSync, setLastSync] = useState<Date | null>(null);
@@ -229,274 +235,275 @@ export default function IntegrationSettings() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="wordpressUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL del sitio WordPress *</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="https://misitio.com"
-                        type="url"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Ingresa la URL completa de tu sitio WordPress (incluye https://)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="apiKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key *</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder="Tu API Key de WordPress"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="apiSecret"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Secret *</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder="Tu API Secret de WordPress"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="authMethod"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Método de Autenticación *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona el método de autenticación" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="rest_api">REST API con Token</SelectItem>
-                        <SelectItem value="jwt">JWT (JSON Web Token)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      REST API es más sencillo para la mayoría de sitios WordPress
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Connection Test */}
-              <div className="pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleTestConnection}
-                  disabled={testConnectionMutation.isPending}
-                  className="w-full"
-                >
-                  {testConnectionMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : connectionStatus === 'success' ? (
-                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                  ) : connectionStatus === 'error' ? (
-                    <XCircle className="h-4 w-4 mr-2 text-red-600" />
-                  ) : (
-                    <Key className="h-4 w-4 mr-2" />
-                  )}
-                  {testConnectionMutation.isPending ? 'Probando conexión...' : 'Probar Conexión'}
-                </Button>
-
-                {connectionStatus === 'error' && connectionError && (
-                  <Alert className="mt-3" variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>{connectionError}</AlertDescription>
-                  </Alert>
-                )}
-
-                {connectionStatus === 'success' && (
-                  <Alert className="mt-3">
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Conexión establecida correctamente. WordPress es accesible.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* MemberPress Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Configuración de MemberPress
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="memberPressEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Habilitar integración con MemberPress</FormLabel>
-                      <FormDescription>
-                        Sincroniza solo usuarios con membresías activas
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="allowedRoles"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Roles de usuario permitidos *</FormLabel>
-                    <FormDescription>
-                      Selecciona qué roles de WordPress pueden acceder al sistema
-                    </FormDescription>
-                    <div className="grid grid-cols-2 gap-2 pt-2">
-                      {['subscriber', 'member', 'contributor', 'author', 'editor'].map((role) => (
-                        <Label key={role} className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={field.value.includes(role)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                field.onChange([...field.value, role]);
-                              } else {
-                                field.onChange(field.value.filter(r => r !== role));
-                              }
-                            }}
-                          />
-                          <span className="capitalize">{role}</span>
-                        </Label>
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Sync Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5" />
-                Configuración de Sincronización
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="syncEnabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Sincronización automática</FormLabel>
-                      <FormDescription>
-                        Mantener usuarios sincronizados automáticamente
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              {form.watch('syncEnabled') && (
-                <FormField
-                  control={form.control}
-                  name="syncFrequency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frecuencia de sincronización</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormField
+                    control={form.control}
+                    name="wordpressUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>URL del sitio WordPress *</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona la frecuencia" />
-                          </SelectTrigger>
+                          <Input
+                            {...field}
+                            placeholder="https://misitio.com"
+                            type="url"
+                          />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="manual">Solo manual</SelectItem>
-                          <SelectItem value="hourly">Cada hora</SelectItem>
-                          <SelectItem value="daily">Diariamente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+                        <FormDescription>
+                          Ingresa la URL completa de tu sitio WordPress (incluye https://)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <Separator />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="apiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API Key *</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="Tu API Key de WordPress"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Sincronización manual</p>
-                  <p className="text-sm text-gray-600">
-                    {lastSync ? `Última sincronización: ${lastSync.toLocaleString()}` : 'No se ha sincronizado'}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSyncUsers}
-                  disabled={syncUsersMutation.isPending || connectionStatus !== 'success'}
-                >
-                  {syncUsersMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                  )}
-                  Sincronizar ahora
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                    <FormField
+                      control={form.control}
+                      name="apiSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API Secret *</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="Tu API Secret de WordPress"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="authMethod"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Método de Autenticación *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona el método de autenticación" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="rest_api">REST API con Token</SelectItem>
+                            <SelectItem value="jwt">JWT (JSON Web Token)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          REST API es más sencillo para la mayoría de sitios WordPress
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Connection Test */}
+                  <div className="pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleTestConnection}
+                      disabled={testConnectionMutation.isPending}
+                      className="w-full"
+                    >
+                      {testConnectionMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : connectionStatus === 'success' ? (
+                        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                      ) : connectionStatus === 'error' ? (
+                        <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                      ) : (
+                        <Key className="h-4 w-4 mr-2" />
+                      )}
+                      {testConnectionMutation.isPending ? 'Probando conexión...' : 'Probar Conexión'}
+                    </Button>
+
+                    {connectionStatus === 'error' && connectionError && (
+                      <Alert className="mt-3" variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>{connectionError}</AlertDescription>
+                      </Alert>
+                    )}
+
+                    {connectionStatus === 'success' && (
+                      <Alert className="mt-3">
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Conexión establecida correctamente. WordPress es accesible.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* MemberPress Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Configuración de MemberPress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="memberPressEnabled"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                          <FormLabel>Habilitar integración con MemberPress</FormLabel>
+                          <FormDescription>
+                            Sincroniza solo usuarios con membresías activas
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="allowedRoles"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Roles de usuario permitidos *</FormLabel>
+                        <FormDescription>
+                          Selecciona qué roles de WordPress pueden acceder al sistema
+                        </FormDescription>
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                          {['subscriber', 'member', 'contributor', 'author', 'editor'].map((role) => (
+                            <Label key={role} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={field.value.includes(role)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    field.onChange([...field.value, role]);
+                                  } else {
+                                    field.onChange(field.value.filter(r => r !== role));
+                                  }
+                                }}
+                              />
+                              <span className="capitalize">{role}</span>
+                            </Label>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Sync Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <RefreshCw className="h-5 w-5" />
+                    Configuración de Sincronización
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="syncEnabled"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                          <FormLabel>Sincronización automática</FormLabel>
+                          <FormDescription>
+                            Mantener usuarios sincronizados automáticamente
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="syncFrequency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Frecuencia de sincronización</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona la frecuencia" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="manual">Manual</SelectItem>
+                            <SelectItem value="hourly">Cada hora</SelectItem>
+                            <SelectItem value="daily">Diario</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          La sincronización automática se ejecutará según la frecuencia seleccionada
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-blue-900">Estado de Sincronización</h4>
+                        <p className="text-sm text-blue-800">
+                          {lastSync ? `Última sincronización: ${lastSync.toLocaleString()}` : 'No se ha sincronizado'}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleSyncUsers}
+                        disabled={syncUsersMutation.isPending || connectionStatus !== 'success'}
+                      >
+                        {syncUsersMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                        )}
+                        Sincronizar ahora
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-2">
