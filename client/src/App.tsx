@@ -36,6 +36,7 @@ import SystemSettings from "@/pages/SystemSettings";
 import PdfSettings from "@/pages/PdfSettings";
 import EmailConfigurationPage from "@/pages/EmailConfigurationPage";
 import StripeConfiguration from "@/pages/StripeConfiguration";
+import FrontendConfiguration from "@/pages/FrontendConfiguration";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import MainNavigation from "@/components/MainNavigation";

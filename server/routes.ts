@@ -7,7 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema } from "@shared/schema";
+import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema, insertFrontendConfigurationSchema } from "@shared/schema";
 import { z } from "zod";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -2133,6 +2133,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error syncing products:", error);
       res.status(500).json({ error: "Failed to sync products" });
+    }
+  });
+
+  // Frontend Configuration Routes
+  app.get("/api/frontend-config", async (req, res) => {
+    try {
+      const config = await storage.getFrontendConfiguration();
+      if (!config) {
+        // Return default configuration if none exists
+        res.json({
+          id: 0,
+          headerBackgroundColor: "#ffffff",
+          headerTextColor: "#000000",
+          siteName: "Directorio de Proveedores de Equipamiento Urbano",
+          menuBackgroundColor: "#ffffff",
+          menuTextColor: "#000000",
+          menuHoverColor: "#3B82F6",
+          showLoginButton: true,
+          showRegisterButton: true,
+          footerBackgroundColor: "#1e3a8a",
+          footerTextColor: "#ffffff",
+          showFooterLogo: true,
+          companyName: "ANPR México",
+          primaryColor: "#3B82F6",
+          secondaryColor: "#10B981",
+          accentColor: "#F59E0B",
+          copyrightText: "© 2025 Todos los derechos reservados",
+          menuItems: [
+            { id: "1", label: "Inicio", href: "/", icon: "Home", isVisible: true, order: 1 },
+            { id: "2", label: "Directorio", href: "/directorio", icon: "Building2", isVisible: true, order: 2 },
+            { id: "3", label: "Planes", href: "/planes", icon: "CreditCard", isVisible: true, order: 3 }
+          ],
+          socialMediaConfig: [
+            { id: "1", platform: "Facebook", url: "https://facebook.com/anprmexico", icon: "facebook", isVisible: true, order: 1 },
+            { id: "2", platform: "Twitter", url: "https://twitter.com/anprmexico", icon: "twitter", isVisible: true, order: 2 },
+            { id: "3", platform: "Instagram", url: "https://instagram.com/anprmexico", icon: "instagram", isVisible: true, order: 3 },
+            { id: "4", platform: "YouTube", url: "https://youtube.com/anprmexico", icon: "youtube", isVisible: true, order: 4 },
+            { id: "5", platform: "Spotify", url: "https://open.spotify.com/user/anprmexico", icon: "spotify", isVisible: true, order: 5 },
+            { id: "6", platform: "WhatsApp", url: "https://wa.me/5299994440600", icon: "whatsapp", isVisible: true, order: 6 }
+          ]
+        });
+      } else {
+        res.json(config);
+      }
+    } catch (error) {
+      console.error("Error fetching frontend configuration:", error);
+      res.status(500).json({ error: "Failed to fetch frontend configuration" });
+    }
+  });
+
+  app.post("/api/frontend-config", async (req, res) => {
+    try {
+      // Check if configuration exists
+      const existingConfig = await storage.getFrontendConfiguration();
+      
+      if (existingConfig) {
+        // Update existing configuration
+        const updatedConfig = await storage.updateFrontendConfiguration(existingConfig.id, req.body);
+        res.json(updatedConfig);
+      } else {
+        // Create new configuration
+        const newConfig = await storage.createFrontendConfiguration(req.body);
+        res.json(newConfig);
+      }
+    } catch (error) {
+      console.error("Error saving frontend configuration:", error);
+      res.status(500).json({ error: "Failed to save frontend configuration" });
+    }
+  });
+
+  // Upload endpoints for frontend assets
+  app.post("/api/frontend-config/upload-header-image", uploadImage.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image uploaded" });
+      }
+      
+      const imageUrl = `/uploads/images/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error("Error uploading header image:", error);
+      res.status(500).json({ error: "Failed to upload header image" });
+    }
+  });
+
+  app.post("/api/frontend-config/upload-footer-image", uploadImage.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image uploaded" });
+      }
+      
+      const imageUrl = `/uploads/images/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error("Error uploading footer image:", error);
+      res.status(500).json({ error: "Failed to upload footer image" });
+    }
+  });
+
+  app.post("/api/frontend-config/upload-logo", uploadImage.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No logo uploaded" });
+      }
+      
+      const logoUrl = `/uploads/images/${req.file.filename}`;
+      res.json({ logoUrl });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      res.status(500).json({ error: "Failed to upload logo" });
     }
   });
 

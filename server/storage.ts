@@ -206,6 +206,11 @@ export interface IStorage {
   // User Stripe Info
   updateUserStripeInfo(userId: number, stripeCustomerId: string, stripeSubscriptionId?: string): Promise<User | undefined>;
   getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined>;
+
+  // Frontend Configuration
+  getFrontendConfiguration(): Promise<FrontendConfiguration | undefined>;
+  createFrontendConfiguration(config: InsertFrontendConfiguration): Promise<FrontendConfiguration>;
+  updateFrontendConfiguration(id: number, config: Partial<InsertFrontendConfiguration>): Promise<FrontendConfiguration | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
