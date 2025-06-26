@@ -168,6 +168,26 @@ export default function StripeConfiguration() {
       });
       return;
     }
+
+    // Validate key formats
+    if (!formData.publicKey.startsWith('pk_')) {
+      toast({
+        title: "Clave pública inválida",
+        description: "La clave pública debe comenzar con 'pk_'",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.secretKey.startsWith('sk_')) {
+      toast({
+        title: "Clave secreta inválida", 
+        description: "La clave secreta debe comenzar con 'sk_'",
+        variant: "destructive",
+      });
+      return;
+    }
+
     saveConfigMutation.mutate(formData);
   };
 
