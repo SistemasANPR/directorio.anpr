@@ -215,71 +215,20 @@ export default function IntegrationSettings() {
         </AlertDescription>
       </Alert>
 
-      {/* Setup Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5" />
-            Instrucciones de Configuración
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">🔑 Cómo obtener las credenciales de WordPress:</h4>
-              <ol className="text-sm text-blue-800 space-y-2">
-                <li>1. <strong>Instalar plugin:</strong> Ve a Plugins → Añadir nuevo → Busca "Application Passwords" o "JWT Authentication"</li>
-                <li>2. <strong>Activar REST API:</strong> En Ajustes → Enlaces permanentes, asegúrate de tener URLs amigables</li>
-                <li>3. <strong>Crear credenciales:</strong> Ve a Usuarios → Tu perfil → Contraseñas de aplicación</li>
-                <li>4. <strong>API Key:</strong> Tu nombre de usuario de WordPress</li>
-                <li>5. <strong>API Secret:</strong> La contraseña de aplicación generada</li>
-                <li>6. <strong>Verificar permisos:</strong> El usuario debe tener permisos para gestionar usuarios</li>
-              </ol>
-            </div>
-            
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-medium text-green-900 mb-2">📋 Para MemberPress (opcional):</h4>
-              <ul className="text-sm text-green-800 space-y-1">
-                <li>• Instala y activa el plugin MemberPress</li>
-                <li>• Ve a MemberPress → Opciones → API → Habilitar API</li>
-                <li>• Copia la clave API generada automáticamente</li>
-                <li>• Configura los niveles de membresía que deseas sincronizar</li>
-              </ul>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <h4 className="font-medium text-amber-900 mb-2">⚠️ Importante:</h4>
-              <ul className="text-sm text-amber-800 space-y-1">
-                <li>• Usa HTTPS en tu sitio WordPress para mayor seguridad</li>
-                <li>• Las credenciales deben tener permisos de administrador o editor</li>
-                <li>• Prueba la conexión antes de activar la sincronización automática</li>
-                <li>• Los usuarios sincronizados tendrán acceso como "representantes"</li>
-              </ul>
-            </div>
-
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h4 className="font-medium text-purple-900 mb-2">🔗 URLs de prueba comunes:</h4>
-              <ul className="text-sm text-purple-800 space-y-1">
-                <li>• REST API: <code>https://tusitio.com/wp-json/wp/v2/users</code></li>
-                <li>• MemberPress: <code>https://tusitio.com/wp-json/mp/v1/members</code></li>
-                <li>• Verificar API: <code>https://tusitio.com/wp-json/</code></li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSaveSettings)} className="space-y-6">
-          {/* WordPress Connection Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Configuración de WordPress
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Configuration Form - Left Column */}
+        <div className="lg:col-span-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSaveSettings)} className="space-y-6">
+              {/* WordPress Connection Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Configuración de WordPress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="wordpressUrl"
@@ -549,23 +498,81 @@ export default function IntegrationSettings() {
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="submit"
-              disabled={saveSettingsMutation.isPending}
-              className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
-            >
-              {saveSettingsMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Settings className="h-4 w-4 mr-2" />
-              )}
-              Guardar Configuración
-            </Button>
-          </div>
-        </form>
-      </Form>
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="submit"
+                  disabled={saveSettingsMutation.isPending}
+                  className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                >
+                  {saveSettingsMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Settings className="h-4 w-4 mr-2" />
+                  )}
+                  Guardar Configuración
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+
+        {/* Instructions Panel - Right Column */}
+        <div className="lg:col-span-1">
+          <Card className="sticky top-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                Instrucciones de Configuración
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 mb-2">🔑 Cómo obtener las credenciales de WordPress:</h4>
+                  <ol className="text-sm text-blue-800 space-y-2">
+                    <li>1. <strong>Instalar plugin:</strong> Ve a Plugins → Añadir nuevo → Busca "Application Passwords" o "JWT Authentication"</li>
+                    <li>2. <strong>Activar REST API:</strong> En Ajustes → Enlaces permanentes, asegúrate de tener URLs amigables</li>
+                    <li>3. <strong>Crear credenciales:</strong> Ve a Usuarios → Tu perfil → Contraseñas de aplicación</li>
+                    <li>4. <strong>API Key:</strong> Tu nombre de usuario de WordPress</li>
+                    <li>5. <strong>API Secret:</strong> La contraseña de aplicación generada</li>
+                    <li>6. <strong>Verificar permisos:</strong> El usuario debe tener permisos para gestionar usuarios</li>
+                  </ol>
+                </div>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-medium text-green-900 mb-2">📋 Para MemberPress (opcional):</h4>
+                  <ul className="text-sm text-green-800 space-y-1">
+                    <li>• Instala y activa el plugin MemberPress</li>
+                    <li>• Ve a MemberPress → Opciones → API → Habilitar API</li>
+                    <li>• Copia la clave API generada automáticamente</li>
+                    <li>• Configura los niveles de membresía que deseas sincronizar</li>
+                  </ul>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <h4 className="font-medium text-amber-900 mb-2">⚠️ Importante:</h4>
+                  <ul className="text-sm text-amber-800 space-y-1">
+                    <li>• Usa HTTPS en tu sitio WordPress para mayor seguridad</li>
+                    <li>• Las credenciales deben tener permisos de administrador o editor</li>
+                    <li>• Prueba la conexión antes de activar la sincronización automática</li>
+                    <li>• Los usuarios sincronizados tendrán acceso como "representantes"</li>
+                  </ul>
+                </div>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h4 className="font-medium text-purple-900 mb-2">🔗 URLs de prueba comunes:</h4>
+                  <ul className="text-sm text-purple-800 space-y-1">
+                    <li>• REST API: <code>https://tusitio.com/wp-json/wp/v2/users</code></li>
+                    <li>• MemberPress: <code>https://tusitio.com/wp-json/mp/v1/members</code></li>
+                    <li>• Verificar API: <code>https://tusitio.com/wp-json/</code></li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
