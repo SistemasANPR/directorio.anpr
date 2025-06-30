@@ -844,7 +844,7 @@ export default function RepresentativeDashboard() {
                         <Badge className="bg-[#bcce16] text-black">Activo</Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
                         <div>
                           <p className="text-sm text-gray-500">Periodicidad</p>
                           <p className="font-semibold">{primaryCompany.membershipPeriodicidad}</p>
@@ -865,7 +865,7 @@ export default function RepresentativeDashboard() {
                           <p className="text-sm text-gray-500">Productos Permitidos</p>
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {currentMembership.cantidadProductosAdmitidos || 0}
+                              {(currentMembership.cantidadProductosAdmitidos === -1) ? 'Ilimitado' : (currentMembership.cantidadProductosAdmitidos || 0)}
                             </span>
                           </div>
                         </div>
@@ -873,7 +873,15 @@ export default function RepresentativeDashboard() {
                           <p className="text-sm text-gray-500">Proyectos Permitidos</p>
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              {currentMembership.cantidadProyectosAdmitidos || 0}
+                              {(currentMembership.cantidadProyectosAdmitidos === -1) ? 'Ilimitado' : (currentMembership.cantidadProyectosAdmitidos || 0)}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Fotos por Proyecto</p>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                              {(currentMembership.cantidadFotosPorProyecto === -1) ? 'Ilimitado' : (currentMembership.cantidadFotosPorProyecto || 5)}
                             </span>
                           </div>
                         </div>
