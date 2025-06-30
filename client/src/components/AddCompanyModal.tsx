@@ -221,6 +221,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   // Watch for changes in membership fields to auto-calculate dates
   const watchedFechaInicio = form.watch("fechaInicioMembresia");
   const watchedPeriodicidad = form.watch("membershipPeriodicidad");
+  const watchedMembershipTypeId = form.watch("membershipTypeId");
 
   useEffect(() => {
     if (watchedFechaInicio && watchedPeriodicidad) {
@@ -842,9 +843,20 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 <FormField
                   control={form.control}
                   name="certificateIds"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Certificados Disponibles</FormLabel>
+                  render={({ field }) => {
+                    const selectedMembershipId = form.watch("membershipTypeId");
+                    const selectedMembership = membershipTypes.find(m => m.id === selectedMembershipId);
+                    
+                    return (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel className="flex items-center gap-2">
+                          Certificados Disponibles
+                          {selectedMembership && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                              Plan: {selectedMembership.nombrePlan}
+                            </span>
+                          )}
+                        </FormLabel>
                       {certificates.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 max-h-48 overflow-y-auto border rounded-lg p-4">
                           {certificates.map((certificate) => (
@@ -893,7 +905,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                       )}
                       <FormMessage />
                     </FormItem>
-                  )}
+                    );
+                  }}
                 />
 
                 {/* Países con presencia */}
