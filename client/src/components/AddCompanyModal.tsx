@@ -88,6 +88,8 @@ interface AddCompanyModalProps {
 export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalProps) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>("");
+  const [fotoPortadaFile, setFotoPortadaFile] = useState<File | null>(null);
+  const [fotoPortadaPreview, setFotoPortadaPreview] = useState<string>("");
   const [selectedEstados, setSelectedEstados] = useState<string[]>([]);
   const [selectedCiudades, setSelectedCiudades] = useState<string[]>([]);
   const [catalogoFile, setCatalogoFile] = useState<File | null>(null);
@@ -187,6 +189,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       // Reset all state variables
       setLogoFile(null);
       setLogoPreview("");
+      setFotoPortadaFile(null);
+      setFotoPortadaPreview("");
       setSelectedEstados([]);
       setSelectedCiudades([]);
       setCatalogoFile(null);
@@ -295,6 +299,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       form.reset();
       setLogoFile(null);
       setLogoPreview("");
+      setFotoPortadaFile(null);
+      setFotoPortadaPreview("");
       setSelectedEstados([]);
       setVideosUrls([]);
       setEmailsAdicionales([]);
@@ -422,6 +428,47 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const removeLogo = () => {
     setLogoFile(null);
     setLogoPreview("");
+  };
+
+  // Manejo de la foto de portada con drag and drop
+  const handleFotoPortadaDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) { // 5MB
+      try {
+        const imageUrl = await uploadImage(file);
+        setFotoPortadaFile(file);
+        setFotoPortadaPreview(imageUrl);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Error al subir la foto de portada al servidor",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [toast]);
+
+  const handleFotoPortadaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const imageUrl = await uploadImage(file);
+        setFotoPortadaFile(file);
+        setFotoPortadaPreview(imageUrl);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Error al subir la foto de portada al servidor",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const removeFotoPortada = () => {
+    setFotoPortadaFile(null);
+    setFotoPortadaPreview("");
   };
 
   // Manejo del catálogo PDF con drag and drop

@@ -56,6 +56,7 @@ export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   nombreEmpresa: text("nombre_empresa").notNull(),
   logotipoUrl: text("logotipo_url"),
+  fotoPortadaUrl: text("foto_portada_url"),
   telefono1: text("telefono1"),
   telefono2: text("telefono2"),
   email1: text("email1").notNull(),
