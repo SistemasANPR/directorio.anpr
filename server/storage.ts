@@ -105,6 +105,7 @@ export interface IStorage {
   createMembershipType(membershipType: InsertMembershipType): Promise<MembershipType>;
   updateMembershipType(id: number, membershipType: Partial<InsertMembershipType>): Promise<MembershipType | undefined>;
   deleteMembershipType(id: number): Promise<boolean>;
+  clearMostPopularStatus(): Promise<void>;
 
   // Certificates
   getCertificate(id: number): Promise<Certificate | undefined>;
@@ -601,6 +602,10 @@ export class DatabaseStorage implements IStorage {
   async deleteMembershipType(id: number): Promise<boolean> {
     const result = await db.delete(membershipTypes).where(eq(membershipTypes.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async clearMostPopularStatus(): Promise<void> {
+    await db.update(membershipTypes).set({ masPopular: false });
   }
 
   // Certificates
