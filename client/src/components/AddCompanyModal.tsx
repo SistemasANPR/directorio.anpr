@@ -38,7 +38,7 @@ import {
   Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
   Tags, Building2, Car, Truck, Hammer, Factory, Cpu, Wrench, ShoppingBag,
   Briefcase, Heart, GraduationCap, Home, Coffee, Camera, Music,
-  Gamepad2, Book, Palette, Plane, Ship, Train, Zap
+  Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Crown
 } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
 import RichTextEditor from "./RichTextEditor";
@@ -970,6 +970,174 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
 
 
+                {/* Sección: Información de Membresía */}
+                <div className="md:col-span-2 space-y-6 p-6 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
+                  <div className="border-b border-amber-300 pb-4">
+                    <h3 className="text-lg font-semibold text-amber-800 flex items-center gap-2">
+                      <Crown className="h-5 w-5" />
+                      Información del Plan
+                    </h3>
+                    <p className="text-sm text-amber-700">Configuración del plan y método de pago</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Tipo de Membresía */}
+                    <FormField
+                      control={form.control}
+                      name="membershipTypeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Membresía</FormLabel>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value ? parseInt(value) : undefined);
+                            // Reset periodicidad when membership type changes
+                            form.setValue("membershipPeriodicidad", undefined);
+                            form.setValue("fechaFinMembresia", "");
+                          }} value={field.value?.toString()}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona un tipo de membresía" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {membershipTypes.map((type) => (
+                                <SelectItem key={type.id} value={type.id.toString()}>
+                                  {type.nombrePlan}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Periodicidad de Membresía */}
+                    <FormField
+                      control={form.control}
+                      name="membershipPeriodicidad"
+                      render={({ field }) => {
+                        const selectedMembershipId = form.watch("membershipTypeId");
+                        const selectedMembership = membershipTypes.find(m => m.id === selectedMembershipId);
+                        let opcionesPrecios = [];
+                        if (selectedMembership && selectedMembership.opcionesPrecios) {
+                          try {
+                            if (typeof selectedMembership.opcionesPrecios === 'string') {
+                              opcionesPrecios = JSON.parse(selectedMembership.opcionesPrecios);
+                            } else if (Array.isArray(selectedMembership.opcionesPrecios)) {
+                              opcionesPrecios = selectedMembership.opcionesPrecios;
+                            }
+                          } catch (error) {
+                            console.error("Error parsing opcionesPrecios:", error);
+                            opcionesPrecios = [];
+                          }
+                        }
+
+                        return (
+                          <FormItem>
+                            <FormLabel>Periodicidad</FormLabel>
+                            <Select 
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={!selectedMembershipId}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecciona periodicidad" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {opcionesPrecios.map((opcion: any, index: number) => (
+                                  <SelectItem key={index} value={opcion.periodicidad.toLowerCase()}>
+                                    {opcion.periodicidad.charAt(0).toUpperCase() + opcion.periodicidad.slice(1)} - ${opcion.costo}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+
+                    {/* Forma de Pago */}
+                    <FormField
+                      control={form.control}
+                      name="formaPago"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Forma de Pago</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona forma de pago" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="efectivo">Efectivo</SelectItem>
+                              <SelectItem value="transferencia">Transferencia</SelectItem>
+                              <SelectItem value="otro">Otro</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Fecha de Inicio */}
+                    <FormField
+                      control={form.control}
+                      name="fechaInicioMembresia"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Fecha de Inicio</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="date" 
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Fecha de Finalización */}
+                    <FormField
+                      control={form.control}
+                      name="fechaFinMembresia"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Fecha de Finalización</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Notas de Membresía */}
+                    <FormField
+                      control={form.control}
+                      name="notasMembresia"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Notas del Plan</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Notas adicionales sobre el plan, condiciones especiales, etc."
+                              rows={3}
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
                 {/* Descripción de la empresa */}
                 <FormField
                   control={form.control}
@@ -1393,170 +1561,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
               </div>
             </div>
 
-            {/* Sección: Información de Membresía */}
-            <div className="space-y-6">
-              <div className="border-b pb-4">
-                <h3 className="text-lg font-semibold text-primary">Información del Plan</h3>
-                <p className="text-sm text-gray-600">Configuración del plan y método de pago</p>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Tipo de Membresía */}
-                <FormField
-                  control={form.control}
-                  name="membershipTypeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Membresía</FormLabel>
-                      <Select onValueChange={(value) => {
-                        field.onChange(value ? parseInt(value) : undefined);
-                        // Reset periodicidad when membership type changes
-                        form.setValue("membershipPeriodicidad", undefined);
-                        form.setValue("fechaFinMembresia", "");
-                      }} value={field.value?.toString()}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un tipo de membresía" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {membershipTypes.map((type) => (
-                            <SelectItem key={type.id} value={type.id.toString()}>
-                              {type.nombrePlan}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Periodicidad de Membresía */}
-                <FormField
-                  control={form.control}
-                  name="membershipPeriodicidad"
-                  render={({ field }) => {
-                    const selectedMembershipId = form.watch("membershipTypeId");
-                    const selectedMembership = membershipTypes.find(m => m.id === selectedMembershipId);
-                    let opcionesPrecios = [];
-                    if (selectedMembership && selectedMembership.opcionesPrecios) {
-                      try {
-                        if (typeof selectedMembership.opcionesPrecios === 'string') {
-                          opcionesPrecios = JSON.parse(selectedMembership.opcionesPrecios);
-                        } else if (Array.isArray(selectedMembership.opcionesPrecios)) {
-                          opcionesPrecios = selectedMembership.opcionesPrecios;
-                        }
-                      } catch (error) {
-                        console.error("Error parsing opcionesPrecios:", error);
-                        opcionesPrecios = [];
-                      }
-                    }
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Periodicidad</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={!selectedMembershipId}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona periodicidad" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {opcionesPrecios.map((opcion: any, index: number) => (
-                              <SelectItem key={index} value={opcion.periodicidad.toLowerCase()}>
-                                {opcion.periodicidad.charAt(0).toUpperCase() + opcion.periodicidad.slice(1)} - ${opcion.costo}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
-
-                {/* Forma de Pago */}
-                <FormField
-                  control={form.control}
-                  name="formaPago"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Forma de Pago</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona forma de pago" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="efectivo">Efectivo</SelectItem>
-                          <SelectItem value="transferencia">Transferencia</SelectItem>
-                          <SelectItem value="otro">Otro</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Fecha de Inicio */}
-                <FormField
-                  control={form.control}
-                  name="fechaInicioMembresia"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fecha de Inicio</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="date" 
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Fecha de Finalización */}
-                <FormField
-                  control={form.control}
-                  name="fechaFinMembresia"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fecha de Finalización</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Notas de Membresía */}
-                <FormField
-                  control={form.control}
-                  name="notasMembresia"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Notas del Plan</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Notas adicionales sobre el plan, condiciones especiales, etc."
-                          rows={3}
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
 
             {/* Botones */}
             <div className="flex justify-end space-x-4 pt-6 border-t">

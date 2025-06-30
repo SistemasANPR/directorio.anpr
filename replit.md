@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 26, 2025: PLAN SECTION REPOSITIONED - Moved membership plan configuration section to the top of company registration form in admin dashboard for improved workflow efficiency and priority visibility
 - June 26, 2025: COUNTRY SELECTION ENHANCED - Updated company registration forms to include Estados Unidos in country list, made Mexico states visible only when Mexico is selected, and removed city selection section to streamline location configuration process
 - June 26, 2025: FRONTEND CONFIGURATION SYSTEM COMPLETED - Implemented comprehensive visual customization system allowing administrators to configure header, menu, footer, contact information, social media links, and custom styling from dashboard
 - June 26, 2025: EMAIL CONFIGURATION LAYOUT OPTIMIZED - Adjusted email configuration interface layout to improve user experience with 2/3 column for forms and 1/3 for configuration guide, providing more working space while maintaining helpful documentation accessible
