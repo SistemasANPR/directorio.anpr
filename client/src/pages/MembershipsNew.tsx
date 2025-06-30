@@ -200,6 +200,7 @@ export default function MembershipsNew() {
   const onSubmit = (data: MembershipFormData) => {
     const processedData = {
       ...data,
+      beneficios: data.beneficios ? data.beneficios.split('\n').filter(b => b.trim()) : [],
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
       cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
@@ -212,6 +213,7 @@ export default function MembershipsNew() {
   const onEditSubmit = (data: MembershipFormData) => {
     const processedData = {
       ...data,
+      beneficios: data.beneficios ? data.beneficios.split('\n').filter(b => b.trim()) : [],
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
       cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
@@ -227,11 +229,19 @@ export default function MembershipsNew() {
       ? membership.opcionesPrecios 
       : [{ periodicidad: "", costo: 0 }];
     
+    // Process beneficios field properly
+    let beneficiosText = "";
+    if (typeof membership.beneficios === 'string') {
+      beneficiosText = membership.beneficios;
+    } else if (Array.isArray(membership.beneficios)) {
+      beneficiosText = membership.beneficios.join('\n');
+    }
+
     editForm.reset({
       nombrePlan: membership.nombrePlan,
       descripcionPlan: membership.descripcionPlan || "",
       opcionesPrecios,
-      beneficios: Array.isArray(membership.beneficios) ? membership.beneficios.join('\n') : "",
+      beneficios: beneficiosText,
       visibilidad: (membership as any).visibilidad || "publica",
       masPopular: (membership as any).masPopular || false,
       cantidadProductosAdmitidos: (membership as any).cantidadProductosAdmitidos || 0,
