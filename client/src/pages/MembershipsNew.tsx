@@ -510,6 +510,7 @@ export default function MembershipsNew() {
                 <TableHead>Plan</TableHead>
                 <TableHead>Descripción</TableHead>
                 <TableHead>Precios</TableHead>
+                <TableHead>Límites</TableHead>
                 <TableHead>Visibilidad</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -538,6 +539,24 @@ export default function MembershipsNew() {
                     ) : (
                       <Badge variant="outline">No configurado</Badge>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-600">
+                        Productos: {(membership as any).cantidadProductosAdmitidos === -1 ? (
+                          <Badge variant="secondary" className="text-xs">Ilimitado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">{(membership as any).cantidadProductosAdmitidos || 0}</Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Proyectos: {(membership as any).cantidadProyectosAdmitidos === -1 ? (
+                          <Badge variant="secondary" className="text-xs">Ilimitado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">{(membership as any).cantidadProyectosAdmitidos || 0}</Badge>
+                        )}
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant={(membership as any).visibilidad === "privada" ? "secondary" : "default"}>
@@ -710,47 +729,91 @@ export default function MembershipsNew() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="cantidadProductosAdmitidos"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Límite de Productos</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          value={field.value || 0}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-3">
+                  <FormField
+                    control={editForm.control}
+                    name="cantidadProductosAdmitidos"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Límite de Productos</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || 0}
+                            disabled={editForm.watch("productosIlimitados")}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="productosIlimitados"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm text-gray-600">
+                            Sin límite de productos
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <FormField
-                  control={editForm.control}
-                  name="cantidadProyectosAdmitidos"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Límite de Proyectos</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          value={field.value || 0}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-3">
+                  <FormField
+                    control={editForm.control}
+                    name="cantidadProyectosAdmitidos"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Límite de Proyectos</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || 0}
+                            disabled={editForm.watch("proyectosIlimitados")}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="proyectosIlimitados"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm text-gray-600">
+                            Sin límite de proyectos
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               <FormField
