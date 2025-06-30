@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertProjectSchema } from "@shared/schema";
-import type { ProjectWithDetails, Category } from "@shared/schema";
+import type { ProjectWithDetails, Category, CompanyWithDetails } from "@shared/schema";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
@@ -57,7 +57,7 @@ export default function AddProjectModal({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Obtener información de la empresa y su plan de membresía
-  const { data: companyData } = useQuery({
+  const { data: companyData } = useQuery<CompanyWithDetails>({
     queryKey: [`/api/companies/${companyId}`],
     enabled: !!companyId,
   });
