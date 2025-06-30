@@ -49,6 +49,7 @@ export const membershipTypes = pgTable("membership_types", {
   cantidadProductosAdmitidos: integer("cantidad_productos_admitidos").default(0), // Cantidad de productos permitidos
   cantidadProyectosAdmitidos: integer("cantidad_proyectos_admitidos").default(0), // Cantidad de proyectos permitidos
   cantidadFotosPorProyecto: integer("cantidad_fotos_por_proyecto").default(5), // Cantidad de fotos permitidas por proyecto
+  masPopular: boolean("mas_popular").default(false).notNull(), // Marcar como plan más popular
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
