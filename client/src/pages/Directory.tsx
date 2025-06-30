@@ -365,7 +365,7 @@ export default function Directory() {
             <Link href="/planes">
               <Button 
                 size="lg" 
-                className="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 Regístrate como empresa
               </Button>
