@@ -233,6 +233,7 @@ export default function MembershipsNew() {
       opcionesPrecios,
       beneficios: Array.isArray(membership.beneficios) ? membership.beneficios.join('\n') : "",
       visibilidad: (membership as any).visibilidad || "publica",
+      masPopular: (membership as any).masPopular || false,
       cantidadProductosAdmitidos: (membership as any).cantidadProductosAdmitidos || 0,
       cantidadProyectosAdmitidos: (membership as any).cantidadProyectosAdmitidos || 0,
       cantidadFotosPorProyecto: (membership as any).cantidadFotosPorProyecto || 5,
@@ -542,6 +543,29 @@ export default function MembershipsNew() {
 
                 <FormField
                   control={form.control}
+                  name="masPopular"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-medium">
+                          Plan más popular
+                        </FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          Este plan aparecerá destacado como "Más Popular" en la página pública
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="beneficios"
                   render={({ field }) => (
                     <FormItem>
@@ -594,7 +618,14 @@ export default function MembershipsNew() {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Crown className="h-4 w-4 text-yellow-500" />
-                      {membership.nombrePlan}
+                      <div className="flex flex-col gap-1">
+                        <span>{membership.nombrePlan}</span>
+                        {(membership as any).masPopular && (
+                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 w-fit">
+                            Más Popular
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -938,6 +969,29 @@ export default function MembershipsNew() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={editForm.control}
+                name="masPopular"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-medium">
+                        Plan más popular
+                      </FormLabel>
+                      <p className="text-xs text-muted-foreground">
+                        Este plan aparecerá destacado como "Más Popular" en la página pública
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={editForm.control}

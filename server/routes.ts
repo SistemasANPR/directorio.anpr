@@ -662,6 +662,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const membershipTypeData = insertMembershipTypeSchema.partial().parse(req.body);
+      
+      // If marking this plan as most popular, unmark all others
+      if (membershipTypeData.masPopular === true) {
+        await storage.clearMostPopularStatus();
+      }
+      
       const membershipType = await storage.updateMembershipType(id, membershipTypeData);
       if (!membershipType) {
         return res.status(404).json({ error: "Membership type not found" });

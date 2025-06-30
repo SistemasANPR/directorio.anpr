@@ -357,10 +357,10 @@ export default function PublicMemberships() {
                 
                 return (
                 <Card key={membership.id} className={`relative hover:shadow-xl transition-all duration-300 border-2 ${colorScheme.border} group hover:-translate-y-2 flex flex-col h-full`}>
-                  {/* Popular Badge for middle plan */}
-                  {index === 1 && (
+                  {/* Popular Badge based on database field */}
+                  {(membership as any).masPopular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <Badge className={`${colorScheme.bg} text-white px-4 py-1`}>
+                      <Badge className="bg-green-600 text-white px-4 py-1">
                         Más Popular
                       </Badge>
                     </div>
