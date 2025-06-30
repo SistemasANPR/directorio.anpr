@@ -86,9 +86,6 @@ const membershipSchema = z.object({
 
 type MembershipFormData = z.infer<typeof membershipSchema>;
 
-// Type for backend data without the checkbox fields
-type MembershipBackendData = Omit<MembershipFormData, 'productosIlimitados' | 'proyectosIlimitados' | 'fotosIlimitadas'>;
-
 export default function MembershipsNew() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -137,7 +134,7 @@ export default function MembershipsNew() {
 
   // Create membership mutation
   const createMutation = useMutation({
-    mutationFn: async (data: MembershipBackendData) => {
+    mutationFn: async (data: any) => {
       const response = await apiRequest("POST", "/api/membership-types", data);
       return response.json();
     },
@@ -158,7 +155,7 @@ export default function MembershipsNew() {
 
   // Update membership mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: MembershipBackendData) => {
+    mutationFn: async (data: any) => {
       const response = await apiRequest("PUT", `/api/membership-types/${selectedMembership?.id}`, data);
       return response.json();
     },
@@ -198,31 +195,27 @@ export default function MembershipsNew() {
   });
 
   const onSubmit = (data: MembershipFormData) => {
-    const finalData: MembershipBackendData = {
-      nombrePlan: data.nombrePlan,
-      descripcionPlan: data.descripcionPlan,
-      opcionesPrecios: data.opcionesPrecios,
-      beneficios: data.beneficios,
-      visibilidad: data.visibilidad,
+    const processedData = {
+      ...data,
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
       cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
     };
-    createMutation.mutate(finalData);
+    // Remove the checkbox fields from the data sent to backend
+    const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
+    createMutation.mutate(finalData as any);
   };
 
   const onEditSubmit = (data: MembershipFormData) => {
-    const finalData: MembershipBackendData = {
-      nombrePlan: data.nombrePlan,
-      descripcionPlan: data.descripcionPlan,
-      opcionesPrecios: data.opcionesPrecios,
-      beneficios: data.beneficios,
-      visibilidad: data.visibilidad,
+    const processedData = {
+      ...data,
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
       cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
     };
-    updateMutation.mutate(finalData);
+    // Remove the checkbox fields from the data sent to backend
+    const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
+    updateMutation.mutate(finalData as any);
   };
 
   const handleEdit = (membership: MembershipType) => {
