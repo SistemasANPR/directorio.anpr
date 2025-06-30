@@ -410,8 +410,37 @@ export default function PublicMemberships() {
                     )}
                     
                     <div className="flex-1">
+                      {/* Límites del Plan */}
+                      <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                          <Crown className="h-4 w-4 mr-2" />
+                          Límites del Plan
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Productos:</span>
+                            <span className="font-medium text-gray-900">
+                              {(membership as any).cantidadProductosAdmitidos === -1 ? 'Ilimitado' : ((membership as any).cantidadProductosAdmitidos || 0)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Proyectos:</span>
+                            <span className="font-medium text-gray-900">
+                              {(membership as any).cantidadProyectosAdmitidos === -1 ? 'Ilimitado' : ((membership as any).cantidadProyectosAdmitidos || 0)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Fotos por proyecto:</span>
+                            <span className="font-medium text-gray-900">
+                              {(membership as any).cantidadFotosPorProyecto === -1 ? 'Ilimitado' : ((membership as any).cantidadFotosPorProyecto || 5)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
                       {membership.beneficios && (
                         <div className="space-y-3 mb-8">
+                          <h4 className="font-semibold text-gray-900 mb-3">Beneficios Incluidos</h4>
                           {(typeof membership.beneficios === 'string' 
                             ? membership.beneficios.split('\n').filter((b: string) => b.trim())
                             : Array.isArray(membership.beneficios) 
