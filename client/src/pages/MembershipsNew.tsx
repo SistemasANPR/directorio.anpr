@@ -215,8 +215,10 @@ export default function MembershipsNew() {
       visibilidad: (membership as any).visibilidad || "publica",
       cantidadProductosAdmitidos: (membership as any).cantidadProductosAdmitidos || 0,
       cantidadProyectosAdmitidos: (membership as any).cantidadProyectosAdmitidos || 0,
+      cantidadFotosPorProyecto: (membership as any).cantidadFotosPorProyecto || 5,
       productosIlimitados: (membership as any).cantidadProductosAdmitidos === -1,
       proyectosIlimitados: (membership as any).cantidadProyectosAdmitidos === -1,
+      fotosIlimitadas: (membership as any).cantidadFotosPorProyecto === -1,
     });
     setIsEditModalOpen(true);
   };
@@ -475,6 +477,49 @@ export default function MembershipsNew() {
                   </div>
                 </div>
 
+                <div className="space-y-3">
+                  <FormField
+                    control={form.control}
+                    name="cantidadFotosPorProyecto"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Límite de Fotos por Proyecto</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="5"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                            value={field.value || 5}
+                            disabled={form.watch("fotosIlimitadas")}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="fotosIlimitadas"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm text-gray-600">
+                            Sin límite de fotos por proyecto
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="beneficios"
@@ -562,6 +607,13 @@ export default function MembershipsNew() {
                           <Badge variant="secondary" className="text-xs">Ilimitado</Badge>
                         ) : (
                           <Badge variant="outline" className="text-xs">{(membership as any).cantidadProyectosAdmitidos || 0}</Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Fotos/Proyecto: {(membership as any).cantidadFotosPorProyecto === -1 ? (
+                          <Badge variant="secondary" className="text-xs">Ilimitado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">{(membership as any).cantidadFotosPorProyecto || 5}</Badge>
                         )}
                       </div>
                     </div>
@@ -822,6 +874,49 @@ export default function MembershipsNew() {
                     )}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-3">
+                <FormField
+                  control={editForm.control}
+                  name="cantidadFotosPorProyecto"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Límite de Fotos por Proyecto</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="5"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                          value={field.value || 5}
+                          disabled={editForm.watch("fotosIlimitadas")}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="fotosIlimitadas"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm text-gray-600">
+                          Sin límite de fotos por proyecto
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField

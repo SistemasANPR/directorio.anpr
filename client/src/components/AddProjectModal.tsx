@@ -26,11 +26,15 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, GripVertical, X, Upload } from "lucide-react";
 
-const projectFormSchema = insertProjectSchema.extend({
-  galeriaImagenes: z.array(z.instanceof(File)).max(4, "Máximo 4 imágenes").optional(),
+// Crear el esquema dinámico basado en el límite de fotos
+const createProjectFormSchema = (maxPhotos: number) => insertProjectSchema.extend({
+  galeriaImagenes: z.array(z.instanceof(File)).max(
+    maxPhotos === Infinity ? 999 : maxPhotos, 
+    `Máximo ${maxPhotos === Infinity ? "ilimitadas" : maxPhotos} imágenes`
+  ).optional(),
 });
 
-type ProjectFormData = z.infer<typeof projectFormSchema>;
+type ProjectFormData = z.infer<ReturnType<typeof createProjectFormSchema>>;
 
 interface AddProjectModalProps {
   open: boolean;
@@ -51,6 +55,17 @@ export default function AddProjectModal({
   const queryClient = useQueryClient();
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Obtener información de la empresa y su plan de membresía
+  const { data: companyData } = useQuery({
+    queryKey: [`/api/companies/${companyId}`],
+    enabled: !!companyId,
+  });
+
+  // Obtener límite de fotos por proyecto basado en el plan de membresía
+  const maxPhotos = companyData?.membershipType?.cantidadFotosPorProyecto === -1 
+    ? Infinity 
+    : (companyData?.membershipType?.cantidadFotosPorProyecto || 5);
 
   const editor = useEditor({
     extensions: [
