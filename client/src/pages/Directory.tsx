@@ -365,7 +365,17 @@ export default function Directory() {
             <Link href="/planes">
               <Button 
                 size="lg" 
-                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg text-blue-900"
+                style={{
+                  backgroundColor: 'rgb(188, 206, 22)',
+                  borderColor: 'rgb(188, 206, 22)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgb(170, 186, 20)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgb(188, 206, 22)';
+                }}
               >
                 Regístrate como empresa
               </Button>
