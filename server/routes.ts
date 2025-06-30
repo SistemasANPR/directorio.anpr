@@ -1451,6 +1451,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PUT endpoint without ID - creates or updates automatically
+  app.put("/api/integration-settings", async (req, res) => {
+    try {
+      const validatedData = insertIntegrationSettingsSchema.partial().parse(req.body);
+      
+      // Check if settings already exist
+      const existingSettings = await storage.getIntegrationSettings();
+      
+      let settings;
+      if (existingSettings) {
+        // Update existing settings
+        settings = await storage.updateIntegrationSettings(existingSettings.id, validatedData);
+      } else {
+        // Create new settings
+        const completeData = insertIntegrationSettingsSchema.parse(req.body);
+        settings = await storage.createIntegrationSettings(completeData);
+      }
+      
+      res.json(settings);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.put("/api/integration-settings/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);

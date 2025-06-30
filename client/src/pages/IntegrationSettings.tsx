@@ -93,17 +93,25 @@ export default function IntegrationSettings() {
   // Reset form when settings are loaded
   useEffect(() => {
     if (settings && typeof settings === 'object') {
+      const settingsData = settings as any;
       form.reset({
-        wordpressUrl: (settings as any).wordpressUrl || "",
-        apiKey: (settings as any).apiKey || "",
-        apiSecret: (settings as any).apiSecret || "",
-        authMethod: (settings as any).authMethod || "rest_api",
-        syncEnabled: (settings as any).syncEnabled ?? true,
-        syncFrequency: (settings as any).syncFrequency || "daily",
-        memberPressEnabled: (settings as any).memberPressEnabled ?? true,
-        allowedRoles: (settings as any).allowedRoles || ["subscriber", "member"],
+        wordpressUrl: settingsData.wordpressUrl || "",
+        apiKey: settingsData.apiKey || "",
+        apiSecret: settingsData.apiSecret || "",
+        authMethod: settingsData.authMethod || "rest_api",
+        syncEnabled: settingsData.syncEnabled ?? true,
+        syncFrequency: settingsData.syncFrequency || "daily",
+        memberPressEnabled: settingsData.memberPressEnabled ?? true,
+        allowedRoles: settingsData.allowedRoles || ["subscriber", "member"],
       });
-      setLastSync((settings as any).lastSync ? new Date((settings as any).lastSync) : null);
+      setLastSync(settingsData.lastSync ? new Date(settingsData.lastSync) : null);
+      
+      // Set connection status based on whether we have saved configuration
+      if (settingsData.wordpressUrl && settingsData.apiKey && settingsData.apiSecret) {
+        setConnectionStatus('success');
+      } else {
+        setConnectionStatus('idle');
+      }
     }
   }, [settings, form]);
 
@@ -116,12 +124,22 @@ export default function IntegrationSettings() {
       setConnectionStatus('testing');
       setConnectionError("");
     },
-    onSuccess: (response) => {
+    onSuccess: async (response, variables) => {
       setConnectionStatus('success');
-      toast({
-        title: "Conexión exitosa",
-        description: "La conexión con WordPress se estableció correctamente",
-      });
+      // Auto-save configuration after successful connection test
+      try {
+        await saveSettingsMutation.mutateAsync(variables);
+        toast({
+          title: "Conexión exitosa y configuración guardada",
+          description: "La conexión con WordPress se estableció correctamente y la configuración se guardó automáticamente",
+        });
+      } catch (saveError) {
+        toast({
+          title: "Conexión exitosa",
+          description: "La conexión fue exitosa, pero hubo un error al guardar la configuración automáticamente",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error: any) => {
       setConnectionStatus('error');
@@ -210,6 +228,11 @@ export default function IntegrationSettings() {
         <Badge variant={connectionStatus === 'success' ? 'default' : 'secondary'}>
           {connectionStatus === 'success' ? 'Conectado' : 'Desconectado'}
         </Badge>
+        {connectionStatus === 'success' && (
+          <p className="text-sm text-green-600 mt-1">
+            ✓ Configuración guardada y lista para usar
+          </p>
+        )}
       </div>
 
       <Alert>
