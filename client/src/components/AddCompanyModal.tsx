@@ -242,6 +242,42 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     queryKey: ["/api/certificates"],
   });
 
+  // Auto-load certificates when membership type changes
+  useEffect(() => {
+    if (watchedMembershipTypeId && certificates.length > 0) {
+      // Find certificates assigned to this membership plan
+      const membershipCertificates = certificates.filter(cert => {
+        if (!cert.membershipPlanIds) return false;
+        
+        // Handle both array and string JSON formats
+        let planIds = [];
+        try {
+          if (typeof cert.membershipPlanIds === 'string') {
+            planIds = JSON.parse(cert.membershipPlanIds);
+          } else if (Array.isArray(cert.membershipPlanIds)) {
+            planIds = cert.membershipPlanIds;
+          }
+          return planIds.includes(watchedMembershipTypeId);
+        } catch (error) {
+          console.error('Error parsing membershipPlanIds:', error);
+          return false;
+        }
+      });
+
+      // Set the certificate IDs in the form
+      const certificateIds = membershipCertificates.map(cert => cert.id);
+      form.setValue("certificateIds", certificateIds);
+      
+      // Show toast notification if certificates were loaded
+      if (certificateIds.length > 0) {
+        toast({
+          title: "Certificados cargados",
+          description: `Se han cargado ${certificateIds.length} certificado(s) del plan seleccionado.`,
+        });
+      }
+    }
+  }, [watchedMembershipTypeId, certificates, form, toast]);
+
   const createCompanyMutation = useMutation({
     mutationFn: async (data: CompanyFormData) => {
       const result = await apiRequest("POST", "/api/companies", data);
@@ -857,54 +893,54 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                             </span>
                           )}
                         </FormLabel>
-                      {certificates.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 max-h-48 overflow-y-auto border rounded-lg p-4">
-                          {certificates.map((certificate) => (
-                            <div key={certificate.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                              <Checkbox
-                                id={`certificate-${certificate.id}`}
-                                checked={field.value?.includes(certificate.id) || false}
-                                onCheckedChange={(checked) => {
-                                  const currentValues = field.value || [];
-                                  if (checked) {
-                                    field.onChange([...currentValues, certificate.id]);
-                                  } else {
-                                    field.onChange(currentValues.filter(id => id !== certificate.id));
-                                  }
-                                }}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <label
-                                  htmlFor={`certificate-${certificate.id}`}
-                                  className="text-sm font-medium leading-none cursor-pointer block"
-                                >
-                                  {certificate.nombreCertificado}
-                                </label>
-                                {certificate.entidadEmisora && (
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    Emisor: {certificate.entidadEmisora}
-                                  </p>
+                        {certificates.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 max-h-48 overflow-y-auto border rounded-lg p-4">
+                            {certificates.map((certificate) => (
+                              <div key={certificate.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                                <Checkbox
+                                  id={`certificate-${certificate.id}`}
+                                  checked={field.value?.includes(certificate.id) || false}
+                                  onCheckedChange={(checked) => {
+                                    const currentValues = field.value || [];
+                                    if (checked) {
+                                      field.onChange([...currentValues, certificate.id]);
+                                    } else {
+                                      field.onChange(currentValues.filter(id => id !== certificate.id));
+                                    }
+                                  }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <label
+                                    htmlFor={`certificate-${certificate.id}`}
+                                    className="text-sm font-medium leading-none cursor-pointer block"
+                                  >
+                                    {certificate.nombreCertificado}
+                                  </label>
+                                  {certificate.entidadEmisora && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      Emisor: {certificate.entidadEmisora}
+                                    </p>
+                                  )}
+                                </div>
+                                {certificate.imagenUrl && (
+                                  <img 
+                                    src={certificate.imagenUrl} 
+                                    alt={certificate.nombreCertificado}
+                                    className="w-8 h-8 object-cover rounded"
+                                  />
                                 )}
                               </div>
-                              {certificate.imagenUrl && (
-                                <img 
-                                  src={certificate.imagenUrl} 
-                                  alt={certificate.nombreCertificado}
-                                  className="w-8 h-8 object-cover rounded"
-                                />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-6 text-gray-500">
-                          <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                          <p className="mt-2 text-sm">No hay certificados disponibles</p>
-                          <p className="text-xs">Crea certificados primero en la sección correspondiente</p>
-                        </div>
-                      )}
-                      <FormMessage />
-                    </FormItem>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 text-gray-500">
+                            <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                            <p className="mt-2 text-sm">No hay certificados disponibles</p>
+                            <p className="text-xs">Crea certificados primero en la sección correspondiente</p>
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
                     );
                   }}
                 />

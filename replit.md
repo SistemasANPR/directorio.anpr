@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 30, 2025: AUTOMATIC CERTIFICATE LOADING - Implemented automatic certificate loading when selecting membership type in admin company registration form. System now filters and loads certificates assigned to specific membership plans, shows visual indicators for plan-included certificates, and displays toast notifications when certificates are automatically loaded
 - June 30, 2025: STRIPE CONNECTION STATUS ENHANCED - Added "Conectado" badge and confirmation message to Stripe configuration page to clearly show connection status when secret keys are hidden, preventing user confusion about configuration state
 - June 30, 2025: WORDPRESS CONNECTION PERSISTENCE COMPLETED - Implemented automatic saving of WordPress configuration after successful connection test, persistent connection status display with "Conectado" message, and password-type fields for API credentials security
 - June 26, 2025: PLAN SECTION REPOSITIONED - Moved membership plan configuration section to the top of company registration form in admin dashboard for improved workflow efficiency and priority visibility
