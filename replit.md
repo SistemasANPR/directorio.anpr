@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 30, 2025: MEMBERSHIP LIMITS DISPLAY FIXED - Corrected frontend display of membership plan limits in representative dashboard to show "Ilimitado" when values are -1 instead of placeholder text. Fixed validation schema for unlimited options in membership form creation and editing.
 - June 30, 2025: COVER PHOTO UPLOAD FEATURE - Added fotoPortadaUrl field to company schema, implemented drag-and-drop upload interface in admin registration form with preview functionality and server-side image processing for company cover photos
 - June 30, 2025: PROJECT MANAGEMENT FRONTEND RESTRICTIONS - Removed project creation, editing, and deletion capabilities from public company views. Project management now exclusively handled through dashboard interfaces for security and workflow clarity
 - June 30, 2025: CERTIFICATES SIDEBAR REPOSITIONING - Relocated certificates and recognitions section from main content area to right sidebar, positioned below service categories for improved layout organization and better use of space
