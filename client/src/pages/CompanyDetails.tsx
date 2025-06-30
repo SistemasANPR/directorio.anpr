@@ -39,23 +39,7 @@ export default function CompanyDetails() {
     },
   });
 
-  // Function to check if user can manage projects for this company
-  const canManageProjects = () => {
-    if (!user || !company) return false;
-    
-    // Admin can manage all projects
-    if (isAdmin) return true;
-    
-    // Company owner can manage their own projects
-    if (company.userId === user.id) return true;
-    
-    // Sales representatives can manage projects
-    if (company.representantesVentas && Array.isArray(company.representantesVentas)) {
-      return company.representantesVentas.includes(user.id);
-    }
-    
-    return false;
-  };
+
 
   // Function to get video ID from YouTube URLs
   const getYouTubeVideoId = (url: string) => {
