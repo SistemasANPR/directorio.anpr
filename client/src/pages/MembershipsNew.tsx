@@ -61,8 +61,10 @@ const membershipSchema = z.object({
   visibilidad: z.enum(["publica", "privada"]).default("publica"),
   cantidadProductosAdmitidos: z.number().min(0, "La cantidad debe ser mayor o igual a 0").default(0),
   cantidadProyectosAdmitidos: z.number().min(0, "La cantidad debe ser mayor o igual a 0").default(0),
+  cantidadFotosPorProyecto: z.number().min(1, "La cantidad debe ser mayor a 0").default(5),
   productosIlimitados: z.boolean().default(false),
   proyectosIlimitados: z.boolean().default(false),
+  fotosIlimitadas: z.boolean().default(false),
 });
 
 type MembershipFormData = z.infer<typeof membershipSchema>;

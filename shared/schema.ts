@@ -48,6 +48,7 @@ export const membershipTypes = pgTable("membership_types", {
   stripeProductId: text("stripe_product_id"), // ID del producto en Stripe
   cantidadProductosAdmitidos: integer("cantidad_productos_admitidos").default(0), // Cantidad de productos permitidos
   cantidadProyectosAdmitidos: integer("cantidad_proyectos_admitidos").default(0), // Cantidad de proyectos permitidos
+  cantidadFotosPorProyecto: integer("cantidad_fotos_por_proyecto").default(5), // Cantidad de fotos permitidas por proyecto
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
