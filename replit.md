@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 30, 2025: CERTIFICATES SIDEBAR REPOSITIONING - Relocated certificates and recognitions section from main content area to right sidebar, positioned below service categories for improved layout organization and better use of space
 - June 30, 2025: AUTOMATIC CERTIFICATE LOADING - Implemented automatic certificate loading when selecting membership type in admin company registration form. System now filters and loads certificates assigned to specific membership plans, shows visual indicators for plan-included certificates, and displays toast notifications when certificates are automatically loaded
 - June 30, 2025: STRIPE CONNECTION STATUS ENHANCED - Added "Conectado" badge and confirmation message to Stripe configuration page to clearly show connection status when secret keys are hidden, preventing user confusion about configuration state
 - June 30, 2025: WORDPRESS CONNECTION PERSISTENCE COMPLETED - Implemented automatic saving of WordPress configuration after successful connection test, persistent connection status display with "Conectado" message, and password-type fields for API credentials security
