@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -83,6 +84,8 @@ export default function MembershipsNew() {
       visibilidad: "publica",
       cantidadProductosAdmitidos: 0,
       cantidadProyectosAdmitidos: 0,
+      productosIlimitados: false,
+      proyectosIlimitados: false,
     },
   });
 
@@ -96,6 +99,8 @@ export default function MembershipsNew() {
       visibilidad: "publica",
       cantidadProductosAdmitidos: 0,
       cantidadProyectosAdmitidos: 0,
+      productosIlimitados: false,
+      proyectosIlimitados: false,
     },
   });
 
@@ -167,11 +172,25 @@ export default function MembershipsNew() {
   });
 
   const onSubmit = (data: MembershipFormData) => {
-    createMutation.mutate(data);
+    const processedData = {
+      ...data,
+      cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
+      cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
+    };
+    // Remove the checkbox fields from the data sent to backend
+    const { productosIlimitados, proyectosIlimitados, ...finalData } = processedData;
+    createMutation.mutate(finalData);
   };
 
   const onEditSubmit = (data: MembershipFormData) => {
-    updateMutation.mutate(data);
+    const processedData = {
+      ...data,
+      cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
+      cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
+    };
+    // Remove the checkbox fields from the data sent to backend
+    const { productosIlimitados, proyectosIlimitados, ...finalData } = processedData;
+    updateMutation.mutate(finalData);
   };
 
   const handleEdit = (membership: MembershipType) => {
@@ -188,6 +207,8 @@ export default function MembershipsNew() {
       visibilidad: (membership as any).visibilidad || "publica",
       cantidadProductosAdmitidos: (membership as any).cantidadProductosAdmitidos || 0,
       cantidadProyectosAdmitidos: (membership as any).cantidadProyectosAdmitidos || 0,
+      productosIlimitados: (membership as any).cantidadProductosAdmitidos === -1,
+      proyectosIlimitados: (membership as any).cantidadProyectosAdmitidos === -1,
     });
     setIsEditModalOpen(true);
   };
@@ -359,47 +380,91 @@ export default function MembershipsNew() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cantidadProductosAdmitidos"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Límite de Productos</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            value={field.value || 0}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="cantidadProductosAdmitidos"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Límite de Productos</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              value={field.value || 0}
+                              disabled={form.watch("productosIlimitados")}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="productosIlimitados"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm text-gray-600">
+                              Sin límite de productos
+                            </FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="cantidadProyectosAdmitidos"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Límite de Proyectos</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            value={field.value || 0}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="cantidadProyectosAdmitidos"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Límite de Proyectos</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              value={field.value || 0}
+                              disabled={form.watch("proyectosIlimitados")}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="proyectosIlimitados"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm text-gray-600">
+                              Sin límite de proyectos
+                            </FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
                 <FormField
