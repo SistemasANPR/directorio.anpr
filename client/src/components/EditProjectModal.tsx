@@ -98,9 +98,10 @@ export default function EditProjectModal({
   const handleImageUpload = useCallback((files: FileList | null) => {
     if (!files) return;
     
-    const newFiles = Array.from(files).slice(0, 4 - imageFiles.length);
+    const maxAllowed = maxPhotos === Infinity ? 99 : maxPhotos;
+    const newFiles = Array.from(files).slice(0, maxAllowed - imageFiles.length);
     setImageFiles(prev => [...prev, ...newFiles]);
-  }, [imageFiles.length]);
+  }, [imageFiles.length, maxPhotos]);
 
   const removeImage = useCallback((index: number) => {
     setImageFiles(prev => prev.filter((_, i) => i !== index));
@@ -131,8 +132,11 @@ export default function EditProjectModal({
     setDraggedIndex(null);
   };
 
+  // Crear el esquema dinámico para validación
+  const dynamicSchema = createProjectFormSchema(maxPhotos);
+  
   const form = useForm<ProjectFormData>({
-    resolver: zodResolver(projectFormSchema),
+    resolver: zodResolver(dynamicSchema),
     defaultValues: {
       companyId,
       nombreProyecto: project?.nombreProyecto || "",
@@ -512,12 +516,12 @@ export default function EditProjectModal({
                       type="button"
                       variant="outline"
                       onClick={() => document.getElementById('image-upload-edit')?.click()}
-                      disabled={imageFiles.length >= 4}
+                      disabled={maxPhotos !== Infinity && imageFiles.length >= maxPhotos}
                     >
                       Seleccionar Imágenes
                     </Button>
                     <p className="text-xs text-gray-500 mt-1">
-                      {imageFiles.length}/4 imágenes
+                      {imageFiles.length}/{maxPhotos === Infinity ? "∞" : maxPhotos} imágenes
                     </p>
                   </div>
 
