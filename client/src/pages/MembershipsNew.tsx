@@ -86,8 +86,10 @@ export default function MembershipsNew() {
       visibilidad: "publica",
       cantidadProductosAdmitidos: 0,
       cantidadProyectosAdmitidos: 0,
+      cantidadFotosPorProyecto: 5,
       productosIlimitados: false,
       proyectosIlimitados: false,
+      fotosIlimitadas: false,
     },
   });
 
@@ -101,8 +103,10 @@ export default function MembershipsNew() {
       visibilidad: "publica",
       cantidadProductosAdmitidos: 0,
       cantidadProyectosAdmitidos: 0,
+      cantidadFotosPorProyecto: 5,
       productosIlimitados: false,
       proyectosIlimitados: false,
+      fotosIlimitadas: false,
     },
   });
 
@@ -178,9 +182,10 @@ export default function MembershipsNew() {
       ...data,
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
+      cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
     };
     // Remove the checkbox fields from the data sent to backend
-    const { productosIlimitados, proyectosIlimitados, ...finalData } = processedData;
+    const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
     createMutation.mutate(finalData);
   };
 
@@ -189,9 +194,10 @@ export default function MembershipsNew() {
       ...data,
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
+      cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
     };
     // Remove the checkbox fields from the data sent to backend
-    const { productosIlimitados, proyectosIlimitados, ...finalData } = processedData;
+    const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
     updateMutation.mutate(finalData);
   };
 
