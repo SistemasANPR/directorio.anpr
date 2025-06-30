@@ -377,6 +377,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         redesSociales: redesSociales,
         // Agregar logo si existe
         logotipoUrl: logoPreview || null,
+        // Agregar foto de portada si existe
+        fotoPortadaUrl: fotoPortadaPreview || null,
       };
       
       createCompanyMutation.mutate(companyData);
@@ -436,7 +438,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) { // 5MB
       try {
-        const imageUrl = await uploadImage(file);
+        const imageUrl = await uploadImageToServer(file);
         setFotoPortadaFile(file);
         setFotoPortadaPreview(imageUrl);
       } catch (error) {
@@ -453,7 +455,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const imageUrl = await uploadImage(file);
+        const imageUrl = await uploadImageToServer(file);
         setFotoPortadaFile(file);
         setFotoPortadaPreview(imageUrl);
       } catch (error) {
@@ -839,7 +841,56 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   </div>
                 </FormItem>
 
-
+                {/* Foto de Portada con drag and drop */}
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Foto de Portada de la Empresa</FormLabel>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors"
+                    onDrop={handleFotoPortadaDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    {fotoPortadaPreview ? (
+                      <div className="relative">
+                        <img
+                          src={fotoPortadaPreview}
+                          alt="Preview Portada"
+                          className="max-h-40 w-full object-cover mx-auto rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={removeFotoPortada}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            Arrastra y suelta tu foto de portada aquí, o{" "}
+                            <label className="text-primary cursor-pointer hover:underline">
+                              selecciona un archivo
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFotoPortadaSelect}
+                              />
+                            </label>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Imagen para mostrar como banner principal de la empresa<br />
+                            Formatos: JPG, PNG, GIF (máx. 5MB) - Recomendado: 1200x400px
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </FormItem>
 
                 {/* Videos dinámicos */}
                 <div className="space-y-4">
