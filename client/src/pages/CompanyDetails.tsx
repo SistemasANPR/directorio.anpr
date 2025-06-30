@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import CompanyLocationMap from "@/components/CompanyLocationMap";
 import ReviewModal from "@/components/ReviewModal";
 import QuotationModal from "@/components/QuotationModal";
-import AddProjectModal from "@/components/AddProjectModal";
-import EditProjectModal from "@/components/EditProjectModal";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,14 +23,11 @@ export default function CompanyDetails() {
   const queryClient = useQueryClient();
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [quotationModalOpen, setQuotationModalOpen] = useState(false);
-  const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
   const [selectedProject, setSelectedProject] = useState<ProjectWithDetails | null>(null);
-  const [editProjectModalOpen, setEditProjectModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<ProjectWithDetails | null>(null);
   const [, setLocation] = useLocation();
 
   const { data: company, isLoading } = useQuery({
@@ -102,42 +98,7 @@ export default function CompanyDetails() {
     },
   });
 
-  // Delete project mutation
-  const deleteProjectMutation = useMutation({
-    mutationFn: async (projectId: number) => {
-      const response = await apiRequest("DELETE", `/api/projects/${projectId}`);
-      if (!response.ok) {
-        throw new Error("Error al eliminar el proyecto");
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: "Proyecto eliminado",
-        description: "El proyecto se ha eliminado correctamente",
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/companies/${id}/projects`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/companies`, id] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Error al eliminar el proyecto",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Helper functions for project management
-  const handleEditProject = (project: ProjectWithDetails) => {
-    setEditingProject(project);
-    setEditProjectModalOpen(true);
-  };
-
-  const handleDeleteProject = async (project: ProjectWithDetails) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el proyecto "${project.nombreProyecto}"?`)) {
-      deleteProjectMutation.mutate(project.id);
-    }
-  };
 
 
 
@@ -345,23 +306,10 @@ export default function CompanyDetails() {
             {/* Portafolio de Proyectos */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center">
-                    <FolderOpen className="h-5 w-5 mr-2" />
-                    Portafolio de Proyectos
-                  </CardTitle>
-                  {canManageProjects() && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setProjectModalOpen(true)}
-                      className="gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Agregar Proyecto
-                    </Button>
-                  )}
-                </div>
+                <CardTitle className="flex items-center">
+                  <FolderOpen className="h-5 w-5 mr-2" />
+                  Portafolio de Proyectos
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {projects && projects.length > 0 ? (
@@ -416,7 +364,7 @@ export default function CompanyDetails() {
                             )}
                           </div>
 
-                          {/* Botones de acción */}
+                          {/* Botón de acción */}
                           <div className="space-y-2">
                             <Button 
                               variant="outline" 
@@ -426,31 +374,6 @@ export default function CompanyDetails() {
                             >
                               Ver Detalles
                             </Button>
-                            
-                            {/* Botones de editar/eliminar para usuarios autorizados */}
-                            {canManageProjects() && (
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex-1"
-                                  onClick={() => handleEditProject(project)}
-                                >
-                                  <Edit className="h-4 w-4 mr-1" />
-                                  Editar
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => handleDeleteProject(project)}
-                                  disabled={deleteProjectMutation.isPending}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-1" />
-                                  Eliminar
-                                </Button>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -459,17 +382,7 @@ export default function CompanyDetails() {
                 ) : (
                   <div className="text-center py-8">
                     <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">Aún no hay proyectos registrados</p>
-                    {canManageProjects() && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setProjectModalOpen(true)}
-                        className="gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Agregar Primer Proyecto
-                      </Button>
-                    )}
+                    <p className="text-gray-500">Aún no hay proyectos registrados</p>
                   </div>
                 )}
               </CardContent>
@@ -1060,28 +973,7 @@ export default function CompanyDetails() {
         companyName={company?.nombreEmpresa || ""}
       />
 
-      {/* Modal de Proyectos */}
-      <AddProjectModal
-        open={projectModalOpen}
-        onOpenChange={setProjectModalOpen}
-        companyId={parseInt(id || "0")}
-        onSuccess={() => {
-          // Refrescar la lista de proyectos
-        }}
-      />
 
-      {/* Modal de Edición de Proyectos */}
-      {editingProject && (
-        <EditProjectModal
-          open={editProjectModalOpen}
-          onOpenChange={setEditProjectModalOpen}
-          project={editingProject}
-          companyId={parseInt(id || "0")}
-          onSuccess={() => {
-            setEditingProject(null);
-          }}
-        />
-      )}
 
       {/* Modal de Video */}
       <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
