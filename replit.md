@@ -141,6 +141,7 @@ Preferred communication style: Simple, everyday language.
 ## Changelog
 
 Recent Changes:
+- June 30, 2025: STRIPE CONNECTION STATUS ENHANCED - Added "Conectado" badge and confirmation message to Stripe configuration page to clearly show connection status when secret keys are hidden, preventing user confusion about configuration state
 - June 30, 2025: WORDPRESS CONNECTION PERSISTENCE COMPLETED - Implemented automatic saving of WordPress configuration after successful connection test, persistent connection status display with "Conectado" message, and password-type fields for API credentials security
 - June 26, 2025: PLAN SECTION REPOSITIONED - Moved membership plan configuration section to the top of company registration form in admin dashboard for improved workflow efficiency and priority visibility
 - June 26, 2025: COUNTRY SELECTION ENHANCED - Updated company registration forms to include Estados Unidos in country list, made Mexico states visible only when Mexico is selected, and removed city selection section to streamline location configuration process
