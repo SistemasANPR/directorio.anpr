@@ -349,6 +349,30 @@ export default function Directory() {
           </div>
         </div>
       </div>
+
+      {/* CTA Section */}
+      <div className="bg-gradient-to-r from-blue-900 to-blue-800">
+        <div className="max-w-7xl mx-auto px-4 py-16">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              ¿Es Usted un Proveedor de Equipamiento<br />
+              Urbano o Parques?
+            </h2>
+            <p className="text-blue-100 text-lg md:text-xl mb-8 max-w-3xl mx-auto leading-relaxed">
+              Regístrese y conecte con miles de proyectos y clientes potenciales en todo América 
+              Latina. Muestre sus soluciones a la audiencia correcta.
+            </p>
+            <Link href="/planes">
+              <Button 
+                size="lg" 
+                className="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Regístrate como empresa
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
