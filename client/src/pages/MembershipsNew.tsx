@@ -59,15 +59,35 @@ const membershipSchema = z.object({
   })).min(1, "Debe agregar al menos una opción de precio"),
   beneficios: z.string().optional(),
   visibilidad: z.enum(["publica", "privada"]).default("publica"),
-  cantidadProductosAdmitidos: z.number().min(0, "La cantidad debe ser mayor o igual a 0").default(0),
-  cantidadProyectosAdmitidos: z.number().min(0, "La cantidad debe ser mayor o igual a 0").default(0),
+  cantidadProductosAdmitidos: z.number().default(0),
+  cantidadProyectosAdmitidos: z.number().default(0),
   cantidadFotosPorProyecto: z.number().min(1, "La cantidad debe ser mayor a 0").default(5),
   productosIlimitados: z.boolean().default(false),
   proyectosIlimitados: z.boolean().default(false),
   fotosIlimitadas: z.boolean().default(false),
+}).superRefine((data, ctx) => {
+  // Validar cantidades solo cuando las opciones ilimitadas NO están activadas
+  if (!data.productosIlimitados && data.cantidadProductosAdmitidos < 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La cantidad debe ser mayor o igual a 0",
+      path: ["cantidadProductosAdmitidos"]
+    });
+  }
+  
+  if (!data.proyectosIlimitados && data.cantidadProyectosAdmitidos < 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La cantidad debe ser mayor o igual a 0",
+      path: ["cantidadProyectosAdmitidos"]
+    });
+  }
 });
 
 type MembershipFormData = z.infer<typeof membershipSchema>;
+
+// Type for backend data without the checkbox fields
+type MembershipBackendData = Omit<MembershipFormData, 'productosIlimitados' | 'proyectosIlimitados' | 'fotosIlimitadas'>;
 
 export default function MembershipsNew() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -117,7 +137,7 @@ export default function MembershipsNew() {
 
   // Create membership mutation
   const createMutation = useMutation({
-    mutationFn: async (data: MembershipFormData) => {
+    mutationFn: async (data: MembershipBackendData) => {
       const response = await apiRequest("POST", "/api/membership-types", data);
       return response.json();
     },
@@ -138,7 +158,7 @@ export default function MembershipsNew() {
 
   // Update membership mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: MembershipFormData) => {
+    mutationFn: async (data: MembershipBackendData) => {
       const response = await apiRequest("PUT", `/api/membership-types/${selectedMembership?.id}`, data);
       return response.json();
     },
@@ -178,26 +198,30 @@ export default function MembershipsNew() {
   });
 
   const onSubmit = (data: MembershipFormData) => {
-    const processedData = {
-      ...data,
+    const finalData: MembershipBackendData = {
+      nombrePlan: data.nombrePlan,
+      descripcionPlan: data.descripcionPlan,
+      opcionesPrecios: data.opcionesPrecios,
+      beneficios: data.beneficios,
+      visibilidad: data.visibilidad,
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
       cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
     };
-    // Remove the checkbox fields from the data sent to backend
-    const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
     createMutation.mutate(finalData);
   };
 
   const onEditSubmit = (data: MembershipFormData) => {
-    const processedData = {
-      ...data,
+    const finalData: MembershipBackendData = {
+      nombrePlan: data.nombrePlan,
+      descripcionPlan: data.descripcionPlan,
+      opcionesPrecios: data.opcionesPrecios,
+      beneficios: data.beneficios,
+      visibilidad: data.visibilidad,
       cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
       cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
       cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
     };
-    // Remove the checkbox fields from the data sent to backend
-    const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
     updateMutation.mutate(finalData);
   };
 
