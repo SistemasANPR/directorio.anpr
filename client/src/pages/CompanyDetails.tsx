@@ -596,8 +596,8 @@ export default function CompanyDetails() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Play className="h-5 w-5 mr-2" />
-                    Videos Empresariales
+                    <Video className="h-5 w-5 mr-2" />
+                    Videos Corporativos
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -760,31 +760,47 @@ export default function CompanyDetails() {
             {company.catalogoDigitalUrl && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Catálogo Digital</CardTitle>
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Catálogo Digital
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button 
-                    className="w-full"
-                    onClick={() => {
-                      // Try to open in new tab first
-                      const newWindow = window.open(company.catalogoDigitalUrl, '_blank', 'noopener,noreferrer');
-                      
-                      // If popup blocked, create a temporary link and click it
-                      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                        const link = document.createElement('a');
-                        link.href = company.catalogoDigitalUrl;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        link.download = `catalogo-${company.nombreEmpresa}.pdf`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }
-                    }}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Ver Catálogo
-                  </Button>
+                  <div className="relative group">
+                    <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
+                          <FileText className="h-8 w-8 text-blue-600" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600 mb-2">Descarga nuestro catálogo completo</p>
+                        <p className="text-xs text-gray-500">Productos y servicios detallados</p>
+                      </div>
+                    </div>
+                    <Button 
+                      className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                      onClick={() => {
+                        // Try to open in new tab first
+                        const newWindow = window.open(company.catalogoDigitalUrl, '_blank', 'noopener,noreferrer');
+                        
+                        // If popup blocked, create a temporary link and click it
+                        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                          const link = document.createElement('a');
+                          link.href = company.catalogoDigitalUrl;
+                          link.target = '_blank';
+                          link.rel = 'noopener noreferrer';
+                          link.download = `catalogo-${company.nombreEmpresa}.pdf`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ver Catálogo Digital
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
