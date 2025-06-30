@@ -226,16 +226,26 @@ export default function StripeConfiguration() {
             Configura las claves de API de Stripe para procesar pagos
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {isConfigured && (
-            <Badge variant={currentConfig.environment === "live" ? "default" : "secondary"}>
-              {currentConfig.environment === "live" ? "Producción" : "Pruebas"}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
+            <Badge variant={isConfigured ? "default" : "secondary"}>
+              {isConfigured ? "Conectado" : "Desconectado"}
             </Badge>
-          )}
+            {isConfigured && (
+              <Badge variant={currentConfig.environment === "live" ? "default" : "secondary"}>
+                {currentConfig.environment === "live" ? "Producción" : "Pruebas"}
+              </Badge>
+            )}
+            {isConfigured && (
+              <Badge variant={currentConfig.isActive ? "default" : "secondary"}>
+                {currentConfig.isActive ? "Activo" : "Inactivo"}
+              </Badge>
+            )}
+          </div>
           {isConfigured && (
-            <Badge variant={currentConfig.isActive ? "default" : "secondary"}>
-              {currentConfig.isActive ? "Activo" : "Inactivo"}
-            </Badge>
+            <p className="text-sm text-green-600">
+              ✓ Configuración guardada y procesando pagos
+            </p>
           )}
         </div>
       </div>
