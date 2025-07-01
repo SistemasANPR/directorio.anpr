@@ -250,6 +250,18 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     queryKey: ["/api/certificates"],
   });
 
+  // Get the selected membership type to use its limits
+  const selectedMembershipType = membershipTypes.find(type => type.id === watchedMembershipTypeId);
+  
+  // Calculate dynamic limits based on selected plan
+  const maxProductImages = selectedMembershipType?.cantidadProductosAdmitidos === -1 
+    ? Infinity 
+    : (selectedMembershipType?.cantidadProductosAdmitidos || 10);
+  
+  const maxProjects = selectedMembershipType?.cantidadProyectosAdmitidos === -1 
+    ? Infinity 
+    : (selectedMembershipType?.cantidadProyectosAdmitidos || 5);
+
   // Auto-load certificates when membership type changes
   useEffect(() => {
     if (watchedMembershipTypeId && certificates.length > 0) {
@@ -1457,7 +1469,12 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
                 {/* Galería de Fotografías */}
                 <div className="md:col-span-2">
-                  <FormLabel>Galería de Fotografías (máx. 10 imágenes)</FormLabel>
+                  <FormLabel>
+                    Galería de Fotografías (máx. {maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes)
+                    {!selectedMembershipType && (
+                      <span className="text-sm text-gray-500 ml-2">- Selecciona un plan de membresía primero</span>
+                    )}
+                  </FormLabel>
                   <div
                     className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors mt-2"
                     onDrop={handleGaleriaDrop}
@@ -1484,7 +1501,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                               </Button>
                             </div>
                           ))}
-                          {galeriaFiles.length < 10 && (
+                          {galeriaFiles.length < (maxProductImages === Infinity ? 999 : maxProductImages) && selectedMembershipType && (
                             <label className="w-full h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
                               <Plus className="h-8 w-8 text-gray-400" />
                               <input
@@ -1498,7 +1515,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           )}
                         </div>
                         <p className="text-xs text-gray-500">
-                          {galeriaFiles.length}/10 imágenes • Arrastra más imágenes o haz clic en + para agregar
+                          {galeriaFiles.length}/{maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes • Arrastra más imágenes o haz clic en + para agregar
                         </p>
                       </div>
                     ) : (
