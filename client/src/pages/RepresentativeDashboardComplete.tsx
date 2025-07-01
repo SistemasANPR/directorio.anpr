@@ -1137,7 +1137,10 @@ export default function RepresentativeDashboard() {
                     </div>
                     
                     <div className="space-y-2 text-sm text-gray-600 mb-6">
-                      {plan.beneficios.split('\n').slice(0, 4).map((benefit: string, index: number) => (
+                      {(Array.isArray(plan.beneficios) 
+                        ? plan.beneficios 
+                        : plan.beneficios?.split('\n') || []
+                      ).slice(0, 4).map((benefit: string, index: number) => (
                         <div key={index} className="flex items-start gap-2">
                           <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                           <span>{benefit}</span>
