@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertProjectSchema } from "@shared/schema";
+import MembershipLimitsValidator from "@/components/MembershipLimitsValidator";
 import type { ProjectWithDetails, Category, CompanyWithDetails } from "@shared/schema";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -55,6 +56,14 @@ export default function AddProjectModal({
   const queryClient = useQueryClient();
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [canAddProducts, setCanAddProducts] = useState(true);
+  const [canAddProjects, setCanAddProjects] = useState(true);
+
+  // Callback para manejar cambios en los límites
+  const handleLimitsChange = (canProducts: boolean, canProjects: boolean) => {
+    setCanAddProducts(canProducts);
+    setCanAddProjects(canProjects);
+  };
 
   // Obtener información de la empresa y su plan de membresía
   const { data: companyData } = useQuery<CompanyWithDetails>({
@@ -211,6 +220,16 @@ export default function AddProjectModal({
   });
 
   const onSubmit = (data: ProjectFormData) => {
+    // Si no es un proyecto existente (editing), verificar límites antes de crear
+    if (!project && !canAddProjects) {
+      toast({
+        title: "Límite de proyectos alcanzado",
+        description: "Has alcanzado el límite de proyectos de tu plan de membresía. Actualiza tu plan para agregar más proyectos.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     mutation.mutate(data);
   };
 
@@ -261,6 +280,16 @@ export default function AddProjectModal({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Membership Limits Validator */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <MembershipLimitsValidator
+                companyId={companyId}
+                additionalProducts={0}
+                additionalProjects={project ? 0 : 1} // Solo validar límites si es un nuevo proyecto
+                onLimitsChange={handleLimitsChange}
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Información Básica */}
               <div className="space-y-4">

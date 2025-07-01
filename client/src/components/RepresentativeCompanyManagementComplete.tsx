@@ -229,6 +229,16 @@ export default function RepresentativeCompanyManagementComplete({ company }: Rep
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
+      // Verificar límites de productos antes de subir imágenes
+      if (!canAddProducts) {
+        toast({
+          title: "Límite de productos alcanzado",
+          description: "Has alcanzado el límite de productos de tu plan de membresía. Actualiza tu plan para agregar más productos.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setUploadingImages(true);
       uploadImagesMutation.mutate(files);
     }
@@ -571,6 +581,16 @@ export default function RepresentativeCompanyManagementComplete({ company }: Rep
           <p className="text-gray-600">Administra las imágenes de tu empresa</p>
         </CardHeader>
         <CardContent>
+          {/* Membership Limits Validator */}
+          <div className="mb-6">
+            <MembershipLimitsValidator
+              companyId={company.id}
+              additionalProducts={0}
+              additionalProjects={0}
+              onLimitsChange={handleLimitsChange}
+            />
+          </div>
+
           {/* Current Images */}
           {company.galeriaProductosUrls && (company.galeriaProductosUrls as string[]).length > 0 && (
             <div className="mb-6">
