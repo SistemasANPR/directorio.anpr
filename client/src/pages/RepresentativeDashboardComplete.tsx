@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import EditCompanyModal from "@/components/EditCompanyModal";
+import EditCompanyModalSimple from "@/components/EditCompanyModalSimple";
 import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
 import RepresentativeReview from "@/components/RepresentativeReview";
 import MembershipLimitsDisplay from "@/components/MembershipLimitsDisplay";
@@ -648,7 +648,46 @@ export default function RepresentativeDashboard() {
               </div>
               
               {primaryCompany ? (
-                <RepresentativeCompanyManagementComplete company={primaryCompany} />
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                    <CardTitle className="text-xl font-semibold">Información de la Empresa</CardTitle>
+                    <Button
+                      onClick={() => setIsEditCompanyModalOpen(true)}
+                      className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar Empresa
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Nombre de la Empresa</h4>
+                        <p className="text-gray-600">{primaryCompany.nombreEmpresa}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Teléfono</h4>
+                        <p className="text-gray-600">{primaryCompany.telefono1 || 'No especificado'}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Email</h4>
+                        <p className="text-gray-600">{primaryCompany.email1 || 'No especificado'}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Sitio Web</h4>
+                        <p className="text-gray-600">{primaryCompany.sitioWeb || 'No especificado'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Descripción</h4>
+                      <p className="text-gray-600">{primaryCompany.descripcionEmpresa || 'No especificada'}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Dirección</h4>
+                      <p className="text-gray-600">{primaryCompany.direccionFisica || 'No especificada'}</p>
+                    </div>
+                  </CardContent>
+                </Card>
               ) : (
                 <Card>
                   <CardContent className="text-center py-12">
@@ -1174,6 +1213,14 @@ export default function RepresentativeDashboard() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Company Modal */}
+        <EditCompanyModalSimple
+          open={isEditCompanyModalOpen}
+          onOpenChange={setIsEditCompanyModalOpen}
+          company={primaryCompany}
+          userRole="representante"
+        />
       </div>
     </div>
   );
