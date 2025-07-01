@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CompanyWithDetails } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Upload, X, MapPin, Award, Tags, Camera } from "lucide-react";
 
 // Schema completo para el formulario
 const editCompanySchema = z.object({
@@ -57,6 +58,15 @@ export default function EditCompanyModalSimple({
 
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [selectedCertificates, setSelectedCertificates] = useState<number[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
+  const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
+  const [paisesPresencia, setPaisesPresencia] = useState<string[]>([]);
+  const [estadosPresencia, setEstadosPresencia] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Fetch categories
   const { data: categoriesData } = useQuery({
@@ -64,11 +74,37 @@ export default function EditCompanyModalSimple({
     queryFn: () => apiRequest("GET", "/api/categories").then(res => res.json()),
   });
 
+  // Fetch certificates
+  const { data: certificatesData } = useQuery({
+    queryKey: ["/api/certificates"],
+    queryFn: () => apiRequest("GET", "/api/certificates", {
+      headers: { 'X-User-Role': userRole }
+    }).then(res => res.json()),
+  });
+
+  // Fetch tags
+  const { data: tagsData } = useQuery({
+    queryKey: ["/api/tags"],
+    queryFn: () => apiRequest("GET", "/api/tags").then(res => res.json()),
+  });
+
   useEffect(() => {
     if (categoriesData?.categories) {
       setCategories(categoriesData.categories);
     }
   }, [categoriesData]);
+
+  useEffect(() => {
+    if (certificatesData) {
+      setCertificates(Array.isArray(certificatesData) ? certificatesData : certificatesData.certificates || []);
+    }
+  }, [certificatesData]);
+
+  useEffect(() => {
+    if (tagsData?.tags) {
+      setTags(tagsData.tags);
+    }
+  }, [tagsData]);
 
   const form = useForm<EditCompanyFormData>({
     resolver: zodResolver(editCompanySchema),
@@ -121,15 +157,98 @@ export default function EditCompanyModalSimple({
       if (company.categoriesIds) {
         setSelectedCategories(Array.isArray(company.categoriesIds) ? company.categoriesIds : []);
       }
+
+      // Set selected certificates
+      if (company.certificateIds) {
+        setSelectedCertificates(Array.isArray(company.certificateIds) ? company.certificateIds : []);
+      }
+
+      // Set selected tags
+      if (company.tagIds) {
+        setSelectedTags(Array.isArray(company.tagIds) ? company.tagIds : []);
+      }
+
+      // Set gallery images
+      if (company.galeriaProductosUrls) {
+        const urls = Array.isArray(company.galeriaProductosUrls) ? company.galeriaProductosUrls : [];
+        setGaleriaPreviews(urls);
+      }
+
+      // Set presence locations
+      if (company.paisesPresencia) {
+        setPaisesPresencia(Array.isArray(company.paisesPresencia) ? company.paisesPresencia : []);
+      }
+      if (company.estadosPresencia) {
+        setEstadosPresencia(Array.isArray(company.estadosPresencia) ? company.estadosPresencia : []);
+      }
     }
   }, [company, form]);
 
+  // Image handling functions
+  const handleGaleriaUpload = (files: FileList | null) => {
+    if (!files) return;
+    
+    const newFiles = Array.from(files);
+    setGaleriaFiles(prev => [...prev, ...newFiles]);
+    
+    newFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setGaleriaPreviews(prev => [...prev, e.target.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeGaleriaImage = (index: number) => {
+    setGaleriaFiles(prev => prev.filter((_, i) => i !== index));
+    setGaleriaPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleGaleriaDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    handleGaleriaUpload(e.dataTransfer.files);
+  };
+
   const updateCompanyMutation = useMutation({
     mutationFn: async (data: EditCompanyFormData) => {
+      let galeriaUrls = galeriaPreviews;
+
+      // Upload new images if any
+      if (galeriaFiles.length > 0) {
+        setUploadingImages(true);
+        
+        const formData = new FormData();
+        galeriaFiles.forEach((file) => {
+          formData.append('images', file);
+        });
+
+        try {
+          const uploadResponse = await apiRequest("POST", "/api/upload/gallery", formData);
+          const uploadResult = await uploadResponse.json();
+          
+          if (uploadResult.imageUrls) {
+            galeriaUrls = [...galeriaPreviews.filter(url => !url.startsWith('data:')), ...uploadResult.imageUrls];
+          }
+        } catch (error) {
+          console.error("Error uploading images:", error);
+          throw error;
+        } finally {
+          setUploadingImages(false);
+        }
+      }
+
       // Prepare data for submission
       const submitData = {
         ...data,
         categoriesIds: selectedCategories,
+        certificateIds: selectedCertificates,
+        tagIds: selectedTags,
+        paisesPresencia,
+        estadosPresencia,
+        galeriaProductosUrls: galeriaUrls,
         redesSociales: {
           facebook: data.facebook || "",
           instagram: data.instagram || "",
@@ -173,6 +292,42 @@ export default function EditCompanyModalSimple({
     );
   };
 
+  const toggleCertificate = (certificateId: number) => {
+    setSelectedCertificates(prev => 
+      prev.includes(certificateId) 
+        ? prev.filter(id => id !== certificateId)
+        : [...prev, certificateId]
+    );
+  };
+
+  const toggleTag = (tagId: number) => {
+    setSelectedTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const addPais = (pais: string) => {
+    if (pais.trim() && !paisesPresencia.includes(pais.trim())) {
+      setPaisesPresencia(prev => [...prev, pais.trim()]);
+    }
+  };
+
+  const removePais = (pais: string) => {
+    setPaisesPresencia(prev => prev.filter(p => p !== pais));
+  };
+
+  const addEstado = (estado: string) => {
+    if (estado.trim() && !estadosPresencia.includes(estado.trim())) {
+      setEstadosPresencia(prev => [...prev, estado.trim()]);
+    }
+  };
+
+  const removeEstado = (estado: string) => {
+    setEstadosPresencia(prev => prev.filter(e => e !== estado));
+  };
+
   if (!company) return null;
 
   return (
@@ -186,11 +341,13 @@ export default function EditCompanyModalSimple({
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="basic">Básico</TabsTrigger>
               <TabsTrigger value="contact">Contacto</TabsTrigger>
+              <TabsTrigger value="location">Ubicación</TabsTrigger>
+              <TabsTrigger value="multimedia">Multimedia</TabsTrigger>
               <TabsTrigger value="categories">Categorías</TabsTrigger>
-              <TabsTrigger value="social">Redes Sociales</TabsTrigger>
+              <TabsTrigger value="social">Redes</TabsTrigger>
             </TabsList>
 
             {/* Basic Information Tab */}
@@ -325,6 +482,220 @@ export default function EditCompanyModalSimple({
                       {...form.register("ubicacionPrincipal")}
                       disabled={updateCompanyMutation.isPending}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Location Tab */}
+            <TabsContent value="location" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Información de Ubicación
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Países donde opera (separados por coma)</Label>
+                      <Input
+                        placeholder="México, Estados Unidos, Guatemala"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const value = (e.target as HTMLInputElement).value;
+                            if (value.trim()) {
+                              addPais(value);
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }
+                        }}
+                        disabled={updateCompanyMutation.isPending}
+                      />
+                      {paisesPresencia.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {paisesPresencia.map((pais, index) => (
+                            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                              {pais}
+                              <X 
+                                className="h-3 w-3 cursor-pointer" 
+                                onClick={() => removePais(pais)}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label>Estados/Provincias donde opera</Label>
+                      <Input
+                        placeholder="CDMX, Jalisco, Nuevo León"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const value = (e.target as HTMLInputElement).value;
+                            if (value.trim()) {
+                              addEstado(value);
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }
+                        }}
+                        disabled={updateCompanyMutation.isPending}
+                      />
+                      {estadosPresencia.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {estadosPresencia.map((estado, index) => (
+                            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                              {estado}
+                              <X 
+                                className="h-3 w-3 cursor-pointer" 
+                                onClick={() => removeEstado(estado)}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Multimedia Tab */}
+            <TabsContent value="multimedia" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    Galería de Productos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Current Images */}
+                  {galeriaPreviews.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500 mb-3 block">
+                        Imágenes Actuales ({galeriaPreviews.length})
+                      </Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {galeriaPreviews.map((preview, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={preview}
+                              alt={`Galería ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeGaleriaImage(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Area */}
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors"
+                    onDrop={handleGaleriaDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Arrastra imágenes aquí o haz clic para seleccionar
+                    </p>
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => handleGaleriaUpload(e.target.files)}
+                      className="hidden"
+                      id="galeria-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('galeria-upload')?.click()}
+                      disabled={uploadingImages}
+                    >
+                      {uploadingImages ? "Subiendo..." : "Seleccionar Imágenes"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tags Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Tags className="h-5 w-5" />
+                    Etiquetas y Palabras Clave
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {tags.map((tag) => (
+                      <div key={tag.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`tag-${tag.id}`}
+                          checked={selectedTags.includes(tag.id)}
+                          onCheckedChange={() => toggleTag(tag.id)}
+                          disabled={updateCompanyMutation.isPending}
+                        />
+                        <Label
+                          htmlFor={`tag-${tag.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          <Badge variant="outline" style={{ backgroundColor: tag.color + '20', borderColor: tag.color }}>
+                            {tag.nombre}
+                          </Badge>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Certificates Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Certificados y Reconocimientos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {certificates.map((certificate) => (
+                      <div key={certificate.id} className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <Checkbox
+                          id={`cert-${certificate.id}`}
+                          checked={selectedCertificates.includes(certificate.id)}
+                          onCheckedChange={() => toggleCertificate(certificate.id)}
+                          disabled={updateCompanyMutation.isPending}
+                        />
+                        <div className="flex-1">
+                          <Label
+                            htmlFor={`cert-${certificate.id}`}
+                            className="text-sm font-medium"
+                          >
+                            {certificate.nombreCertificado}
+                          </Label>
+                          {certificate.descripcion && (
+                            <p className="text-xs text-gray-500">{certificate.descripcion}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
