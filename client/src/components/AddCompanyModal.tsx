@@ -33,6 +33,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertCompanySchema, Category, MembershipType, Certificate } from "@shared/schema";
 import TagSelector from "@/components/TagSelector";
+import MembershipLimitsValidator from "@/components/MembershipLimitsValidator";
 import { paisesAmericaLatina, estadosMexico, ciudadesPorEstado } from "@/lib/locationData";
 import { 
   Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
@@ -102,6 +103,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[ciudad: string]: string}>({});
   const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[ciudad: string]: { lat: number; lng: number; address: string }}>({});
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
+  const [canAddProducts, setCanAddProducts] = useState(true);
+  const [canAddProjects, setCanAddProjects] = useState(true);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Function to render the correct icon for categories
