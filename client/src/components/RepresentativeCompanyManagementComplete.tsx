@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import MembershipLimitsValidator from "@/components/MembershipLimitsValidator";
 import type { CompanyWithDetails } from "@shared/schema";
 import DynamicSocialMedia from "@/components/DynamicSocialMedia";
 
@@ -79,7 +80,15 @@ interface RepresentativeCompanyManagementCompleteProps {
 export default function RepresentativeCompanyManagementComplete({ company }: RepresentativeCompanyManagementCompleteProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [canAddProducts, setCanAddProducts] = useState(true);
+  const [canAddProjects, setCanAddProjects] = useState(true);
   const { toast } = useToast();
+
+  // Callback para manejar cambios en los límites
+  const handleLimitsChange = (canProducts: boolean, canProjects: boolean) => {
+    setCanAddProducts(canProducts);
+    setCanAddProjects(canProjects);
+  };
 
   // Fetch categories for selection
   const { data: categories = [] } = useQuery({

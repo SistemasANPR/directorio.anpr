@@ -326,6 +326,16 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   });
 
   const onSubmit = async (data: CompanyFormData) => {
+    // Verificar límites antes de enviar
+    if (selectedCompanyId && galeriaFiles.length > 0 && !canAddProducts) {
+      toast({
+        title: "Error en validación de límites",
+        description: "Has excedido los límites de productos de tu plan de membresía. Reduce el número de productos o actualiza tu plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Filtrar y validar videos
       const videosValidos = videosUrls
@@ -606,6 +616,16 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       return;
     }
 
+    // Verificar límites de plan de membresía para productos
+    if (selectedCompanyId && !canAddProducts) {
+      toast({
+        title: "Límite de productos alcanzado",
+        description: "Has alcanzado el límite de productos de tu plan de membresía. Actualiza tu plan para agregar más productos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const validFiles = files.filter(validateImage);
     if (validFiles.length === 0) return;
 
@@ -621,7 +641,13 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         variant: "destructive",
       });
     }
-  }, [galeriaFiles, galeriaPreviews, toast]);
+  }, [galeriaFiles, galeriaPreviews, toast, selectedCompanyId, canAddProducts]);
+
+  // Callback para manejar cambios en los límites
+  const handleLimitsChange = (canProducts: boolean, canProjects: boolean) => {
+    setCanAddProducts(canProducts);
+    setCanAddProjects(canProjects);
+  };
 
   const handleGaleriaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -630,6 +656,16 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       toast({
         title: "Error",
         description: "Solo se permiten máximo 10 imágenes en la galería",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verificar límites de plan de membresía para productos
+    if (selectedCompanyId && !canAddProducts) {
+      toast({
+        title: "Límite de productos alcanzado",
+        description: "Has alcanzado el límite de productos de tu plan de membresía. Actualiza tu plan para agregar más productos.",
         variant: "destructive",
       });
       return;
@@ -1492,6 +1528,22 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 </div>
               </div>
             </div>
+
+            {/* Sección: Validación de Límites de Membresía */}
+            {watchedMembershipTypeId && (
+              <div className="space-y-6">
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold text-primary">Validación de Límites del Plan</h3>
+                  <p className="text-sm text-gray-600">Verificación de límites según el plan de membresía seleccionado</p>
+                </div>
+                <MembershipLimitsValidator
+                  companyId={selectedCompanyId || 0}
+                  additionalProducts={galeriaFiles.length}
+                  additionalProjects={0}
+                  onLimitsChange={handleLimitsChange}
+                />
+              </div>
+            )}
 
             {/* Sección: Información de Contacto */}
             <div className="space-y-6">
