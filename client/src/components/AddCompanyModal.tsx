@@ -619,10 +619,21 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     
-    if (galeriaFiles.length + files.length > 10) {
+    // Verificar si hay plan seleccionado
+    if (!selectedMembershipType) {
       toast({
         title: "Error",
-        description: "Solo se permiten máximo 10 imágenes en la galería",
+        description: "Selecciona un plan de membresía antes de agregar imágenes",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentLimit = maxProductImages === Infinity ? 999 : maxProductImages;
+    if (galeriaFiles.length + files.length > currentLimit) {
+      toast({
+        title: "Error",
+        description: `Solo se permiten máximo ${maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes según tu plan de membresía`,
         variant: "destructive",
       });
       return;
@@ -653,7 +664,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         variant: "destructive",
       });
     }
-  }, [galeriaFiles, galeriaPreviews, toast, selectedCompanyId, canAddProducts]);
+  }, [galeriaFiles, galeriaPreviews, toast, selectedMembershipType, maxProductImages]);
 
   // Callback para manejar cambios en los límites
   const handleLimitsChange = (canProducts: boolean, canProjects: boolean) => {
@@ -664,10 +675,21 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const handleGaleriaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
-    if (galeriaFiles.length + files.length > 10) {
+    // Verificar si hay plan seleccionado
+    if (!selectedMembershipType) {
       toast({
         title: "Error",
-        description: "Solo se permiten máximo 10 imágenes en la galería",
+        description: "Selecciona un plan de membresía antes de agregar imágenes",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentLimit = maxProductImages === Infinity ? 999 : maxProductImages;
+    if (galeriaFiles.length + files.length > currentLimit) {
+      toast({
+        title: "Error",
+        description: `Solo se permiten máximo ${maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes según tu plan de membresía`,
         variant: "destructive",
       });
       return;
@@ -1536,7 +1558,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                             </label>
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Máximo 10 imágenes • Cada imagen: máx. 5MB, min. 800x800px, formato 1:1
+                            {selectedMembershipType 
+                              ? `Máximo ${maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes • Cada imagen: máx. 5MB, min. 800x800px, formato 1:1`
+                              : 'Selecciona un plan de membresía para ver los límites'
+                            }
                           </p>
                         </div>
                       </div>
