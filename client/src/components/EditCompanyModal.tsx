@@ -79,9 +79,10 @@ interface EditCompanyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   company: CompanyWithDetails | null;
+  userRole?: 'admin' | 'representante';
 }
 
-export default function EditCompanyModal({ open, onOpenChange, company }: EditCompanyModalProps) {
+export default function EditCompanyModal({ open, onOpenChange, company, userRole = 'admin' }: EditCompanyModalProps) {
   const { toast } = useToast();
   
   // Estados para manejar archivos y selecciones

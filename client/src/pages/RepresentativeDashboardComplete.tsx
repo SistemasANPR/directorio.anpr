@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import RepresentativeCompanyManagementComplete from "@/components/RepresentativeCompanyManagementComplete";
+import EditCompanyModal from "@/components/EditCompanyModal";
 import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
 import RepresentativeReview from "@/components/RepresentativeReview";
 import MembershipLimitsDisplay from "@/components/MembershipLimitsDisplay";
@@ -59,6 +59,9 @@ export default function RepresentativeDashboard() {
   // Plan management states
   const [isChangePlanModalOpen, setIsChangePlanModalOpen] = useState(false);
   const [isCancelPlanModalOpen, setIsCancelPlanModalOpen] = useState(false);
+  
+  // Company edit modal state
+  const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
   
   const { toast } = useToast();
 
