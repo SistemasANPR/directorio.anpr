@@ -745,7 +745,10 @@ export default function RepresentativeDashboard() {
                     <div>
                       <h4 className="font-semibold mb-3">Beneficios incluidos:</h4>
                       <div className="space-y-2">
-                        {currentMembership.beneficios.split('\n').map((benefit: string, index: number) => (
+                        {(Array.isArray(currentMembership.beneficios) 
+                          ? currentMembership.beneficios 
+                          : currentMembership.beneficios?.split('\n') || []
+                        ).map((benefit: string, index: number) => (
                           <div key={index} className="flex items-start gap-2">
                             <div className="w-2 h-2 rounded-full bg-[#bcce16] mt-2 flex-shrink-0" />
                             <p className="text-gray-700">{benefit}</p>
