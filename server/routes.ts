@@ -929,7 +929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/opinions/:id/approve", async (req, res) => {
+  app.post("/api/opinions/:id/approve", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const approvedBy = req.user?.id || 1; // Default to admin user
@@ -943,7 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/opinions/:id/reject", async (req, res) => {
+  app.post("/api/opinions/:id/reject", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const approvedBy = req.user?.id || 1; // Default to admin user
@@ -954,6 +954,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(opinion);
     } catch (error) {
       res.status(500).json({ error: "Failed to reject opinion" });
+    }
+  });
+
+  // Moderate opinion endpoint (handles both approve and reject)
+  app.patch("/api/opinions/:id/moderate", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { estado, comentarioModerador } = req.body;
+      const approvedBy = req.user?.id || 1; // Default to admin user
+      
+      let opinion;
+      if (estado === "aprobada") {
+        opinion = await storage.approveOpinion(id, approvedBy);
+      } else if (estado === "rechazada") {
+        opinion = await storage.rejectOpinion(id, approvedBy);
+      } else {
+        return res.status(400).json({ error: "Invalid estado. Must be 'aprobada' or 'rechazada'" });
+      }
+      
+      if (!opinion) {
+        return res.status(404).json({ error: "Opinion not found" });
+      }
+      
+      res.json(opinion);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to moderate opinion" });
     }
   });
 
