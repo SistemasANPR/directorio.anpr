@@ -232,6 +232,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    // Validate email is not null or empty
+    if (!insertUser.email || insertUser.email.trim() === '') {
+      throw new Error('Email is required and cannot be empty');
+    }
+    
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
@@ -1157,6 +1162,55 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getWordPressUsers(): Promise<{ users: any[]; total: number; message: string }> {
+    try {
+      const settings = await this.getIntegrationSettings();
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return { users: [], total: 0, message: "Configuración de WordPress incompleta" };
+      }
+
+      const usersUrl = `${settings.wordpressUrl.replace(/\/$/, '')}/wp-json/wp/v2/users`;
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      
+      const response = await fetch(usersUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        return { users: [], total: 0, message: `Error al obtener usuarios: ${response.status}` };
+      }
+
+      const wpUsers = await response.json();
+      
+      // Transform the users to include relevant data
+      const transformedUsers = wpUsers.map((wpUser: any) => ({
+        id: wpUser.id,
+        name: wpUser.name || wpUser.slug || 'Sin nombre',
+        slug: wpUser.slug,
+        email: wpUser.email || 'No disponible',
+        registered_date: wpUser.registered_date,
+        roles: wpUser.roles || [],
+        link: wpUser.link,
+        description: wpUser.description || '',
+        url: wpUser.url || '',
+        meta: wpUser.meta || {},
+        source: 'wordpress'
+      }));
+
+      return { 
+        users: transformedUsers, 
+        total: transformedUsers.length, 
+        message: `${transformedUsers.length} usuarios obtenidos de WordPress` 
+      };
+    } catch (error: any) {
+      return { users: [], total: 0, message: `Error al obtener usuarios de WordPress: ${error.message}` };
+    }
+  }
+
   async syncWordPressUsers(): Promise<{ syncedUsers: number; message: string }> {
     try {
       const settings = await this.getIntegrationSettings();
@@ -1186,23 +1240,48 @@ export class DatabaseStorage implements IStorage {
       const wpUsers = await response.json();
       let syncedCount = 0;
 
+      console.log(`Received ${wpUsers.length} users from WordPress`);
+
       for (const wpUser of wpUsers) {
+        console.log(`Processing user:`, {
+          id: wpUser.id,
+          name: wpUser.name,
+          email: wpUser.email,
+          slug: wpUser.slug
+        });
+
+        // Skip users without email
+        if (!wpUser.email || wpUser.email.trim() === '' || wpUser.email === null || wpUser.email === undefined) {
+          console.log(`Skipping user ${wpUser.name || wpUser.slug} (ID: ${wpUser.id}) - no valid email`);
+          continue;
+        }
+
+        // Double check email is valid before proceeding
+        const emailToUse = wpUser.email ? wpUser.email.trim() : '';
+        if (!emailToUse || emailToUse === 'null' || emailToUse === 'undefined') {
+          console.log(`Final skip - invalid email format for user ${wpUser.name || wpUser.slug} (ID: ${wpUser.id})`);
+          continue;
+        }
+
         // Check if user already exists
-        const existingUser = await this.getUserByEmail(wpUser.email);
+        const existingUser = await this.getUserByEmail(emailToUse);
         
         if (!existingUser) {
           // Create new user
           try {
             await this.createUser({
-              email: wpUser.email,
-              displayName: wpUser.name || wpUser.slug,
+              email: emailToUse,
+              displayName: wpUser.name || wpUser.slug || `Usuario ${wpUser.id}`,
               firebaseUid: `wp_${wpUser.id}`,
               role: 'representative',
             });
             syncedCount++;
+            console.log(`Successfully created user: ${emailToUse}`);
           } catch (error) {
-            console.error(`Error creating user ${wpUser.email}:`, error);
+            console.error(`Error creating user ${emailToUse}:`, error);
           }
+        } else {
+          console.log(`User ${emailToUse} already exists, skipping`);
         }
       }
 

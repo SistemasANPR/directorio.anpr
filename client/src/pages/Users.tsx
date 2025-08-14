@@ -114,6 +114,18 @@ export default function Users() {
     },
   });
 
+  // Fetch WordPress users
+  const { data: wordpressData } = useQuery({
+    queryKey: ["/api/wordpress-users"],
+    queryFn: async () => {
+      const response = await fetch("/api/wordpress-users", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch WordPress users");
+      return response.json();
+    },
+  });
+
   // Fetch companies for representative assignment
   const { data: companies = [] } = useQuery({
     queryKey: ["/api/companies"],
@@ -375,6 +387,109 @@ export default function Users() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* WordPress Users Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <ExternalLink className="h-5 w-5" />
+                Usuarios de WordPress
+              </CardTitle>
+              <CardDescription>
+                Usuarios sincronizados desde WordPress. Estos usuarios no pueden ser editados desde aquí.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!wordpressData || wordpressData.users.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">Sin usuarios de WordPress</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                No se encontraron usuarios en WordPress o la sincronización no está configurada.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Roles</TableHead>
+                    <TableHead>Fecha de registro</TableHead>
+                    <TableHead>URL</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {wordpressData.users.map((wpUser: any) => (
+                    <TableRow key={wpUser.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-blue-100 text-blue-600 rounded-full p-2">
+                            <ExternalLink className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {wpUser.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Slug: {wpUser.slug}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={wpUser.email === 'No disponible' ? 'text-gray-400 italic' : ''}>
+                          {wpUser.email}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {wpUser.roles && wpUser.roles.length > 0 ? (
+                            wpUser.roles.map((role: string) => (
+                              <Badge key={role} variant="outline" className="text-xs">
+                                {role}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 text-sm">Sin roles</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {wpUser.registered_date ? (
+                          new Date(wpUser.registered_date).toLocaleDateString('es-ES')
+                        ) : (
+                          <span className="text-gray-400">No disponible</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {wpUser.link ? (
+                          <a 
+                            href={wpUser.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          >
+                            Ver perfil
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">No disponible</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

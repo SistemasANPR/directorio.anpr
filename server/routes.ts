@@ -1553,6 +1553,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/wordpress-users", async (req, res) => {
+    try {
+      const result = await storage.getWordPressUsers();
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Complete registration endpoint
   app.post("/api/complete-registration", async (req, res) => {
     try {
