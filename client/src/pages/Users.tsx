@@ -44,7 +44,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserPlus, MoreHorizontal, Edit, Trash2, Users as UsersIcon, User, Search, Filter } from "lucide-react";
+import { UserPlus, MoreHorizontal, Edit, Trash2, Users as UsersIcon, User, Search, Filter, ExternalLink } from "lucide-react";
 import { User as UserType } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -406,9 +406,9 @@ export default function Users() {
                 <ExternalLink className="h-5 w-5" />
                 Usuarios de WordPress
               </CardTitle>
-              <CardDescription>
+              <p className="text-sm text-gray-500">
                 Usuarios sincronizados desde WordPress. Estos usuarios no pueden ser editados desde aquí.
-              </CardDescription>
+              </p>
             </div>
           </div>
         </CardHeader>
