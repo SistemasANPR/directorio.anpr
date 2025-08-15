@@ -114,15 +114,45 @@ export default function Users() {
     },
   });
 
-  // Fetch WordPress users
-  const { data: wordpressData } = useQuery({
-    queryKey: ["/api/wordpress-users"],
+  // Fetch WordPress users with filtering
+  const { data: wordpressData, isLoading: isLoadingWordPress } = useQuery({
+    queryKey: ["/api/wordpress-users", { search: searchTerm, role: selectedRole }],
     queryFn: async () => {
       const response = await fetch("/api/wordpress-users", {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch WordPress users");
-      return response.json();
+      const data = await response.json();
+      
+      // Apply client-side filtering to WordPress users
+      let filteredUsers = data.users || [];
+      
+      if (searchTerm) {
+        filteredUsers = filteredUsers.filter((wpUser: any) =>
+          wpUser.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          wpUser.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          wpUser.slug?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      
+      if (selectedRole && selectedRole !== "all") {
+        // For WordPress users, we can filter by their WordPress roles
+        if (selectedRole === "admin") {
+          filteredUsers = filteredUsers.filter((wpUser: any) => 
+            wpUser.roles && wpUser.roles.includes("administrator")
+          );
+        } else if (selectedRole === "user") {
+          filteredUsers = filteredUsers.filter((wpUser: any) => 
+            wpUser.roles && (wpUser.roles.includes("subscriber") || wpUser.roles.includes("customer"))
+          );
+        } else if (selectedRole === "representante") {
+          filteredUsers = filteredUsers.filter((wpUser: any) => 
+            wpUser.roles && (wpUser.roles.includes("editor") || wpUser.roles.includes("author"))
+          );
+        }
+      }
+      
+      return { ...data, users: filteredUsers };
     },
   });
 
@@ -276,7 +306,7 @@ export default function Users() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar usuarios..."
+                placeholder="Buscar en ambas listas..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -295,17 +325,34 @@ export default function Users() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" onClick={clearFilters}>
+            <Button 
+              variant="outline" 
+              onClick={clearFilters}
+              className={searchTerm || selectedRole ? "border-orange-200 bg-orange-50" : ""}
+            >
               Limpiar filtros
             </Button>
           </div>
+          
+          {(searchTerm || selectedRole) && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800">
+                <strong>Filtros activos:</strong>
+                {searchTerm && <span className="ml-2">Búsqueda: "{searchTerm}"</span>}
+                {selectedRole && selectedRole !== "all" && <span className="ml-2">Rol: {getRoleDisplayName(selectedRole)}</span>}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Los filtros se aplican tanto a usuarios del sistema como a usuarios de WordPress
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Usuarios registrados ({users.length})</CardTitle>
+          <CardTitle>Usuarios del sistema ({users.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -404,7 +451,7 @@ export default function Users() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <ExternalLink className="h-5 w-5" />
-                Usuarios de WordPress
+                Usuarios de WordPress ({wordpressData?.users?.length || 0})
               </CardTitle>
               <p className="text-sm text-gray-500">
                 Usuarios sincronizados desde WordPress. Estos usuarios no pueden ser editados desde aquí.
@@ -413,12 +460,21 @@ export default function Users() {
           </div>
         </CardHeader>
         <CardContent>
-          {!wordpressData || wordpressData.users.length === 0 ? (
+          {isLoadingWordPress ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-gray-500">Cargando usuarios de WordPress...</div>
+            </div>
+          ) : !wordpressData || wordpressData.users.length === 0 ? (
             <div className="text-center py-8">
               <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Sin usuarios de WordPress</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                {searchTerm || selectedRole ? "No se encontraron usuarios" : "Sin usuarios de WordPress"}
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                No se encontraron usuarios en WordPress o la sincronización no está configurada.
+                {searchTerm || selectedRole 
+                  ? "Intenta cambiar los filtros de búsqueda para ver más resultados"
+                  : "No se encontraron usuarios en WordPress o la sincronización no está configurada."
+                }
               </p>
             </div>
           ) : (
@@ -443,10 +499,13 @@ export default function Users() {
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {wpUser.name}
+                              {wpUser.name || wpUser.first_name && wpUser.last_name 
+                                ? `${wpUser.first_name || ''} ${wpUser.last_name || ''}`.trim()
+                                : wpUser.username || wpUser.slug || 'Usuario sin nombre'
+                              }
                             </p>
                             <p className="text-sm text-gray-500">
-                              Slug: {wpUser.slug}
+                              {wpUser.username ? `@${wpUser.username}` : `Slug: ${wpUser.slug}`}
                             </p>
                           </div>
                         </div>
