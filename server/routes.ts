@@ -1686,25 +1686,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userData = await userResponse.json();
 
-      // Intentar obtener información de membresías usando diferentes endpoints comunes
-      const membershipEndpoints = [
-        // PaidMembershipsPro (muy común en WordPress)
-        `${baseUrl}/wp-json/pmpro/v1/members/${userId}`,
-        // WooCommerce Memberships
-        `${baseUrl}/wp-json/wc/v3/memberships?customer=${userId}`,
-        // Ultimate Member
-        `${baseUrl}/wp-json/um/v2/members/${userId}`,
-        // Restrict Content Pro
-        `${baseUrl}/wp-json/rcp/v1/members?user_id=${userId}`,
-        // MemberPress
+      // Endpoints específicos de MemberPress
+      const memberPressEndpoints = [
+        // MemberPress API endpoints principales
         `${baseUrl}/wp-json/mp/v1/members/${userId}`,
-        // WishList Member
-        `${baseUrl}/wp-json/wlm/v1/members/${userId}`,
+        `${baseUrl}/wp-json/mp/v1/subscriptions?member=${userId}`,
+        `${baseUrl}/wp-json/mp/v1/transactions?member=${userId}`,
+        // Endpoints alternativos de MemberPress
+        `${baseUrl}/wp-json/memberpress/v1/members/${userId}`,
+        `${baseUrl}/wp-json/memberpress/v1/subscriptions?member_id=${userId}`,
+        // Endpoint de metadatos del usuario que puede contener info de MemberPress
+        `${baseUrl}/wp-json/wp/v2/users/${userId}/meta`,
       ];
 
       const membershipData: any = {};
       
-      for (const [index, endpoint] of membershipEndpoints.entries()) {
+      for (const [index, endpoint] of memberPressEndpoints.entries()) {
         try {
           const response = await fetch(endpoint, {
             headers: {
@@ -1715,25 +1712,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (response.ok) {
             const data = await response.json();
-            membershipData[`plugin_${index + 1}`] = {
+            const endpointNames = [
+              'MemberPress Member Info',
+              'MemberPress Subscriptions',
+              'MemberPress Transactions',
+              'MemberPress Alt Member Info',
+              'MemberPress Alt Subscriptions',
+              'User Meta (MemberPress data)'
+            ];
+            
+            membershipData[`memberpress_${index + 1}`] = {
               url: endpoint,
               status: response.status,
               data: data,
-              plugin: ['PaidMembershipsPro', 'WooCommerce Memberships', 'Ultimate Member', 'Restrict Content Pro', 'MemberPress', 'WishList Member'][index]
+              endpoint_name: endpointNames[index],
+              has_data: Array.isArray(data) ? data.length > 0 : Object.keys(data || {}).length > 0
             };
           } else {
-            membershipData[`plugin_${index + 1}`] = {
+            membershipData[`memberpress_${index + 1}`] = {
               url: endpoint,
               status: response.status,
               error: response.statusText,
-              plugin: ['PaidMembershipsPro', 'WooCommerce Memberships', 'Ultimate Member', 'Restrict Content Pro', 'MemberPress', 'WishList Member'][index]
+              endpoint_name: ['MemberPress Member Info', 'MemberPress Subscriptions', 'MemberPress Transactions', 'MemberPress Alt Member Info', 'MemberPress Alt Subscriptions', 'User Meta'][index]
             };
           }
         } catch (error: any) {
-          membershipData[`plugin_${index + 1}`] = {
+          membershipData[`memberpress_${index + 1}`] = {
             url: endpoint,
             error: error.message,
-            plugin: ['PaidMembershipsPro', 'WooCommerce Memberships', 'Ultimate Member', 'Restrict Content Pro', 'MemberPress', 'WishList Member'][index]
+            endpoint_name: ['MemberPress Member Info', 'MemberPress Subscriptions', 'MemberPress Transactions', 'MemberPress Alt Member Info', 'MemberPress Alt Subscriptions', 'User Meta'][index]
           };
         }
       }
@@ -1742,9 +1749,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userRoles = userData.roles || [];
       const userCapabilities = userData.capabilities || {};
       
-      // Buscar campos meta relacionados con membresías
+      // Analizar metadatos específicos de MemberPress
       const membershipMetaFields = userData.meta || {};
-      const potentialMembershipFields = Object.keys(membershipMetaFields).filter(key => 
+      
+      // Campos específicos de MemberPress
+      const memberPressFields = Object.keys(membershipMetaFields).filter(key => 
+        key.includes('mepr') || 
+        key.includes('memberpress') ||
+        key.includes('mp_') ||
+        key.startsWith('_mepr')
+      );
+      
+      // Campos generales de membresía
+      const generalMembershipFields = Object.keys(membershipMetaFields).filter(key => 
         key.includes('member') || 
         key.includes('subscription') || 
         key.includes('plan') || 
@@ -1752,6 +1769,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         key.includes('expire') ||
         key.includes('status')
       );
+      
+      // Extraer información específica de MemberPress
+      const memberPressAnalysis = {
+        active_memberships: membershipMetaFields['_mepr_active_memberships'] || [],
+        inactive_memberships: membershipMetaFields['_mepr_inactive_memberships'] || [],
+        expired_memberships: membershipMetaFields['_mepr_expired_memberships'] || [],
+        member_status: membershipMetaFields['mepr_member_status'] || null,
+        subscription_ids: membershipMetaFields['_mepr_subscription_ids'] || [],
+        transaction_ids: membershipMetaFields['_mepr_transaction_ids'] || [],
+        last_login: membershipMetaFields['mepr_last_login_date'] || null,
+        registration_date: membershipMetaFields['mepr_reg_date'] || null,
+      };
 
       res.json({
         user_basic_info: {
@@ -1762,8 +1791,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           roles: userRoles,
           capabilities: userCapabilities
         },
-        membership_analysis: {
-          potential_membership_meta: potentialMembershipFields.reduce((acc, field) => {
+        memberpress_analysis: memberPressAnalysis,
+        membership_metadata: {
+          memberpress_fields: memberPressFields.reduce((acc, field) => {
+            acc[field] = membershipMetaFields[field];
+            return acc;
+          }, {} as any),
+          general_membership_fields: generalMembershipFields.reduce((acc, field) => {
             acc[field] = membershipMetaFields[field];
             return acc;
           }, {} as any),
@@ -1773,19 +1807,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
             custom_roles: userRoles.filter((role: string) => !['subscriber', 'contributor', 'author', 'editor', 'administrator'].includes(role))
           }
         },
-        plugin_responses: membershipData,
+        memberpress_api_responses: membershipData,
+        summary: {
+          has_active_memberships: Array.isArray(memberPressAnalysis.active_memberships) ? memberPressAnalysis.active_memberships.length > 0 : false,
+          has_expired_memberships: Array.isArray(memberPressAnalysis.expired_memberships) ? memberPressAnalysis.expired_memberships.length > 0 : false,
+          has_subscriptions: Array.isArray(memberPressAnalysis.subscription_ids) ? memberPressAnalysis.subscription_ids.length > 0 : false,
+          member_status: memberPressAnalysis.member_status,
+          total_memberpress_fields: memberPressFields.length,
+          api_endpoints_working: Object.values(membershipData).filter((response: any) => response.status === 200).length
+        },
         recommendations: {
-          note: "Para obtener información específica de membresía, necesitas identificar qué plugin de membresías usa tu WordPress",
-          common_plugins: [
-            "PaidMembershipsPro - Muy popular para membresías pagadas",
-            "WooCommerce Memberships - Si usas WooCommerce",
-            "Ultimate Member - Para perfiles de usuario avanzados",
-            "Restrict Content Pro - Para contenido restringido",
-            "MemberPress - Plugin premium popular",
-            "WishList Member - Plugin de membresías completo"
+          note: "Este análisis está optimizado para MemberPress. Los datos mostrados incluyen información específica de membresías activas, expiradas y suscripciones.",
+          next_steps: [
+            "Verificar las respuestas de la API de MemberPress para obtener datos detallados",
+            "Analizar los metadatos del usuario para encontrar información de membresías",
+            "Usar los subscription_ids y transaction_ids para obtener más detalles si es necesario"
           ]
         }
       });
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Endpoint simplificado para obtener solo el estado de membresía de MemberPress
+  app.get("/api/memberpress-status/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Obtener información del usuario con metadatos
+      const userResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users/${userId}?context=edit`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!userResponse.ok) {
+        return res.status(404).json({ error: `Usuario no encontrado: ${userResponse.status}` });
+      }
+
+      const userData = await userResponse.json();
+      const meta = userData.meta || {};
+
+      // Extraer información específica de MemberPress del metadatos
+      const membershipStatus = {
+        user_id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        active_memberships: meta['_mepr_active_memberships'] || [],
+        inactive_memberships: meta['_mepr_inactive_memberships'] || [],
+        expired_memberships: meta['_mepr_expired_memberships'] || [],
+        subscription_ids: meta['_mepr_subscription_ids'] || [],
+        transaction_ids: meta['_mepr_transaction_ids'] || [],
+        member_status: meta['mepr_member_status'] || 'inactive',
+        last_login: meta['mepr_last_login_date'] || null,
+        registration_date: meta['mepr_reg_date'] || userData.date_registered,
+        has_active_membership: Array.isArray(meta['_mepr_active_memberships']) && meta['_mepr_active_memberships'].length > 0,
+        is_member: userData.roles?.includes('member') || false,
+      };
+
+      res.json(membershipStatus);
 
     } catch (error: any) {
       res.status(500).json({ error: error.message });
