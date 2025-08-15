@@ -1855,19 +1855,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
       const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
 
-      // Buscar usuario por username (slug)
-      const searchResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users?slug=${username}&context=edit`, {
-        headers: {
-          'Authorization': `Basic ${authString}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Buscar usuario por username (slug) o por email si contiene @
+      let searchResponse;
+      let users;
+      
+      if (username.includes('@')) {
+        // Si contiene @, buscar por email
+        searchResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users?search=${encodeURIComponent(username)}&context=edit`, {
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      } else {
+        // Si no contiene @, buscar por slug (username)
+        searchResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users?slug=${username}&context=edit`, {
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
 
       if (!searchResponse.ok) {
         return res.status(404).json({ error: `Error buscando usuario: ${searchResponse.status}` });
       }
 
-      const users = await searchResponse.json();
+      users = await searchResponse.json();
+      
+      // Si es búsqueda por email y no encontramos exacto, filtrar por email exacto
+      if (username.includes('@') && Array.isArray(users)) {
+        users = users.filter((user: any) => user.email === username);
+      }
       
       if (!Array.isArray(users) || users.length === 0) {
         return res.status(404).json({ error: `Usuario '${username}' no encontrado` });
