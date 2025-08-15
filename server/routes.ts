@@ -1909,6 +1909,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obtener usuarios con membresías activas en MemberPress
+  app.get("/api/users-with-memberships", async (req, res) => {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Obtener usuarios con metadatos específicos de MemberPress
+      const response = await fetch(`${baseUrl}/wp-json/wp/v2/users?per_page=50&context=edit&meta_key=_mepr_active_memberships`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        return res.status(404).json({ error: `Error obteniendo usuarios: ${response.status}` });
+      }
+
+      const users = await response.json();
+      
+      // Filtrar usuarios que tengan metadatos de MemberPress
+      const usersWithMemberships = users.filter((user: any) => {
+        const meta = user.meta || {};
+        return Object.keys(meta).some(key => 
+          key.includes('mepr') || key.includes('memberpress') || key.startsWith('_mepr')
+        );
+      }).map((user: any) => {
+        const meta = user.meta || {};
+        return {
+          user_id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          roles: user.roles,
+          has_active_memberships: Array.isArray(meta['_mepr_active_memberships']) && meta['_mepr_active_memberships'].length > 0,
+          active_memberships_count: meta['_mepr_active_memberships']?.length || 0,
+          subscription_ids_count: meta['_mepr_subscription_ids']?.length || 0,
+          transaction_ids_count: meta['_mepr_transaction_ids']?.length || 0,
+          member_status: meta['mepr_member_status'] || 'inactive'
+        };
+      });
+
+      res.json({ 
+        total: usersWithMemberships.length, 
+        users: usersWithMemberships 
+      });
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Endpoint simplificado para obtener solo el estado de membresía de MemberPress
   app.get("/api/memberpress-status/:userId", async (req, res) => {
     try {

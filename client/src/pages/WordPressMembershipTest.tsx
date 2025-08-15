@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function WordPressMembershipTest() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [testUserId, setTestUserId] = useState<string>("");
-  const [searchUsername, setSearchUsername] = useState<string>("villalpandoluz");
+  const [searchUsername, setSearchUsername] = useState<string>("luciaenriquez_sedema");
   const { toast } = useToast();
 
   // Obtener lista de usuarios de WordPress
@@ -125,7 +125,7 @@ export default function WordPressMembershipTest() {
               <Input
                 id="usernameSearch"
                 type="text"
-                placeholder="ej: villalpandoluz"
+                placeholder="ej: luciaenriquez_sedema, Comunicacion, IMINOX"
                 value={searchUsername}
                 onChange={(e) => setSearchUsername(e.target.value)}
               />
