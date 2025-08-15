@@ -579,14 +579,14 @@ export default function Users() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {wpUser.link ? (
+                        {wpUser.username ? (
                           <a 
-                            href={wpUser.link} 
+                            href={`https://anpr.org.mx/profile/?user=${wpUser.username}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
                           >
-                            Ver perfil
+                            Ver perfil PeepSo
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (

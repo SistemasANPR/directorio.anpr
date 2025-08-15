@@ -1724,13 +1724,29 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                   )}
                                 </div>
                               </div>
-                              <Button
-                                type="button"
-                                size="sm"
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                Seleccionar
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // URL del perfil de PeepSo: /profile/?user=username
+                                    window.open(`https://anpr.org.mx/profile/?user=${user.username}`, '_blank');
+                                  }}
+                                  className="text-blue-600 hover:text-blue-700 border-blue-300"
+                                >
+                                  <ExternalLink className="h-3 w-3 mr-1" />
+                                  Ver Perfil
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                  Seleccionar
+                                </Button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1755,6 +1771,21 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 👤 Roles: {selectedWordPressUser.roles.join(", ")}
                               </div>
                             )}
+                            <div className="pt-2">
+                              <Button
+                                type="button"
+                                variant="link"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(`https://anpr.org.mx/profile/?user=${selectedWordPressUser.username}`, '_blank');
+                                }}
+                                className="p-0 h-auto text-blue-600 hover:text-blue-700"
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Ver Perfil en PeepSo
+                              </Button>
+                            </div>
                           </div>
                         </div>
                         <Button
