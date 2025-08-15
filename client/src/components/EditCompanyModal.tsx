@@ -56,26 +56,42 @@ import MapLocationPicker from "./MapLocationPicker";
 import RichTextEditor from "./RichTextEditor";
 
 // Schema completo para edición 
-const companySchema = insertCompanySchema.extend({
+const companySchema = z.object({
+  nombreEmpresa: z.string().min(1, "Nombre de empresa es requerido"),
+  telefono1: z.string().min(1, "Teléfono principal es requerido"),
+  telefono2: z.string().optional(),
+  email1: z.string().email("Email inválido").min(1, "Email principal es requerido"),
+  email2: z.string().email("Email inválido").optional().or(z.literal("")),
+  sitioWeb: z.string().optional(),
+  direccionFisica: z.string().min(1, "Dirección física es requerida"),
+  descripcionEmpresa: z.string().min(1, "Descripción es requerida"),
+  ubicacionPrincipal: z.string().optional(),
+  ubicacionGeografica: z.string().optional(),
+  representantesVentas: z.string().optional(),
+  catalogoDigitalUrl: z.string().optional(),
+  logotipoUrl: z.string().optional(),
+  fotoPortadaUrl: z.string().optional(),
   membershipTypeId: z.number().min(1, "Tipo de membresía es requerido"),
+  membershipPeriodicidad: z.string().optional(),
+  formaPago: z.string().optional(),
+  fechaInicioMembresia: z.string().optional(),
+  fechaFinMembresia: z.string().optional(),
+  notasMembresia: z.string().optional(),
   categoriesIds: z.array(z.number()).optional(),
   certificateIds: z.array(z.number()).optional(),
   tagIds: z.array(z.number()).optional(),
   paisesPresencia: z.array(z.string()).optional(),
   estadosPresencia: z.array(z.string()).optional(),
   ciudadesPresencia: z.array(z.string()).optional(),
+  paisesPresenciaOtro: z.string().optional(),
+  estadosPresenciaOtro: z.string().optional(),
+  ciudadesPresenciaOtro: z.string().optional(),
   redesSociales: z.array(z.object({
     plataforma: z.string(),
     url: z.string()
   })).optional(),
   videosUrls: z.array(z.string()).optional(),
   galeriaProductosUrls: z.array(z.string()).optional(),
-}).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true, 
-  userId: true,
-  estado: true 
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
