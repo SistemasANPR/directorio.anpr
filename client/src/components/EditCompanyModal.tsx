@@ -28,6 +28,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -38,7 +50,7 @@ import {
   Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
   Tags, Building2, Car, Truck, Hammer, Factory, Cpu, Wrench, ShoppingBag,
   Briefcase, Heart, GraduationCap, Home, Coffee, Camera, Music,
-  Gamepad2, Book, Palette, Plane, Ship, Train, Zap
+  Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Search, Check, ChevronsUpDown, ExternalLink, User
 } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
 import RichTextEditor from "./RichTextEditor";
@@ -102,6 +114,11 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[ciudad: string]: string}>({});
   const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[ciudad: string]: { lat: number; lng: number; address: string }}>({});
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
+  
+  // Estados para el buscador de usuarios de WordPress
+  const [isWordPressUserOpen, setIsWordPressUserOpen] = useState(false);
+  const [wordPressUserSearch, setWordPressUserSearch] = useState("");
+  const [selectedWordPressUser, setSelectedWordPressUser] = useState<any>(null);
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -342,6 +359,20 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ["/api/tags"],
     enabled: open,
+  });
+
+  // Query para obtener usuarios de WordPress
+  const { data: wordPressUsers = [], isLoading: isLoadingWordPressUsers } = useQuery<any[]>({
+    queryKey: ["/api/wordpress-users", wordPressUserSearch],
+    enabled: open && wordPressUserSearch.length > 2,
+    select: (data: any) => {
+      if (!data?.users) return [];
+      return data.users.filter((user: any) => 
+        user.name?.toLowerCase().includes(wordPressUserSearch.toLowerCase()) ||
+        user.email?.toLowerCase().includes(wordPressUserSearch.toLowerCase()) ||
+        user.username?.toLowerCase().includes(wordPressUserSearch.toLowerCase())
+      ).slice(0, 10); // Limitar a 10 resultados
+    }
   });
 
   // File upload functions
@@ -712,6 +743,128 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Buscador de Usuario de WordPress */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <ExternalLink className="h-5 w-5 text-blue-600" />
+                  <h4 className="font-medium text-blue-800">Vincular Usuario de WordPress</h4>
+                </div>
+                <p className="text-sm text-blue-600 mb-4">
+                  Selecciona un usuario existente de WordPress para asociar con esta empresa. Esto permitirá sincronizar información de contacto.
+                </p>
+                
+                <div className="space-y-3">
+                  <Popover open={isWordPressUserOpen} onOpenChange={setIsWordPressUserOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={isWordPressUserOpen}
+                        className="w-full justify-between"
+                      >
+                        {selectedWordPressUser ? (
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            <span>{selectedWordPressUser.name || selectedWordPressUser.username}</span>
+                            <span className="text-sm text-gray-500">({selectedWordPressUser.email})</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Search className="h-4 w-4" />
+                            <span>Buscar usuario de WordPress...</span>
+                          </div>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0">
+                      <Command>
+                        <CommandInput 
+                          placeholder="Buscar por nombre, email o usuario..." 
+                          value={wordPressUserSearch}
+                          onValueChange={setWordPressUserSearch}
+                        />
+                        <CommandEmpty>
+                          {wordPressUserSearch.length < 3 
+                            ? "Escribe al menos 3 caracteres para buscar..."
+                            : isLoadingWordPressUsers 
+                              ? "Buscando usuarios..."
+                              : "No se encontraron usuarios."
+                          }
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {wordPressUsers.map((user: any) => (
+                            <CommandItem
+                              key={user.id}
+                              onSelect={() => {
+                                setSelectedWordPressUser(user);
+                                setIsWordPressUserOpen(false);
+                                // Auto-llenar campos si están vacíos
+                                if (!form.getValues("email1") && user.email) {
+                                  form.setValue("email1", user.email);
+                                }
+                                if (!form.getValues("nombreEmpresa") && user.name) {
+                                  form.setValue("nombreEmpresa", user.name);
+                                }
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  selectedWordPressUser?.id === user.id ? "opacity-100" : "opacity-0"
+                                }`}
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4 text-blue-600" />
+                                  <span className="font-medium">{user.name || user.username}</span>
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {user.email}
+                                  {user.roles && user.roles.length > 0 && (
+                                    <span className="ml-2">• {user.roles.join(", ")}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+
+                  {selectedWordPressUser && (
+                    <div className="bg-white p-3 rounded border">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-green-800">Usuario seleccionado</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            <strong>{selectedWordPressUser.name || selectedWordPressUser.username}</strong>
+                            <br />
+                            {selectedWordPressUser.email}
+                            {selectedWordPressUser.roles && (
+                              <span className="text-xs text-gray-500 block">
+                                Roles: {selectedWordPressUser.roles.join(", ")}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedWordPressUser(null)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <FormField
