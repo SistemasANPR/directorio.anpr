@@ -882,120 +882,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
           </DialogTitle>
         </DialogHeader>
 
-        {/* BUSCADOR DE WORDPRESS - UBICACIÓN PROMINENTE */}
-        <div className="bg-blue-100 p-6 rounded-lg border-2 border-blue-300 shadow-lg mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <ExternalLink className="h-7 w-7 text-blue-600" />
-            <h3 className="text-xl font-bold text-blue-800">🔗 Vincular Usuario de WordPress</h3>
-          </div>
-          <p className="text-blue-700 mb-4 font-medium">
-            Busca y selecciona un usuario existente de WordPress para asociar con esta nueva empresa. Los datos se llenarán automáticamente.
-          </p>
-          
-          <div className="space-y-4">
-            {/* Campo de búsqueda */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-              <Input
-                placeholder="Buscar usuario por nombre, email o usuario... (mín. 3 caracteres)"
-                value={wordPressUserSearch}
-                onChange={(e) => setWordPressUserSearch(e.target.value)}
-                className="pl-12 text-base py-3 border-2 border-blue-200 focus:border-blue-500 bg-white"
-              />
-            </div>
-
-            {/* Resultados de búsqueda */}
-            {wordPressUserSearch.length >= 3 && (
-              <div className="border-2 border-blue-200 rounded-lg bg-white max-h-64 overflow-y-auto shadow-lg">
-                {isLoadingWordPressUsers ? (
-                  <div className="p-4 text-center text-gray-600">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                      <span className="text-base">Buscando usuarios...</span>
-                    </div>
-                  </div>
-                ) : wordPressUsers.length === 0 ? (
-                  <div className="p-4 text-center text-gray-600">
-                    <span className="text-base">No se encontraron usuarios que coincidan con "{wordPressUserSearch}"</span>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-gray-200">
-                    {wordPressUsers.map((user: any) => (
-                      <div
-                        key={user.id}
-                        className="p-4 hover:bg-blue-50 cursor-pointer flex items-center gap-3 transition-colors"
-                        onClick={() => {
-                          setSelectedWordPressUser(user);
-                          setWordPressUserSearch("");
-                          // Auto-llenar campos
-                          if (user.email) {
-                            form.setValue("email1", user.email);
-                          }
-                          if (user.name) {
-                            form.setValue("nombreEmpresa", user.name);
-                          }
-                        }}
-                      >
-                        <User className="h-6 w-6 text-blue-600 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 text-base truncate">
-                            {user.name || user.username}
-                          </div>
-                          <div className="text-sm text-gray-600 truncate">
-                            📧 {user.email}
-                            {user.roles && user.roles.length > 0 && (
-                              <span className="ml-2 text-blue-600">• {user.roles.join(", ")}</span>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Seleccionar
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Usuario seleccionado */}
-            {selectedWordPressUser && (
-              <div className="bg-green-100 border-2 border-green-300 p-4 rounded-lg shadow-md">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Check className="h-5 w-5 text-green-700" />
-                      <span className="font-bold text-green-800 text-lg">✅ Usuario vinculado exitosamente</span>
-                    </div>
-                    <div className="text-sm space-y-1">
-                      <div className="font-semibold text-gray-900 text-base">{selectedWordPressUser.name || selectedWordPressUser.username}</div>
-                      <div className="text-gray-700">📧 {selectedWordPressUser.email}</div>
-                      {selectedWordPressUser.roles && (
-                        <div className="text-xs text-gray-600">
-                          👤 Roles: {selectedWordPressUser.roles.join(", ")}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedWordPressUser(null)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             
@@ -1346,7 +1232,28 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 />
                 )}
 
-
+                {/* Dirección Física */}
+                <FormField
+                  control={form.control}
+                  name="direccionFisica"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Dirección Física
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Dirección completa de la empresa (calle, número, colonia, ciudad, estado, código postal...)"
+                          rows={3}
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Sección: Información de Membresía */}
                 <div className="md:col-span-2 space-y-6 p-6 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
@@ -1751,6 +1658,120 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 <p className="text-sm text-gray-600">Datos de contacto y ubicación</p>
               </div>
 
+              {/* BUSCADOR DE WORDPRESS - UBICADO EN INFORMACIÓN DE CONTACTO */}
+              <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
+                <div className="flex items-center gap-2 mb-3">
+                  <ExternalLink className="h-5 w-5 text-blue-600" />
+                  <h4 className="font-bold text-blue-800">🔗 Vincular Usuario de WordPress</h4>
+                </div>
+                <p className="text-blue-700 mb-4 text-sm">
+                  Busca y selecciona un usuario existente de WordPress para asociar con esta empresa. Los datos se llenarán automáticamente.
+                </p>
+                
+                <div className="space-y-3">
+                  {/* Campo de búsqueda */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                    <Input
+                      placeholder="Buscar usuario por nombre, email o usuario... (mín. 3 caracteres)"
+                      value={wordPressUserSearch}
+                      onChange={(e) => setWordPressUserSearch(e.target.value)}
+                      className="pl-10 border-2 border-blue-200 focus:border-blue-500 bg-white"
+                    />
+                  </div>
+
+                  {/* Resultados de búsqueda */}
+                  {wordPressUserSearch.length >= 3 && (
+                    <div className="border-2 border-blue-200 rounded-lg bg-white max-h-48 overflow-y-auto shadow-lg">
+                      {isLoadingWordPressUsers ? (
+                        <div className="p-3 text-center text-gray-600">
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                            <span>Buscando usuarios...</span>
+                          </div>
+                        </div>
+                      ) : wordPressUsers.length === 0 ? (
+                        <div className="p-3 text-center text-gray-600">
+                          <span>No se encontraron usuarios que coincidan con "{wordPressUserSearch}"</span>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-200">
+                          {wordPressUsers.map((user: any) => (
+                            <div
+                              key={user.id}
+                              className="p-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3 transition-colors"
+                              onClick={() => {
+                                setSelectedWordPressUser(user);
+                                setWordPressUserSearch("");
+                                // Auto-llenar campos
+                                if (user.email) {
+                                  form.setValue("email1", user.email);
+                                }
+                                if (user.name) {
+                                  form.setValue("nombreEmpresa", user.name);
+                                }
+                              }}
+                            >
+                              <User className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900 truncate">
+                                  {user.name || user.username}
+                                </div>
+                                <div className="text-sm text-gray-600 truncate">
+                                  📧 {user.email}
+                                  {user.roles && user.roles.length > 0 && (
+                                    <span className="ml-2 text-blue-600">• {user.roles.join(", ")}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                Seleccionar
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Usuario seleccionado */}
+                  {selectedWordPressUser && (
+                    <div className="bg-green-100 border-2 border-green-300 p-3 rounded-lg shadow-md">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Check className="h-4 w-4 text-green-700" />
+                            <span className="font-bold text-green-800">✅ Usuario vinculado exitosamente</span>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="font-medium text-gray-900">{selectedWordPressUser.name || selectedWordPressUser.username}</div>
+                            <div className="text-gray-700">📧 {selectedWordPressUser.email}</div>
+                            {selectedWordPressUser.roles && (
+                              <div className="text-xs text-gray-600">
+                                👤 Roles: {selectedWordPressUser.roles.join(", ")}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedWordPressUser(null)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Email principal */}
                 <FormField
@@ -1858,31 +1879,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     </Button>
                   )}
                 </div>
-
-                {/* Dirección Física Principal */}
-                <FormField
-                  control={form.control}
-                  name="direccionFisica"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Dirección o Descripción
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Calle, número, colonia, código postal, ciudad, estado, país"
-                          rows={3}
-                          {...field} 
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-
 
                 {/* Representantes */}
                 <div className="md:col-span-2 space-y-3">
