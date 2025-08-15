@@ -1986,6 +1986,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obtener una muestra de usuarios existentes (para pruebas)
+  app.get("/api/sample-users", async (req, res) => {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Obtener los primeros 20 usuarios para mostrar ejemplos
+      const response = await fetch(`${baseUrl}/wp-json/wp/v2/users?per_page=20&context=edit`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        return res.status(404).json({ error: `Error obteniendo usuarios: ${response.status}` });
+      }
+
+      const users = await response.json();
+      
+      // Mapear información básica de usuarios para ejemplos
+      const sampleUsers = users.map((user: any) => ({
+        user_id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        roles: user.roles
+      }));
+
+      res.json({ 
+        total: sampleUsers.length, 
+        users: sampleUsers 
+      });
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Endpoint simplificado para obtener solo el estado de membresía de MemberPress
   app.get("/api/memberpress-status/:userId", async (req, res) => {
     try {

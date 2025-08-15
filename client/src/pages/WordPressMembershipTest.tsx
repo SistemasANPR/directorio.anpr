@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function WordPressMembershipTest() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [testUserId, setTestUserId] = useState<string>("");
-  const [searchUsername, setSearchUsername] = useState<string>("biherir390@iamtile.com");
+  const [searchUsername, setSearchUsername] = useState<string>("Ejempolo");
   const { toast } = useToast();
 
   // Obtener lista de usuarios de WordPress
