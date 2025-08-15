@@ -149,6 +149,11 @@ const navigationItems: NavigationItem[] = [
         href: "/configuracion-frontend",
         requireAdmin: true,
       },
+      {
+        name: "Prueba Membresías WordPress",
+        href: "/wordpress-membership-test",
+        requireAdmin: true,
+      },
     ],
   },
 ];
