@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -114,47 +114,57 @@ export default function Users() {
     },
   });
 
-  // Fetch WordPress users with filtering
-  const { data: wordpressData, isLoading: isLoadingWordPress } = useQuery({
-    queryKey: ["/api/wordpress-users", { search: searchTerm, role: selectedRole }],
+  // Fetch WordPress users (without filtering in query)
+  const { data: rawWordpressData, isLoading: isLoadingWordPress } = useQuery({
+    queryKey: ["/api/wordpress-users"],
     queryFn: async () => {
       const response = await fetch("/api/wordpress-users", {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch WordPress users");
-      const data = await response.json();
-      
-      // Apply client-side filtering to WordPress users
-      let filteredUsers = data.users || [];
-      
-      if (searchTerm) {
-        filteredUsers = filteredUsers.filter((wpUser: any) =>
-          wpUser.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          wpUser.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          wpUser.slug?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-      
-      if (selectedRole && selectedRole !== "all") {
-        // For WordPress users, we can filter by their WordPress roles
-        if (selectedRole === "admin") {
-          filteredUsers = filteredUsers.filter((wpUser: any) => 
-            wpUser.roles && wpUser.roles.includes("administrator")
-          );
-        } else if (selectedRole === "user") {
-          filteredUsers = filteredUsers.filter((wpUser: any) => 
-            wpUser.roles && (wpUser.roles.includes("subscriber") || wpUser.roles.includes("customer"))
-          );
-        } else if (selectedRole === "representante") {
-          filteredUsers = filteredUsers.filter((wpUser: any) => 
-            wpUser.roles && (wpUser.roles.includes("editor") || wpUser.roles.includes("author"))
-          );
-        }
-      }
-      
-      return { ...data, users: filteredUsers };
+      return response.json();
     },
   });
+
+  // Apply filtering to WordPress users in memory
+  const wordpressData = useMemo(() => {
+    if (!rawWordpressData?.users) return rawWordpressData;
+    
+    let filteredUsers = rawWordpressData.users;
+    
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filteredUsers = filteredUsers.filter((wpUser: any) =>
+        wpUser.name?.toLowerCase().includes(searchLower) ||
+        wpUser.email?.toLowerCase().includes(searchLower) ||
+        wpUser.slug?.toLowerCase().includes(searchLower) ||
+        wpUser.username?.toLowerCase().includes(searchLower) ||
+        wpUser.first_name?.toLowerCase().includes(searchLower) ||
+        wpUser.last_name?.toLowerCase().includes(searchLower) ||
+        (wpUser.first_name && wpUser.last_name && 
+         `${wpUser.first_name} ${wpUser.last_name}`.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    if (selectedRole && selectedRole !== "all") {
+      // For WordPress users, we can filter by their WordPress roles
+      if (selectedRole === "admin") {
+        filteredUsers = filteredUsers.filter((wpUser: any) => 
+          wpUser.roles && wpUser.roles.includes("administrator")
+        );
+      } else if (selectedRole === "user") {
+        filteredUsers = filteredUsers.filter((wpUser: any) => 
+          wpUser.roles && (wpUser.roles.includes("subscriber") || wpUser.roles.includes("customer"))
+        );
+      } else if (selectedRole === "representante") {
+        filteredUsers = filteredUsers.filter((wpUser: any) => 
+          wpUser.roles && (wpUser.roles.includes("editor") || wpUser.roles.includes("author"))
+        );
+      }
+    }
+    
+    return { ...rawWordpressData, users: filteredUsers };
+  }, [rawWordpressData, searchTerm, selectedRole]);
 
   // Fetch companies for representative assignment
   const { data: companies = [] } = useQuery({
