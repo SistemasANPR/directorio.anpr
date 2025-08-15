@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function WordPressMembershipTest() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [testUserId, setTestUserId] = useState<string>("");
+  const [searchUsername, setSearchUsername] = useState<string>("villalpandoluz");
   const { toast } = useToast();
 
   // Obtener lista de usuarios de WordPress
@@ -30,6 +31,18 @@ export default function WordPressMembershipTest() {
   } = useQuery({
     queryKey: [`/api/wordpress-user-membership/${testUserId}`],
     enabled: !!testUserId,
+    staleTime: 30 * 1000, // Cache por 30 segundos
+  });
+
+  // Obtener información de membresía por username
+  const { 
+    data: usernameMembershipData, 
+    isLoading: usernameMembershipLoading, 
+    error: usernameMembershipError,
+    refetch: refetchUsernameMembership 
+  } = useQuery({
+    queryKey: [`/api/find-user-membership/${searchUsername}`],
+    enabled: !!searchUsername && searchUsername.trim().length > 0,
     staleTime: 30 * 1000, // Cache por 30 segundos
   });
 
@@ -96,6 +109,116 @@ export default function WordPressMembershipTest() {
           Herramienta para verificar si podemos obtener información de membresías desde WordPress
         </p>
       </div>
+
+      {/* Búsqueda por Username - NUEVA FUNCIONALIDAD */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Search className="w-5 h-5 mr-2" />
+            Buscar Usuario por Username
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Label htmlFor="usernameSearch">Username de WordPress</Label>
+              <Input
+                id="usernameSearch"
+                type="text"
+                placeholder="ej: villalpandoluz"
+                value={searchUsername}
+                onChange={(e) => setSearchUsername(e.target.value)}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={() => refetchUsernameMembership()} 
+                disabled={!searchUsername || usernameMembershipLoading}
+              >
+                <Search className="w-4 h-4 mr-2" />
+                {usernameMembershipLoading ? "Buscando..." : "Buscar"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Resultados de búsqueda por username */}
+          {usernameMembershipData && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Información de {usernameMembershipData.username}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label>ID</Label>
+                    <p className="font-mono">{usernameMembershipData.user_id}</p>
+                  </div>
+                  <div>
+                    <Label>Nombre</Label>
+                    <p>{usernameMembershipData.name}</p>
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <p>{usernameMembershipData.email}</p>
+                  </div>
+                  <div>
+                    <Label>Estado de Membresía</Label>
+                    <Badge variant={usernameMembershipData.has_active_membership ? "default" : "secondary"}>
+                      {usernameMembershipData.member_status}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <Label>Membresías Activas</Label>
+                    <p className="text-2xl font-bold text-green-600">
+                      {usernameMembershipData.active_memberships?.length || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Suscripciones</Label>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {usernameMembershipData.subscription_ids?.length || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Transacciones</Label>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {usernameMembershipData.transaction_ids?.length || 0}
+                    </p>
+                  </div>
+                </div>
+
+                {usernameMembershipData.memberpress_meta && Object.keys(usernameMembershipData.memberpress_meta).length > 0 && (
+                  <div>
+                    <Label>Metadatos de MemberPress encontrados</Label>
+                    <div className="mt-2">
+                      <ScrollArea className="h-40">
+                        <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                          {JSON.stringify(usernameMembershipData.memberpress_meta, null, 2)}
+                        </pre>
+                      </ScrollArea>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {usernameMembershipError && (
+            <div className="flex items-center text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded">
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Error: {usernameMembershipError.message}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Separator />
 
       {/* Selector de Usuario */}
       <Card>

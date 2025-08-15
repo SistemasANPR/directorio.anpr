@@ -1603,7 +1603,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/wordpress-users", async (req, res) => {
     try {
+      const { search } = req.query;
       const result = await storage.getWordPressUsers();
+      
+      if (search && typeof search === 'string') {
+        const filtered = result.users.filter((user: any) => 
+          user.username?.toLowerCase().includes(search.toLowerCase()) ||
+          user.name?.toLowerCase().includes(search.toLowerCase()) ||
+          user.email?.toLowerCase().includes(search.toLowerCase())
+        );
+        return res.json({ ...result, users: filtered });
+      }
+      
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -1825,6 +1836,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]
         }
       });
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Endpoint para buscar usuario por username y obtener su información de membresía
+  app.get("/api/find-user-membership/:username", async (req, res) => {
+    try {
+      const { username } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Buscar usuario por username (slug)
+      const searchResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users?slug=${username}&context=edit`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!searchResponse.ok) {
+        return res.status(404).json({ error: `Error buscando usuario: ${searchResponse.status}` });
+      }
+
+      const users = await searchResponse.json();
+      
+      if (!Array.isArray(users) || users.length === 0) {
+        return res.status(404).json({ error: `Usuario '${username}' no encontrado` });
+      }
+
+      const userData = users[0]; // Tomar el primer usuario encontrado
+      const meta = userData.meta || {};
+
+      // Extraer información específica de MemberPress
+      const membershipStatus = {
+        user_id: userData.id,
+        username: userData.username,
+        name: userData.name,
+        email: userData.email,
+        active_memberships: meta['_mepr_active_memberships'] || [],
+        inactive_memberships: meta['_mepr_inactive_memberships'] || [],
+        expired_memberships: meta['_mepr_expired_memberships'] || [],
+        subscription_ids: meta['_mepr_subscription_ids'] || [],
+        transaction_ids: meta['_mepr_transaction_ids'] || [],
+        member_status: meta['mepr_member_status'] || 'inactive',
+        last_login: meta['mepr_last_login_date'] || null,
+        registration_date: meta['mepr_reg_date'] || userData.date_registered,
+        has_active_membership: Array.isArray(meta['_mepr_active_memberships']) && meta['_mepr_active_memberships'].length > 0,
+        is_member: userData.roles?.includes('member') || false,
+        roles: userData.roles || [],
+        // Información adicional de MemberPress
+        memberpress_meta: Object.keys(meta).filter(key => 
+          key.includes('mepr') || key.includes('memberpress') || key.startsWith('_mepr')
+        ).reduce((acc, key) => {
+          acc[key] = meta[key];
+          return acc;
+        }, {} as any)
+      };
+
+      res.json(membershipStatus);
 
     } catch (error: any) {
       res.status(500).json({ error: error.message });
