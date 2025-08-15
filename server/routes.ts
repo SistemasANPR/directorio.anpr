@@ -2835,6 +2835,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para consultar transacciones específicas de MemberPress
+  app.get("/api/memberpress-transaction/:transactionId", async (req, res) => {
+    try {
+      const { transactionId } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Intentar obtener la transacción desde diferentes endpoints de MemberPress
+      const endpoints = [
+        `/wp-json/mp/v1/transactions/${transactionId}`,
+        `/wp-json/wp/v2/mp_transaction/${transactionId}`,
+        `/wp-json/memberpress/v1/transactions/${transactionId}`
+      ];
+
+      let transactionData = null;
+      let successfulEndpoint = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(`${baseUrl}${endpoint}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            transactionData = await response.json();
+            successfulEndpoint = endpoint;
+            break;
+          }
+        } catch (error) {
+          // Continuar con el siguiente endpoint
+          continue;
+        }
+      }
+
+      if (!transactionData) {
+        return res.status(404).json({ 
+          error: `Transacción ${transactionId} no encontrada`,
+          attempted_endpoints: endpoints
+        });
+      }
+
+      res.json({
+        transaction_id: transactionId,
+        endpoint_used: successfulEndpoint,
+        transaction_data: transactionData
+      });
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Endpoint para buscar transacciones por usuario
+  app.get("/api/user-transactions/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Buscar transacciones del usuario
+      const endpoints = [
+        `/wp-json/mp/v1/transactions?user=${userId}`,
+        `/wp-json/memberpress/v1/transactions?user_id=${userId}`,
+        `/wp-json/wp/v2/mp_transaction?author=${userId}`
+      ];
+
+      let transactionsData = [];
+      let successfulEndpoint = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(`${baseUrl}${endpoint}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+              transactionsData = data;
+              successfulEndpoint = endpoint;
+              break;
+            }
+          }
+        } catch (error) {
+          continue;
+        }
+      }
+
+      res.json({
+        user_id: userId,
+        endpoint_used: successfulEndpoint,
+        transactions_found: transactionsData.length,
+        transactions: transactionsData
+      });
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
