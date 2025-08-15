@@ -761,62 +761,51 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 />
               </div>
 
-              {/* Buscador de Usuario de WordPress */}
+              {/* Buscador de Usuario de WordPress - Versión Simplificada */}
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <ExternalLink className="h-5 w-5 text-blue-600" />
                   <h4 className="font-medium text-blue-800">Vincular Usuario de WordPress</h4>
                 </div>
                 <p className="text-sm text-blue-600 mb-4">
-                  Selecciona un usuario existente de WordPress para asociar con esta empresa. Esto permitirá sincronizar información de contacto.
+                  Busca y selecciona un usuario existente de WordPress para asociar con esta empresa.
                 </p>
                 
                 <div className="space-y-3">
-                  <Popover open={isWordPressUserOpen} onOpenChange={setIsWordPressUserOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={isWordPressUserOpen}
-                        className="w-full justify-between"
-                      >
-                        {selectedWordPressUser ? (
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            <span>{selectedWordPressUser.name || selectedWordPressUser.username}</span>
-                            <span className="text-sm text-gray-500">({selectedWordPressUser.email})</span>
+                  {/* Campo de búsqueda simple */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar usuario por nombre, email o usuario..."
+                      value={wordPressUserSearch}
+                      onChange={(e) => setWordPressUserSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+
+                  {/* Resultados de búsqueda */}
+                  {wordPressUserSearch.length >= 3 && (
+                    <div className="border rounded-lg bg-white max-h-48 overflow-y-auto">
+                      {isLoadingWordPressUsers ? (
+                        <div className="p-3 text-center text-gray-500">
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                            Buscando usuarios...
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Search className="h-4 w-4" />
-                            <span>Buscar usuario de WordPress...</span>
-                          </div>
-                        )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0">
-                      <Command>
-                        <CommandInput 
-                          placeholder="Buscar por nombre, email o usuario..." 
-                          value={wordPressUserSearch}
-                          onValueChange={setWordPressUserSearch}
-                        />
-                        <CommandEmpty>
-                          {wordPressUserSearch.length < 3 
-                            ? "Escribe al menos 3 caracteres para buscar..."
-                            : isLoadingWordPressUsers 
-                              ? "Buscando usuarios..."
-                              : "No se encontraron usuarios."
-                          }
-                        </CommandEmpty>
-                        <CommandGroup>
+                        </div>
+                      ) : wordPressUsers.length === 0 ? (
+                        <div className="p-3 text-center text-gray-500">
+                          No se encontraron usuarios que coincidan con la búsqueda.
+                        </div>
+                      ) : (
+                        <div className="divide-y">
                           {wordPressUsers.map((user: any) => (
-                            <CommandItem
+                            <div
                               key={user.id}
-                              onSelect={() => {
+                              className="p-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
+                              onClick={() => {
                                 setSelectedWordPressUser(user);
-                                setIsWordPressUserOpen(false);
+                                setWordPressUserSearch("");
                                 // Auto-llenar campos si están vacíos
                                 if (!form.getValues("email1") && user.email) {
                                   form.setValue("email1", user.email);
@@ -826,48 +815,50 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                                 }
                               }}
                             >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  selectedWordPressUser?.id === user.id ? "opacity-100" : "opacity-0"
-                                }`}
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4 text-blue-600" />
-                                  <span className="font-medium">{user.name || user.username}</span>
+                              <User className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900 truncate">
+                                  {user.name || user.username}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 truncate">
                                   {user.email}
                                   {user.roles && user.roles.length > 0 && (
                                     <span className="ml-2">• {user.roles.join(", ")}</span>
                                   )}
                                 </div>
                               </div>
-                            </CommandItem>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                              >
+                                Seleccionar
+                              </Button>
+                            </div>
                           ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
+                  {/* Usuario seleccionado */}
                   {selectedWordPressUser && (
-                    <div className="bg-white p-3 rounded border">
+                    <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-green-800">Usuario seleccionado</span>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Check className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-green-800">Usuario vinculado</span>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            <strong>{selectedWordPressUser.name || selectedWordPressUser.username}</strong>
-                            <br />
-                            {selectedWordPressUser.email}
+                          <div className="text-sm">
+                            <div className="font-medium">{selectedWordPressUser.name || selectedWordPressUser.username}</div>
+                            <div className="text-gray-600">{selectedWordPressUser.email}</div>
                             {selectedWordPressUser.roles && (
-                              <span className="text-xs text-gray-500 block">
+                              <div className="text-xs text-gray-500">
                                 Roles: {selectedWordPressUser.roles.join(", ")}
-                              </span>
+                              </div>
                             )}
-                          </p>
+                          </div>
                         </div>
                         <Button
                           type="button"
