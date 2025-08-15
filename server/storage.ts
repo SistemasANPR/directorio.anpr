@@ -1169,8 +1169,11 @@ export class DatabaseStorage implements IStorage {
         return { users: [], total: 0, message: "Configuración de WordPress incompleta" };
       }
 
-      const usersUrl = `${settings.wordpressUrl.replace(/\/$/, '')}/wp-json/wp/v2/users`;
+      // Use context=edit to get emails and more complete user data  
+      const usersUrl = `${settings.wordpressUrl.replace(/\/$/, '')}/wp-json/wp/v2/users?per_page=100&context=edit`;
       const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      
+      console.log(`[getWordPressUsers] Requesting WordPress users from: ${usersUrl}`);
       
       const response = await fetch(usersUrl, {
         method: 'GET',
@@ -1186,20 +1189,31 @@ export class DatabaseStorage implements IStorage {
 
       const wpUsers = await response.json();
       
-      // Transform the users to include relevant data
-      const transformedUsers = wpUsers.map((wpUser: any) => ({
-        id: wpUser.id,
-        name: wpUser.name || wpUser.slug || 'Sin nombre',
-        slug: wpUser.slug,
-        email: wpUser.email || 'No disponible',
-        registered_date: wpUser.registered_date,
-        roles: wpUser.roles || [],
-        link: wpUser.link,
-        description: wpUser.description || '',
-        url: wpUser.url || '',
-        meta: wpUser.meta || {},
-        source: 'wordpress'
-      }));
+      // Transform the users to include relevant data from context=edit response
+      const transformedUsers = wpUsers.map((wpUser: any) => {
+        const fullName = wpUser.name || 
+          (wpUser.first_name && wpUser.last_name ? `${wpUser.first_name} ${wpUser.last_name}` : '') ||
+          wpUser.username || 
+          wpUser.slug || 
+          'Sin nombre';
+          
+        return {
+          id: wpUser.id,
+          name: fullName,
+          username: wpUser.username || wpUser.slug,
+          slug: wpUser.slug,
+          email: wpUser.email || 'No disponible',
+          first_name: wpUser.first_name || '',
+          last_name: wpUser.last_name || '',
+          registered_date: wpUser.registered_date,
+          roles: wpUser.roles || [],
+          link: wpUser.link,
+          description: wpUser.description || '',
+          url: wpUser.url || '',
+          capabilities: wpUser.capabilities || {},
+          source: 'wordpress'
+        };
+      });
 
       return { 
         users: transformedUsers, 
@@ -1240,26 +1254,15 @@ export class DatabaseStorage implements IStorage {
       const wpUsers = await response.json();
       let syncedCount = 0;
 
-      console.log(`Received ${wpUsers.length} users from WordPress`);
-
       for (const wpUser of wpUsers) {
-        console.log(`Processing user:`, {
-          id: wpUser.id,
-          name: wpUser.name,
-          email: wpUser.email,
-          slug: wpUser.slug
-        });
-
         // Skip users without email
         if (!wpUser.email || wpUser.email.trim() === '' || wpUser.email === null || wpUser.email === undefined) {
-          console.log(`Skipping user ${wpUser.name || wpUser.slug} (ID: ${wpUser.id}) - no valid email`);
           continue;
         }
 
         // Double check email is valid before proceeding
         const emailToUse = wpUser.email ? wpUser.email.trim() : '';
         if (!emailToUse || emailToUse === 'null' || emailToUse === 'undefined') {
-          console.log(`Final skip - invalid email format for user ${wpUser.name || wpUser.slug} (ID: ${wpUser.id})`);
           continue;
         }
 
@@ -1276,12 +1279,9 @@ export class DatabaseStorage implements IStorage {
               role: 'representative',
             });
             syncedCount++;
-            console.log(`Successfully created user: ${emailToUse}`);
           } catch (error) {
             console.error(`Error creating user ${emailToUse}:`, error);
           }
-        } else {
-          console.log(`User ${emailToUse} already exists, skipping`);
         }
       }
 

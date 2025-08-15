@@ -1562,6 +1562,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/debug-wordpress", async (req, res) => {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const urls = [
+        `${settings.wordpressUrl}/wp-json/wp/v2/users?per_page=10`,
+        `${settings.wordpressUrl}/wp-json/wp/v2/users?per_page=10&context=edit`,
+        `${settings.wordpressUrl}/wp-json/wp/v2/users?per_page=10&roles=all`,
+      ];
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const results = {};
+
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          const data = await response.json();
+          results[`test_${i + 1}_${response.status}`] = {
+            url,
+            status: response.status,
+            count: Array.isArray(data) ? data.length : 'Not array',
+            first_user: Array.isArray(data) && data.length > 0 ? data[0] : null,
+            error: !response.ok ? data : null
+          };
+        } catch (error: any) {
+          results[`test_${i + 1}_error`] = {
+            url,
+            error: error.message
+          };
+        }
+      }
+
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Complete registration endpoint
   app.post("/api/complete-registration", async (req, res) => {
     try {
