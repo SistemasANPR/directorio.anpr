@@ -1783,7 +1783,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                               </div>
                             )}
                             <div className="text-xs text-green-700 font-medium mt-1">
-                              ✨ Campos auto-llenados: Email, Nombre de empresa y Representante de ventas
+                              ✨ Campos auto-llenados: Email, Nombre de empresa y Enlace a perfil profesional
                             </div>
                             <div className="pt-2">
                               <Button
@@ -1927,11 +1927,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
                 {/* Representantes */}
                 <div className="md:col-span-2 space-y-3">
-                  <FormLabel>Representantes de Ventas (URLs)</FormLabel>
+                  <FormLabel>Enlace a perfil profesional</FormLabel>
                   {representantes.map((representante, index) => (
                     <div key={index} className="flex gap-3 items-start">
                       <Input
-                        placeholder="https://perfil-representante.com/usuario"
+                        placeholder="https://anpr.org.mx/profile-2/?usuario/ (URL del perfil profesional)"
                         value={representante}
                         onChange={(e) => updateRepresentante(index, e.target.value)}
                         className="flex-1"
@@ -1955,7 +1955,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                       className="flex items-center gap-2"
                     >
                       <Plus className="h-4 w-4" />
-                      Agregar Representante
+                      Agregar Perfil Profesional
                     </Button>
                   )}
                 </div>
