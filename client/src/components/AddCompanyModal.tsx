@@ -1710,6 +1710,17 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 if (user.name) {
                                   form.setValue("nombreEmpresa", user.name);
                                 }
+                                // Auto-llenar el primer representante con la URL de PeepSo
+                                if (user.username) {
+                                  const peepsoUrl = `https://anpr.org.mx/profile-2/?${user.username}/`;
+                                  const newRepresentantes = [...representantes];
+                                  if (newRepresentantes.length === 0) {
+                                    newRepresentantes.push(peepsoUrl);
+                                  } else {
+                                    newRepresentantes[0] = peepsoUrl;
+                                  }
+                                  setRepresentantes(newRepresentantes);
+                                }
                               }}
                             >
                               <User className="h-5 w-5 text-blue-600 flex-shrink-0" />
@@ -1771,6 +1782,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 👤 Roles: {selectedWordPressUser.roles.join(", ")}
                               </div>
                             )}
+                            <div className="text-xs text-green-700 font-medium mt-1">
+                              ✨ Campos auto-llenados: Email, Nombre de empresa y Representante de ventas
+                            </div>
                             <div className="pt-2">
                               <Button
                                 type="button"
