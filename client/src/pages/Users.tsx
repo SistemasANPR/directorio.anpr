@@ -581,7 +581,7 @@ export default function Users() {
                       <TableCell>
                         {wpUser.username ? (
                           <a 
-                            href={`https://anpr.org.mx/profile/?user=${wpUser.username}`} 
+                            href={`https://anpr.org.mx/profile-2/?${wpUser.username}/`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 flex items-center gap-1"

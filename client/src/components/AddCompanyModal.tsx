@@ -1731,8 +1731,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    // URL del perfil de PeepSo: /profile/?user=username
-                                    window.open(`https://anpr.org.mx/profile/?user=${user.username}`, '_blank');
+                                    // URL del perfil de PeepSo: /profile-2/?username/
+                                    window.open(`https://anpr.org.mx/profile-2/?${user.username}/`, '_blank');
                                   }}
                                   className="text-blue-600 hover:text-blue-700 border-blue-300"
                                 >
@@ -1778,7 +1778,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  window.open(`https://anpr.org.mx/profile/?user=${selectedWordPressUser.username}`, '_blank');
+                                  window.open(`https://anpr.org.mx/profile-2/?${selectedWordPressUser.username}/`, '_blank');
                                 }}
                                 className="p-0 h-auto text-blue-600 hover:text-blue-700"
                               >
