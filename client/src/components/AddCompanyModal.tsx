@@ -448,6 +448,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         logotipoUrl: logoPreview || null,
         // Agregar foto de portada si existe
         fotoPortadaUrl: fotoPortadaPreview || null,
+        // Agregar datos del usuario de WordPress seleccionado para crear representante
+        wordpressUser: selectedWordPressUser || null,
       };
       
       createCompanyMutation.mutate(companyData);

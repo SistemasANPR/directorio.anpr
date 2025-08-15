@@ -433,13 +433,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/companies", async (req, res) => {
     try {
-      const companyData = insertCompanySchema.parse(req.body);
-      const company = await storage.createCompany(companyData);
+      const { wordpressUser, ...companyData } = req.body;
+      const parsedCompanyData = insertCompanySchema.parse(companyData);
+      
+      let userId = null;
+      
+      // Si se seleccionó un usuario de WordPress, crear/obtener usuario representante
+      if (wordpressUser && wordpressUser.email && wordpressUser.username) {
+        try {
+          // Verificar si el usuario ya existe en el sistema por email
+          let existingUser = await storage.getUserByEmail(wordpressUser.email);
+          
+          if (!existingUser) {
+            // Crear nuevo usuario representante con datos de WordPress
+            const newUserData = {
+              firebaseUid: `wp_${wordpressUser.id}_${Date.now()}`, // UID único temporal para WordPress
+              email: wordpressUser.email,
+              displayName: wordpressUser.name || wordpressUser.username,
+              role: "representante",
+              photoURL: null,
+              stripeCustomerId: null,
+              stripeSubscriptionId: null,
+              autoRenewal: false
+            };
+            
+            existingUser = await storage.createUser(newUserData);
+            console.log(`Created new representative user from WordPress: ${existingUser.email}`);
+          } else if (existingUser && existingUser.role !== "representante" && existingUser.role !== "admin") {
+            // Si existe pero no es representante ni admin, actualizarlo a representante
+            const updatedUser = await storage.updateUser(existingUser.id, { role: "representante" });
+            if (updatedUser) {
+              existingUser = updatedUser;
+              console.log(`Updated user ${existingUser.email} to representative role`);
+            }
+          }
+          
+          userId = existingUser?.id || null;
+        } catch (userError) {
+          console.error("Error creating/updating representative user:", userError);
+          // Continuar con la creación de la empresa sin asignar usuario
+        }
+      }
+      
+      // Crear la empresa con el userId del representante si se pudo crear/encontrar
+      const companyWithUser = {
+        ...parsedCompanyData,
+        userId: userId
+      };
+      
+      const company = await storage.createCompany(companyWithUser);
       res.status(201).json(company);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Validation error", details: error.errors });
       }
+      console.error("Error creating company:", error);
       res.status(500).json({ error: "Failed to create company" });
     }
   });
