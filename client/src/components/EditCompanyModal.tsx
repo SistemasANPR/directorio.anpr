@@ -666,6 +666,120 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
             <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Información Básica</h3>
               
+              {/* Buscador de Usuario de WordPress - UBICADO AQUÍ PARA MÁXIMA VISIBILIDAD */}
+              <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
+                <div className="flex items-center gap-2 mb-3">
+                  <ExternalLink className="h-6 w-6 text-blue-600" />
+                  <h4 className="text-lg font-bold text-blue-800">🔗 Vincular Usuario de WordPress</h4>
+                </div>
+                <p className="text-sm text-blue-700 mb-4 font-medium">
+                  Busca y selecciona un usuario existente de WordPress para asociar con esta empresa.
+                </p>
+                
+                <div className="space-y-3">
+                  {/* Campo de búsqueda */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
+                    <Input
+                      placeholder="Buscar usuario por nombre, email o usuario... (mín. 3 caracteres)"
+                      value={wordPressUserSearch}
+                      onChange={(e) => setWordPressUserSearch(e.target.value)}
+                      className="pl-12 text-base py-3 border-2 border-blue-200 focus:border-blue-400"
+                    />
+                  </div>
+
+                  {/* Resultados de búsqueda */}
+                  {wordPressUserSearch.length >= 3 && (
+                    <div className="border-2 border-blue-200 rounded-lg bg-white max-h-60 overflow-y-auto shadow-lg">
+                      {isLoadingWordPressUsers ? (
+                        <div className="p-4 text-center text-gray-600">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                            <span className="text-base">Buscando usuarios...</span>
+                          </div>
+                        </div>
+                      ) : wordPressUsers.length === 0 ? (
+                        <div className="p-4 text-center text-gray-600">
+                          <span className="text-base">No se encontraron usuarios que coincidan con "{wordPressUserSearch}"</span>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-200">
+                          {wordPressUsers.map((user: any) => (
+                            <div
+                              key={user.id}
+                              className="p-4 hover:bg-blue-50 cursor-pointer flex items-center gap-3 transition-colors"
+                              onClick={() => {
+                                setSelectedWordPressUser(user);
+                                setWordPressUserSearch("");
+                                // Auto-llenar campos
+                                if (!form.getValues("email1") && user.email) {
+                                  form.setValue("email1", user.email);
+                                }
+                                if (!form.getValues("nombreEmpresa") && user.name) {
+                                  form.setValue("nombreEmpresa", user.name);
+                                }
+                              }}
+                            >
+                              <User className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-gray-900 text-base truncate">
+                                  {user.name || user.username}
+                                </div>
+                                <div className="text-sm text-gray-600 truncate">
+                                  📧 {user.email}
+                                  {user.roles && user.roles.length > 0 && (
+                                    <span className="ml-2 text-blue-600">• {user.roles.join(", ")}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                Seleccionar
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Usuario seleccionado */}
+                  {selectedWordPressUser && (
+                    <div className="bg-green-100 border-2 border-green-300 p-4 rounded-lg shadow-md">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Check className="h-5 w-5 text-green-700" />
+                            <span className="font-bold text-green-800 text-base">✅ Usuario vinculado exitosamente</span>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="font-semibold text-gray-900">{selectedWordPressUser.name || selectedWordPressUser.username}</div>
+                            <div className="text-gray-700">📧 {selectedWordPressUser.email}</div>
+                            {selectedWordPressUser.roles && (
+                              <div className="text-xs text-gray-600">
+                                👤 Roles: {selectedWordPressUser.roles.join(", ")}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedWordPressUser(null)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
               <FormField
                 control={form.control}
                 name="nombreEmpresa"
@@ -761,118 +875,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 />
               </div>
 
-              {/* Buscador de Usuario de WordPress - Versión Simplificada */}
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <ExternalLink className="h-5 w-5 text-blue-600" />
-                  <h4 className="font-medium text-blue-800">Vincular Usuario de WordPress</h4>
-                </div>
-                <p className="text-sm text-blue-600 mb-4">
-                  Busca y selecciona un usuario existente de WordPress para asociar con esta empresa.
-                </p>
-                
-                <div className="space-y-3">
-                  {/* Campo de búsqueda simple */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Buscar usuario por nombre, email o usuario..."
-                      value={wordPressUserSearch}
-                      onChange={(e) => setWordPressUserSearch(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
 
-                  {/* Resultados de búsqueda */}
-                  {wordPressUserSearch.length >= 3 && (
-                    <div className="border rounded-lg bg-white max-h-48 overflow-y-auto">
-                      {isLoadingWordPressUsers ? (
-                        <div className="p-3 text-center text-gray-500">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                            Buscando usuarios...
-                          </div>
-                        </div>
-                      ) : wordPressUsers.length === 0 ? (
-                        <div className="p-3 text-center text-gray-500">
-                          No se encontraron usuarios que coincidan con la búsqueda.
-                        </div>
-                      ) : (
-                        <div className="divide-y">
-                          {wordPressUsers.map((user: any) => (
-                            <div
-                              key={user.id}
-                              className="p-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
-                              onClick={() => {
-                                setSelectedWordPressUser(user);
-                                setWordPressUserSearch("");
-                                // Auto-llenar campos si están vacíos
-                                if (!form.getValues("email1") && user.email) {
-                                  form.setValue("email1", user.email);
-                                }
-                                if (!form.getValues("nombreEmpresa") && user.name) {
-                                  form.setValue("nombreEmpresa", user.name);
-                                }
-                              }}
-                            >
-                              <User className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 truncate">
-                                  {user.name || user.username}
-                                </div>
-                                <div className="text-sm text-gray-500 truncate">
-                                  {user.email}
-                                  {user.roles && user.roles.length > 0 && (
-                                    <span className="ml-2">• {user.roles.join(", ")}</span>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                              >
-                                Seleccionar
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Usuario seleccionado */}
-                  {selectedWordPressUser && (
-                    <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Check className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-green-800">Usuario vinculado</span>
-                          </div>
-                          <div className="text-sm">
-                            <div className="font-medium">{selectedWordPressUser.name || selectedWordPressUser.username}</div>
-                            <div className="text-gray-600">{selectedWordPressUser.email}</div>
-                            {selectedWordPressUser.roles && (
-                              <div className="text-xs text-gray-500">
-                                Roles: {selectedWordPressUser.roles.join(", ")}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedWordPressUser(null)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
 
               <FormField
                 control={form.control}
