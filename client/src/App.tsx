@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Sidebar from "@/components/Sidebar";
 import RepresentativeSidebar from "@/components/RepresentativeSidebar";
+import DashboardNavbar from "@/components/DashboardNavbar";
 import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
@@ -48,27 +49,49 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isAdmin } = useAuth();
   
   return (
-    <div className="min-h-screen flex bg-background">
-      {isAdmin ? <Sidebar /> : <RepresentativeSidebar />}
-      <main className="flex-1 ml-0 lg:ml-64">
-        <div className="p-6 pt-20 lg:pt-6">
-          {children}
-        </div>
-      </main>
+    <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <DashboardNavbar 
+        userRole={user?.role || "user"}
+        userName={user?.displayName || "Usuario"}
+        userAvatar={user?.photoURL}
+      />
+      
+      {/* Content Layout */}
+      <div className="flex">
+        {isAdmin ? <Sidebar /> : <RepresentativeSidebar />}
+        <main className="flex-1 ml-0 lg:ml-64">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
 
 function RepresentativeLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   console.log("RepresentativeLayout rendering with children:", children);
+  
   return (
-    <div className="min-h-screen flex bg-background">
-      <RepresentativeSidebar />
-      <main className="flex-1 ml-0 lg:ml-64">
-        <div className="p-6 pt-20 lg:pt-6">
-          {children}
-        </div>
-      </main>
+    <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <DashboardNavbar 
+        userRole={user?.role || "representante"}
+        userName={user?.displayName || "Representante"}
+        userAvatar={user?.photoURL}
+      />
+      
+      {/* Content Layout */}
+      <div className="flex">
+        <RepresentativeSidebar />
+        <main className="flex-1 ml-0 lg:ml-64">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
