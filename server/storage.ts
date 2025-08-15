@@ -1169,28 +1169,48 @@ export class DatabaseStorage implements IStorage {
         return { users: [], total: 0, message: "Configuración de WordPress incompleta" };
       }
 
-      // Use context=edit to get emails and more complete user data  
-      const usersUrl = `${settings.wordpressUrl.replace(/\/$/, '')}/wp-json/wp/v2/users?per_page=100&context=edit`;
       const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
-      
-      console.log(`[getWordPressUsers] Requesting WordPress users from: ${usersUrl}`);
-      
-      const response = await fetch(usersUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Basic ${authString}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+      let allUsers: any[] = [];
+      let page = 1;
+      let totalPages = 1;
 
-      if (!response.ok) {
-        return { users: [], total: 0, message: `Error al obtener usuarios: ${response.status}` };
-      }
+      // Get all users by paginating through all pages
+      do {
+        const usersUrl = `${baseUrl}/wp-json/wp/v2/users?per_page=100&page=${page}&context=edit`;
+        console.log(`[getWordPressUsers] Requesting page ${page} from: ${usersUrl}`);
+        
+        const response = await fetch(usersUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-      const wpUsers = await response.json();
+        if (!response.ok) {
+          if (page === 1) {
+            return { users: [], total: 0, message: `Error al obtener usuarios: ${response.status}` };
+          }
+          break; // Stop if we can't get more pages
+        }
+
+        const wpUsers = await response.json();
+        allUsers = allUsers.concat(wpUsers);
+
+        // Get total pages from response headers
+        const totalPagesHeader = response.headers.get('X-WP-TotalPages');
+        if (totalPagesHeader) {
+          totalPages = parseInt(totalPagesHeader, 10);
+        }
+
+        page++;
+      } while (page <= totalPages);
+
+      console.log(`[getWordPressUsers] Retrieved ${allUsers.length} total users from ${page - 1} pages`);
       
       // Transform the users to include relevant data from context=edit response
-      const transformedUsers = wpUsers.map((wpUser: any) => {
+      const transformedUsers = allUsers.map((wpUser: any) => {
         const fullName = wpUser.name || 
           (wpUser.first_name && wpUser.last_name ? `${wpUser.first_name} ${wpUser.last_name}` : '') ||
           wpUser.username || 

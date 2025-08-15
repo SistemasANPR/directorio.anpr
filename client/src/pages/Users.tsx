@@ -44,7 +44,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserPlus, MoreHorizontal, Edit, Trash2, Users as UsersIcon, User, Search, Filter, ExternalLink } from "lucide-react";
+import { UserPlus, MoreHorizontal, Edit, Trash2, Users as UsersIcon, User, Search, Filter, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { User as UserType } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -73,6 +73,8 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 50;
   const { toast } = useToast();
 
   const editForm = useForm<UserFormData>({
@@ -126,9 +128,9 @@ export default function Users() {
     },
   });
 
-  // Apply filtering to WordPress users in memory
+  // Apply filtering and pagination to WordPress users in memory
   const wordpressData = useMemo(() => {
-    if (!rawWordpressData?.users) return rawWordpressData;
+    if (!rawWordpressData?.users) return { ...rawWordpressData, paginatedUsers: [], totalPages: 0, currentPage: 1 };
     
     let filteredUsers = rawWordpressData.users;
     
@@ -163,8 +165,21 @@ export default function Users() {
       }
     }
     
-    return { ...rawWordpressData, users: filteredUsers };
-  }, [rawWordpressData, searchTerm, selectedRole]);
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+    
+    return { 
+      ...rawWordpressData, 
+      users: filteredUsers, // Keep all filtered users for count
+      paginatedUsers, // Users for current page
+      totalPages,
+      currentPage,
+      totalFiltered: filteredUsers.length
+    };
+  }, [rawWordpressData, searchTerm, selectedRole, currentPage, usersPerPage]);
 
   // Fetch companies for representative assignment
   const { data: companies = [] } = useQuery({
@@ -288,6 +303,18 @@ export default function Users() {
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedRole("all");
+    setCurrentPage(1);
+  };
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleRoleChange = (value: string) => {
+    setSelectedRole(value);
+    setCurrentPage(1);
   };
 
   return (
@@ -318,12 +345,12 @@ export default function Users() {
               <Input
                 placeholder="Buscar en ambas listas..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10"
               />
             </div>
 
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
+            <Select value={selectedRole} onValueChange={handleRoleChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Filtrar por rol" />
               </SelectTrigger>
@@ -461,10 +488,16 @@ export default function Users() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <ExternalLink className="h-5 w-5" />
-                Usuarios de WordPress ({wordpressData?.users?.length || 0})
+                Usuarios de WordPress ({wordpressData?.totalFiltered || wordpressData?.users?.length || 0})
               </CardTitle>
               <p className="text-sm text-gray-500">
                 Usuarios sincronizados desde WordPress. Estos usuarios no pueden ser editados desde aquí.
+                {wordpressData?.totalPages > 1 && (
+                  <span className="ml-2 font-medium">
+                    Página {currentPage} de {wordpressData.totalPages} 
+                    (mostrando {usersPerPage} por página)
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -474,7 +507,7 @@ export default function Users() {
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-500">Cargando usuarios de WordPress...</div>
             </div>
-          ) : !wordpressData || wordpressData.users.length === 0 ? (
+          ) : !wordpressData || wordpressData.totalFiltered === 0 ? (
             <div className="text-center py-8">
               <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
@@ -500,7 +533,7 @@ export default function Users() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {wordpressData.users.map((wpUser: any) => (
+                  {(wordpressData?.paginatedUsers || wordpressData?.users || []).map((wpUser: any) => (
                     <TableRow key={wpUser.id}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
