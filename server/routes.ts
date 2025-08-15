@@ -3113,6 +3113,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para listar todas las membresías/productos disponibles en MemberPress
+  app.get("/api/memberpress-products", async (req, res) => {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      console.log('[MemberPress Products] Consultando productos disponibles...');
+
+      // Endpoints para obtener productos de membresía
+      const productEndpoints = [
+        '/wp-json/mp/v1/memberships',
+        '/wp-json/mp/v1/products',
+        '/wp-json/memberpress/v1/memberships',
+        '/wp-json/wp/v2/mp_membership',
+        '/wp-json/wp/v2/posts?post_type=memberpressproduct'
+      ];
+
+      const allProducts = {};
+      let consolidatedProducts = [];
+
+      // Consultar todos los endpoints disponibles
+      for (const endpoint of productEndpoints) {
+        try {
+          console.log(`[MemberPress Products] Consultando: ${baseUrl}${endpoint}`);
+          
+          const response = await fetch(`${baseUrl}${endpoint}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`[MemberPress Products] Éxito en ${endpoint}:`, Array.isArray(data) ? `${data.length} items` : 'objeto');
+            
+            allProducts[endpoint] = {
+              status: response.status,
+              data: data,
+              count: Array.isArray(data) ? data.length : 1
+            };
+
+            // Consolidar productos únicos
+            if (Array.isArray(data)) {
+              consolidatedProducts = [...consolidatedProducts, ...data];
+            } else if (data && typeof data === 'object') {
+              consolidatedProducts.push(data);
+            }
+          } else {
+            console.log(`[MemberPress Products] Error ${response.status} en ${endpoint}`);
+            allProducts[endpoint] = {
+              status: response.status,
+              error: await response.text()
+            };
+          }
+        } catch (error: any) {
+          console.log(`[MemberPress Products] Excepción en ${endpoint}:`, error.message);
+          allProducts[endpoint] = {
+            error: error.message
+          };
+        }
+      }
+
+      // También consultar transacciones para ver qué productos se han vendido
+      let transactionProducts = [];
+      try {
+        console.log('[MemberPress Products] Consultando transacciones...');
+        const transResponse = await fetch(`${baseUrl}/wp-json/mp/v1/transactions?per_page=50`, {
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (transResponse.ok) {
+          const transactions = await transResponse.json();
+          console.log(`[MemberPress Products] Encontradas ${transactions.length} transacciones`);
+          
+          // Extraer IDs de productos únicos de las transacciones
+          const productIds = [...new Set(transactions.map((t: any) => t.product_id || t.membership_id).filter(Boolean))];
+          transactionProducts = productIds.map((id: any) => ({ 
+            id, 
+            source: 'transaction',
+            found_in_transactions: transactions.filter((t: any) => (t.product_id || t.membership_id) == id).length 
+          }));
+        }
+      } catch (error: any) {
+        console.log('[MemberPress Products] Error consultando transacciones:', error.message);
+      }
+
+      // Deduplicar productos por ID
+      const uniqueProducts = consolidatedProducts.reduce((acc: any[], product: any) => {
+        const existingIndex = acc.findIndex(p => p.id === product.id);
+        if (existingIndex === -1) {
+          acc.push(product);
+        } else {
+          // Mergear información si el producto ya existe
+          acc[existingIndex] = { ...acc[existingIndex], ...product };
+        }
+        return acc;
+      }, []);
+
+      console.log(`[MemberPress Products] Total productos únicos encontrados: ${uniqueProducts.length}`);
+
+      const result = {
+        summary: {
+          total_unique_products: uniqueProducts.length,
+          endpoints_queried: productEndpoints.length,
+          successful_endpoints: Object.values(allProducts).filter((p: any) => p.status === 200).length,
+          transaction_product_ids: transactionProducts.length
+        },
+        products: uniqueProducts,
+        products_from_transactions: transactionProducts,
+        raw_api_responses: allProducts,
+        endpoints_attempted: productEndpoints
+      };
+
+      res.json(result);
+
+    } catch (error: any) {
+      console.error('[MemberPress Products] Error general:', error.message);
+      res.status(500).json({ error: error.message, details: error.stack });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

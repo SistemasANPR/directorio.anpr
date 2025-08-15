@@ -14,6 +14,7 @@ export default function WordPressMembershipTest() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [testUserId, setTestUserId] = useState<string>("");
   const [searchUsername, setSearchUsername] = useState<string>("luciaenriquez_sedema");
+  const [showAllProducts, setShowAllProducts] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Obtener lista de usuarios de WordPress
@@ -56,6 +57,18 @@ export default function WordPressMembershipTest() {
     queryKey: [`/api/memberpress-memberships/${usernameMembershipData?.user_id}`],
     enabled: !!usernameMembershipData?.user_id,
     staleTime: 30 * 1000, // Cache por 30 segundos
+  });
+
+  // Obtener todos los productos de MemberPress disponibles
+  const { 
+    data: allProductsData, 
+    isLoading: allProductsLoading, 
+    error: allProductsError,
+    refetch: refetchAllProducts 
+  } = useQuery({
+    queryKey: ["/api/memberpress-products"],
+    enabled: showAllProducts,
+    staleTime: 2 * 60 * 1000, // Cache por 2 minutos
   });
 
   const handleTestUser = () => {
@@ -116,10 +129,185 @@ export default function WordPressMembershipTest() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Prueba de Membresías WordPress</h1>
-        <p className="text-gray-600 mt-2">
-          Herramienta para verificar si podemos obtener información de membresías desde WordPress
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Prueba de Membresías WordPress</h1>
+            <p className="text-gray-600 mt-2">
+              Herramienta para verificar si podemos obtener información de membresías desde WordPress
+            </p>
+          </div>
+          <Button 
+            onClick={() => setShowAllProducts(!showAllProducts)}
+            variant={showAllProducts ? "secondary" : "default"}
+            size="sm"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            {showAllProducts ? "Ocultar Productos" : "Ver Todos los Productos"}
+          </Button>
+        </div>
+
+        {/* Sección de todos los productos de MemberPress */}
+        {showAllProducts && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Productos de MemberPress Disponibles</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {allProductsLoading && (
+                <div className="text-center py-8">
+                  <Clock className="w-8 h-8 mx-auto animate-spin mb-4" />
+                  <p className="text-gray-600">Consultando todos los productos de MemberPress...</p>
+                </div>
+              )}
+
+              {allProductsError && (
+                <div className="flex items-center text-red-600 bg-red-50 dark:bg-red-900/20 p-4 rounded">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  <div>
+                    <p className="font-medium">Error al consultar productos</p>
+                    <p className="text-sm">{allProductsError.message}</p>
+                  </div>
+                </div>
+              )}
+
+              {allProductsData && (
+                <div className="space-y-6">
+                  {/* Resumen */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded">
+                      <p className="text-2xl font-bold text-green-600">{allProductsData.summary?.total_unique_products || 0}</p>
+                      <p className="text-sm text-gray-600">Productos Únicos</p>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded">
+                      <p className="text-2xl font-bold text-blue-600">{allProductsData.summary?.successful_endpoints || 0}</p>
+                      <p className="text-sm text-gray-600">APIs Exitosas</p>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded">
+                      <p className="text-2xl font-bold text-purple-600">{allProductsData.summary?.transaction_product_ids || 0}</p>
+                      <p className="text-sm text-gray-600">En Transacciones</p>
+                    </div>
+                    <div className="text-center p-4">
+                      <Button 
+                        onClick={() => refetchAllProducts()} 
+                        disabled={allProductsLoading}
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Search className="w-4 h-4 mr-1" />
+                        Actualizar
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Lista de productos */}
+                  {allProductsData.products && allProductsData.products.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-lg mb-3">Productos Encontrados ({allProductsData.products.length})</h3>
+                      <div className="space-y-4 max-h-96 overflow-y-auto border rounded p-4">
+                        {allProductsData.products.map((product: any, index: number) => (
+                          <div key={product.id || index} className="border rounded p-4 bg-gray-50 dark:bg-gray-800">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant="default">ID: {product.id}</Badge>
+                                  {product.status && (
+                                    <Badge variant={product.status === 'publish' ? 'default' : 'secondary'}>
+                                      {product.status}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <h4 className="font-semibold text-lg mb-1">
+                                  {product.title?.rendered || product.title || product.name || `Producto ${product.id}`}
+                                </h4>
+                                {product.content?.rendered && (
+                                  <div className="text-sm text-gray-600 mb-2 max-h-20 overflow-hidden">
+                                    {product.content.rendered.replace(/<[^>]*>/g, '').substring(0, 200)}...
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right ml-4">
+                                {product.price && (
+                                  <p className="text-lg font-bold text-green-600">${product.price}</p>
+                                )}
+                                {product.period_type && (
+                                  <p className="text-sm text-gray-500">
+                                    {product.period} {product.period_type}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Información adicional */}
+                            <div className="mt-3 pt-3 border-t text-xs text-gray-500 space-y-1">
+                              {product.date && (
+                                <p><strong>Creado:</strong> {new Date(product.date).toLocaleDateString('es-ES')}</p>
+                              )}
+                              {product.link && (
+                                <p><strong>URL:</strong> <a href={product.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{product.link}</a></p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Productos en transacciones */}
+                  {allProductsData.products_from_transactions && allProductsData.products_from_transactions.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-lg mb-3">IDs de Productos en Transacciones</h3>
+                      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                        {allProductsData.products_from_transactions.map((item: any, index: number) => (
+                          <div key={index} className="text-center p-2 border rounded">
+                            <Badge variant="outline" className="w-full mb-1">
+                              ID: {item.id}
+                            </Badge>
+                            <p className="text-xs text-gray-500">
+                              {item.found_in_transactions} usos
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Estado de APIs */}
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">Estado de APIs Consultadas</h3>
+                    <div className="space-y-2">
+                      {allProductsData.endpoints_attempted?.map((endpoint: string, index: number) => {
+                        const response = allProductsData.raw_api_responses?.[endpoint];
+                        return (
+                          <div key={index} className="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                            <span className="font-mono text-xs">{endpoint}</span>
+                            <div className="flex items-center gap-2">
+                              {response?.status === 200 ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                  <Badge variant="default" size="sm">
+                                    {response.count} items
+                                  </Badge>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="w-4 h-4 text-red-500" />
+                                  <Badge variant="destructive" size="sm">
+                                    {response?.status || 'Error'}
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Búsqueda por Username - NUEVA FUNCIONALIDAD */}
