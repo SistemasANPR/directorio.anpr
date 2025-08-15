@@ -39,6 +39,7 @@ import StripeConfiguration from "@/pages/StripeConfiguration";
 import FrontendConfiguration from "@/pages/FrontendConfiguration";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
+import WordPressMembershipTest from "@/pages/WordPressMembershipTest";
 import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
@@ -240,6 +241,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <IntegrationSettings />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/wordpress-membership-test">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <WordPressMembershipTest />
           </AppLayout>
         </ProtectedRoute>
       </Route>

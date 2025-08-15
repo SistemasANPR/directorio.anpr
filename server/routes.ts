@@ -1659,6 +1659,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obtener información detallada de membresía de un usuario específico de WordPress
+  app.get("/api/wordpress-user-membership/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Obtener información básica del usuario
+      const userResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users/${userId}?context=edit`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!userResponse.ok) {
+        return res.status(404).json({ error: `Usuario no encontrado: ${userResponse.status}` });
+      }
+
+      const userData = await userResponse.json();
+
+      // Intentar obtener información de membresías usando diferentes endpoints comunes
+      const membershipEndpoints = [
+        // PaidMembershipsPro (muy común en WordPress)
+        `${baseUrl}/wp-json/pmpro/v1/members/${userId}`,
+        // WooCommerce Memberships
+        `${baseUrl}/wp-json/wc/v3/memberships?customer=${userId}`,
+        // Ultimate Member
+        `${baseUrl}/wp-json/um/v2/members/${userId}`,
+        // Restrict Content Pro
+        `${baseUrl}/wp-json/rcp/v1/members?user_id=${userId}`,
+        // MemberPress
+        `${baseUrl}/wp-json/mp/v1/members/${userId}`,
+        // WishList Member
+        `${baseUrl}/wp-json/wlm/v1/members/${userId}`,
+      ];
+
+      const membershipData: any = {};
+      
+      for (const [index, endpoint] of membershipEndpoints.entries()) {
+        try {
+          const response = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            membershipData[`plugin_${index + 1}`] = {
+              url: endpoint,
+              status: response.status,
+              data: data,
+              plugin: ['PaidMembershipsPro', 'WooCommerce Memberships', 'Ultimate Member', 'Restrict Content Pro', 'MemberPress', 'WishList Member'][index]
+            };
+          } else {
+            membershipData[`plugin_${index + 1}`] = {
+              url: endpoint,
+              status: response.status,
+              error: response.statusText,
+              plugin: ['PaidMembershipsPro', 'WooCommerce Memberships', 'Ultimate Member', 'Restrict Content Pro', 'MemberPress', 'WishList Member'][index]
+            };
+          }
+        } catch (error: any) {
+          membershipData[`plugin_${index + 1}`] = {
+            url: endpoint,
+            error: error.message,
+            plugin: ['PaidMembershipsPro', 'WooCommerce Memberships', 'Ultimate Member', 'Restrict Content Pro', 'MemberPress', 'WishList Member'][index]
+          };
+        }
+      }
+
+      // Verificar roles y capabilities del usuario que podrían indicar membresía
+      const userRoles = userData.roles || [];
+      const userCapabilities = userData.capabilities || {};
+      
+      // Buscar campos meta relacionados con membresías
+      const membershipMetaFields = userData.meta || {};
+      const potentialMembershipFields = Object.keys(membershipMetaFields).filter(key => 
+        key.includes('member') || 
+        key.includes('subscription') || 
+        key.includes('plan') || 
+        key.includes('level') ||
+        key.includes('expire') ||
+        key.includes('status')
+      );
+
+      res.json({
+        user_basic_info: {
+          id: userData.id,
+          username: userData.username,
+          name: userData.name,
+          email: userData.email,
+          roles: userRoles,
+          capabilities: userCapabilities
+        },
+        membership_analysis: {
+          potential_membership_meta: potentialMembershipFields.reduce((acc, field) => {
+            acc[field] = membershipMetaFields[field];
+            return acc;
+          }, {} as any),
+          roles_analysis: {
+            has_member_role: userRoles.some((role: string) => role.includes('member')),
+            has_subscriber_role: userRoles.includes('subscriber'),
+            custom_roles: userRoles.filter((role: string) => !['subscriber', 'contributor', 'author', 'editor', 'administrator'].includes(role))
+          }
+        },
+        plugin_responses: membershipData,
+        recommendations: {
+          note: "Para obtener información específica de membresía, necesitas identificar qué plugin de membresías usa tu WordPress",
+          common_plugins: [
+            "PaidMembershipsPro - Muy popular para membresías pagadas",
+            "WooCommerce Memberships - Si usas WooCommerce",
+            "Ultimate Member - Para perfiles de usuario avanzados",
+            "Restrict Content Pro - Para contenido restringido",
+            "MemberPress - Plugin premium popular",
+            "WishList Member - Plugin de membresías completo"
+          ]
+        }
+      });
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Complete registration endpoint
   app.post("/api/complete-registration", async (req, res) => {
     try {
