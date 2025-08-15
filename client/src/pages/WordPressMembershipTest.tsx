@@ -46,6 +46,18 @@ export default function WordPressMembershipTest() {
     staleTime: 30 * 1000, // Cache por 30 segundos
   });
 
+  // Obtener información completa de membresía con fechas de vencimiento
+  const { 
+    data: completeMembershipData, 
+    isLoading: completeMembershipLoading, 
+    error: completeMembershipError,
+    refetch: refetchCompleteMembership 
+  } = useQuery({
+    queryKey: [`/api/memberpress-memberships/${usernameMembershipData?.user_id}`],
+    enabled: !!usernameMembershipData?.user_id,
+    staleTime: 30 * 1000, // Cache por 30 segundos
+  });
+
   const handleTestUser = () => {
     if (!selectedUserId) {
       toast({
@@ -203,6 +215,146 @@ export default function WordPressMembershipTest() {
                         </pre>
                       </ScrollArea>
                     </div>
+                  </div>
+                )}
+
+                {/* Información completa de membresía */}
+                {completeMembershipData && (
+                  <div className="mt-6 border-t pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Información Completa de Membresía</h3>
+                      <Button 
+                        onClick={() => refetchCompleteMembership()} 
+                        disabled={completeMembershipLoading}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Search className="w-4 h-4 mr-1" />
+                        {completeMembershipLoading ? "Actualizando..." : "Actualizar"}
+                      </Button>
+                    </div>
+
+                    {completeMembershipData.expiration_date && (
+                      <Card className="mb-4 border-orange-200 bg-orange-50 dark:bg-orange-900/20">
+                        <CardContent className="pt-4">
+                          <div className="flex items-center">
+                            <Calendar className="w-5 h-5 mr-2 text-orange-600" />
+                            <div>
+                              <Label className="text-orange-800 dark:text-orange-200">Fecha de Vencimiento</Label>
+                              <p className="text-lg font-semibold text-orange-900 dark:text-orange-100">
+                                {new Date(completeMembershipData.expiration_date).toLocaleDateString('es-ES', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </p>
+                              <p className="text-sm text-orange-600 dark:text-orange-300">
+                                Fuente: {completeMembershipData.expiration_source}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {completeMembershipData.active_memberships && completeMembershipData.active_memberships.length > 0 && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle>Membresías Activas</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {completeMembershipData.active_memberships.map((membership: any, index: number) => (
+                            <div key={index} className="border rounded-lg p-4 mb-3 last:mb-0">
+                              <div className="flex items-center justify-between mb-2">
+                                <Badge variant="default">ID: {membership.membership_id}</Badge>
+                                {membership.product_info && (
+                                  <Badge variant="secondary">{membership.product_info.title || membership.product_info.name}</Badge>
+                                )}
+                              </div>
+                              
+                              {membership.product_info && (
+                                <div className="text-sm space-y-1">
+                                  {membership.product_info.price && (
+                                    <p><strong>Precio:</strong> ${membership.product_info.price}</p>
+                                  )}
+                                  {membership.product_info.period_type && (
+                                    <p><strong>Tipo de Periodo:</strong> {membership.product_info.period_type}</p>
+                                  )}
+                                  {membership.product_info.period && (
+                                    <p><strong>Duración:</strong> {membership.product_info.period} {membership.product_info.period_type}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {completeMembershipData.subscriptions && completeMembershipData.subscriptions.length > 0 && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle>Suscripciones</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-3">
+                            {completeMembershipData.subscriptions.map((subscription: any, index: number) => (
+                              <div key={index} className="border rounded-lg p-3">
+                                <div className="flex items-center justify-between">
+                                  <Badge variant="outline">Suscripción #{subscription.id || index + 1}</Badge>
+                                  {subscription.status && (
+                                    <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
+                                      {subscription.status}
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                {subscription.next_billing_at && (
+                                  <p className="text-sm mt-2">
+                                    <strong>Próximo Cobro:</strong> {new Date(subscription.next_billing_at).toLocaleDateString('es-ES')}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {completeMembershipData.available_membership_products && completeMembershipData.available_membership_products.length > 0 && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle>Productos de Membresía Disponibles</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-2 max-h-60 overflow-y-auto">
+                            {completeMembershipData.available_membership_products.map((product: any) => (
+                              <div key={product.id} className="flex items-center justify-between text-sm border-b pb-2">
+                                <span>{product.title || product.name || `Producto ${product.id}`}</span>
+                                <div className="flex items-center gap-2">
+                                  {product.price && <Badge variant="outline">${product.price}</Badge>}
+                                  <Badge variant="secondary">ID: {product.id}</Badge>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                )}
+
+                {completeMembershipLoading && (
+                  <div className="mt-4 text-center">
+                    <Clock className="w-6 h-6 mx-auto animate-spin mb-2" />
+                    <p className="text-sm text-gray-600">Obteniendo información completa de membresía...</p>
+                  </div>
+                )}
+
+                {completeMembershipError && (
+                  <div className="mt-4 flex items-center text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded">
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Error obteniendo membresía completa: {completeMembershipError.message}
                   </div>
                 )}
               </CardContent>

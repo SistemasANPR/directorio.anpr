@@ -2953,6 +2953,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obtener información completa de membresías incluyendo fechas de vencimiento
+  app.get("/api/memberpress-memberships/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Buscar membresías del usuario en diferentes endpoints de MemberPress
+      const membershipEndpoints = [
+        `/wp-json/mp/v1/members/${userId}`,
+        `/wp-json/mp/v1/subscriptions?user=${userId}`,
+        `/wp-json/memberpress/v1/members/${userId}`,
+        `/wp-json/wp/v2/mp_member?user=${userId}`
+      ];
+
+      let membershipData = {};
+      let subscriptions = [];
+      let memberData = null;
+
+      // Intentar obtener datos de membresía desde diferentes endpoints
+      for (const endpoint of membershipEndpoints) {
+        try {
+          const response = await fetch(`${baseUrl}${endpoint}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (endpoint.includes('members')) {
+              memberData = data;
+            }
+            
+            if (endpoint.includes('subscriptions')) {
+              subscriptions = Array.isArray(data) ? data : [data];
+            }
+            
+            membershipData[endpoint] = { status: response.status, data };
+          }
+        } catch (error) {
+          continue;
+        }
+      }
+
+      // También obtener información de productos/niveles de membresía
+      let membershipProducts = [];
+      try {
+        const productsResponse = await fetch(`${baseUrl}/wp-json/mp/v1/memberships`, {
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (productsResponse.ok) {
+          membershipProducts = await productsResponse.json();
+        }
+      } catch (error) {
+        // Continuar sin productos si falla
+      }
+
+      // Obtener información del usuario con metadatos de MemberPress
+      let userWithMeta = null;
+      try {
+        const userResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users/${userId}?context=edit`, {
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (userResponse.ok) {
+          userWithMeta = await userResponse.json();
+        }
+      } catch (error) {
+        // Continuar sin metadatos si falla
+      }
+
+      // Procesar y estructurar la información de membresía
+      const processedMembership = {
+        user_id: userId,
+        user_info: userWithMeta ? {
+          name: userWithMeta.name,
+          email: userWithMeta.email,
+          username: userWithMeta.username
+        } : null,
+        
+        // Información de membresía activa
+        active_memberships: [],
+        expired_memberships: [],
+        subscriptions: subscriptions,
+        
+        // Metadatos relevantes de MemberPress
+        memberpress_metadata: userWithMeta?.meta ? Object.keys(userWithMeta.meta)
+          .filter(key => key.includes('mepr') || key.includes('memberpress'))
+          .reduce((acc, key) => {
+            acc[key] = userWithMeta.meta[key];
+            return acc;
+          }, {}) : {},
+          
+        // Información de productos disponibles
+        available_membership_products: membershipProducts,
+        
+        // Respuestas de endpoints consultados
+        api_responses: membershipData
+      };
+
+      // Procesar fechas de vencimiento si están disponibles en metadatos
+      if (userWithMeta?.meta) {
+        const meta = userWithMeta.meta;
+        
+        // Buscar fechas de vencimiento en diferentes campos
+        const expirationFields = [
+          'mepr_expires_at',
+          '_mepr_expires_at',
+          'memberpress_expires',
+          'membership_expires',
+          'mepr_expiration'
+        ];
+        
+        for (const field of expirationFields) {
+          if (meta[field]) {
+            processedMembership.expiration_date = meta[field];
+            processedMembership.expiration_source = field;
+            break;
+          }
+        }
+        
+        // Buscar IDs de membresías activas y mapear con productos
+        if (meta['_mepr_active_memberships']) {
+          const activeMembershipIds = Array.isArray(meta['_mepr_active_memberships']) 
+            ? meta['_mepr_active_memberships'] 
+            : [meta['_mepr_active_memberships']];
+            
+          processedMembership.active_memberships = activeMembershipIds.map(id => {
+            const product = membershipProducts.find(p => p.id == id);
+            return {
+              membership_id: id,
+              product_info: product || null
+            };
+          });
+        }
+      }
+
+      res.json(processedMembership);
+
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
