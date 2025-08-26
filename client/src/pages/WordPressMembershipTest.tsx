@@ -923,7 +923,7 @@ export default function WordPressMembershipTest() {
                                       <div>
                                         <p className="font-medium text-gray-900 dark:text-gray-100">Metadatos de Usuario</p>
                                         <p className="text-sm text-gray-600">
-                                          Campo: {directMembershipData.analysis.expiration_source}
+                                          Campo: {directMembershipData.analysis.meta_expiration_source}
                                         </p>
                                       </div>
                                       <div className="text-right">
@@ -937,6 +937,31 @@ export default function WordPressMembershipTest() {
                                           }`}></div>
                                           <p className="text-sm text-gray-500">
                                             {getExpirationInfo(directMembershipData.analysis.meta_expiration_date).message}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {directMembershipData.analysis.latest_transaction_expires && (
+                                    <div className="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-200">
+                                      <div>
+                                        <p className="font-medium text-indigo-900 dark:text-indigo-100">💳 Última Transacción Exitosa</p>
+                                        <p className="text-sm text-indigo-600">
+                                          Trans. ID: {directMembershipData.analysis.latest_transaction_id}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-xl font-bold text-indigo-600">
+                                          {new Date(directMembershipData.analysis.latest_transaction_expires).toLocaleDateString('es-ES')}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            getExpirationInfo(directMembershipData.analysis.latest_transaction_expires).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                            getExpirationInfo(directMembershipData.analysis.latest_transaction_expires).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                          }`}></div>
+                                          <p className="text-sm text-gray-500">
+                                            {getExpirationInfo(directMembershipData.analysis.latest_transaction_expires).message}
                                           </p>
                                         </div>
                                       </div>
@@ -1040,8 +1065,95 @@ export default function WordPressMembershipTest() {
                       </Card>
                     )}
 
-                    {/* Transacciones */}
-                    {directMembershipData.transactions && directMembershipData.transactions.length > 0 && (
+                    {/* Análisis de Transacciones Detallado */}
+                    {directMembershipData.analysis?.transaction_analysis && directMembershipData.analysis.transaction_analysis.length > 0 && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                            Análisis Detallado de Transacciones ({directMembershipData.analysis.transaction_analysis.length})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4 max-h-80 overflow-y-auto">
+                            {directMembershipData.analysis.transaction_analysis.map((transaction: any, index: number) => (
+                              <div key={index} className={`border rounded-lg p-4 ${
+                                transaction.status === 'complete' ? 'bg-green-50 border-green-200' : 
+                                transaction.status === 'confirmed' ? 'bg-blue-50 border-blue-200' : 
+                                'bg-gray-50 border-gray-200'
+                              }`}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="font-mono">#{transaction.id}</Badge>
+                                    <Badge variant={
+                                      transaction.status === 'complete' ? 'default' : 
+                                      transaction.status === 'confirmed' ? 'default' : 'secondary'
+                                    }>
+                                      {transaction.status}
+                                    </Badge>
+                                  </div>
+                                  {transaction.amount && (
+                                    <p className="text-lg font-bold text-green-600">${transaction.amount}</p>
+                                  )}
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    {transaction.product_title && (
+                                      <p><strong>Producto:</strong> {transaction.product_title}</p>
+                                    )}
+                                    {transaction.membership_id && (
+                                      <p><strong>Membresía ID:</strong> {transaction.membership_id}</p>
+                                    )}
+                                    {transaction.created_at && (
+                                      <p><strong>Fecha:</strong> {new Date(transaction.created_at).toLocaleDateString('es-ES')}</p>
+                                    )}
+                                    {transaction.gateway && (
+                                      <p><strong>Método de Pago:</strong> {transaction.gateway}</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    {transaction.expires_at && (
+                                      <div className="flex items-center gap-2">
+                                        <strong>Vencimiento:</strong>
+                                        <div className={`w-2 h-2 rounded-full ${
+                                          getExpirationInfo(transaction.expires_at).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                          getExpirationInfo(transaction.expires_at).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                        }`}></div>
+                                        <span className={`${
+                                          getExpirationInfo(transaction.expires_at).color === 'red' ? 'text-red-700' :
+                                          getExpirationInfo(transaction.expires_at).color === 'orange' ? 'text-orange-700' : 'text-green-700'
+                                        }`}>
+                                          {new Date(transaction.expires_at).toLocaleDateString('es-ES')}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {transaction.subscription_id && (
+                                      <p><strong>Suscripción ID:</strong> {transaction.subscription_id}</p>
+                                    )}
+                                    {transaction.product_id && (
+                                      <p><strong>Producto ID:</strong> {transaction.product_id}</p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {transaction.product_content && (
+                                  <div className="mt-3 p-2 bg-white rounded border">
+                                    <p className="text-xs text-gray-600">
+                                      <strong>Descripción:</strong> {transaction.product_content.substring(0, 150)}...
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Transacciones Básicas - Solo mostrar si no hay análisis detallado */}
+                    {(!directMembershipData.analysis?.transaction_analysis || directMembershipData.analysis.transaction_analysis.length === 0) && 
+                     directMembershipData.transactions && directMembershipData.transactions.length > 0 && (
                       <Card className="mb-4">
                         <CardHeader>
                           <CardTitle>Historial de Transacciones ({directMembershipData.transactions.length})</CardTitle>

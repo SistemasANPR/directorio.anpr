@@ -3365,24 +3365,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
 
-      // Extraer fechas de vencimiento si están disponibles
+      // Extraer fechas de vencimiento de múltiples fuentes
       if (consolidatedInfo.member_info) {
         const memberData = consolidatedInfo.member_info;
         if (memberData.expires_at) {
           consolidatedInfo.analysis.expiration_date = memberData.expires_at;
+          consolidatedInfo.analysis.expiration_source = 'member_record';
         }
       }
 
-      // Buscar fechas de vencimiento en metadatos
+      // Extraer fechas de vencimiento de suscripciones
+      if (consolidatedInfo.subscriptions && consolidatedInfo.subscriptions.length > 0) {
+        consolidatedInfo.subscriptions.forEach((subscription: any, index: number) => {
+          if (subscription.expires_at) {
+            consolidatedInfo.analysis[`subscription_${index}_expires`] = subscription.expires_at;
+          }
+          if (subscription.next_billing_at) {
+            consolidatedInfo.analysis[`subscription_${index}_next_billing`] = subscription.next_billing_at;
+          }
+          if (subscription.status) {
+            consolidatedInfo.analysis[`subscription_${index}_status`] = subscription.status;
+          }
+        });
+      }
+
+      // Analizar transacciones para extraer información de productos y fechas
+      if (consolidatedInfo.transactions && consolidatedInfo.transactions.length > 0) {
+        consolidatedInfo.analysis.transaction_analysis = consolidatedInfo.transactions.map((transaction: any) => {
+          return {
+            id: transaction.id,
+            status: transaction.status,
+            amount: transaction.amount,
+            created_at: transaction.created_at,
+            expires_at: transaction.expires_at,
+            product_id: transaction.product_id,
+            membership_id: transaction.membership_id,
+            // Extraer información del producto si está disponible
+            product_title: transaction.product?.post_title || transaction.title || null,
+            product_name: transaction.product?.post_name || transaction.name || null,
+            product_content: transaction.product?.post_content || null,
+            // Información de fechas importantes
+            gateway: transaction.gateway,
+            subscription_id: transaction.subscription_id
+          };
+        });
+
+        // Encontrar la transacción más reciente exitosa para fecha de vencimiento
+        const successfulTransactions = consolidatedInfo.transactions
+          .filter((t: any) => t.status === 'complete' || t.status === 'confirmed')
+          .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        if (successfulTransactions.length > 0 && successfulTransactions[0].expires_at) {
+          consolidatedInfo.analysis.latest_transaction_expires = successfulTransactions[0].expires_at;
+          consolidatedInfo.analysis.latest_transaction_id = successfulTransactions[0].id;
+        }
+      }
+
+      // Buscar fechas de vencimiento en metadatos del usuario
       if (userMetadata?.memberpress_meta) {
         const meta = userMetadata.memberpress_meta;
-        const expirationFields = ['mepr_expires_at', '_mepr_expires_at', 'memberpress_expires'];
+        const expirationFields = ['mepr_expires_at', '_mepr_expires_at', 'memberpress_expires', 'mepr_expiration', '_mepr_expiration'];
         
         for (const field of expirationFields) {
           if (meta[field]) {
             consolidatedInfo.analysis.meta_expiration_date = meta[field];
-            consolidatedInfo.analysis.expiration_source = field;
+            consolidatedInfo.analysis.meta_expiration_source = field;
             break;
+          }
+        }
+      }
+
+      // Buscar fechas en metadatos generales que podrían contener información de vencimiento
+      if (userMetadata?.all_meta) {
+        const allMeta = userMetadata.all_meta;
+        const additionalExpirationFields = [
+          'membership_expires', 'membership_expiry', 'member_expires', 
+          'expires', 'expiry_date', 'expiration_date'
+        ];
+        
+        for (const field of additionalExpirationFields) {
+          if (allMeta[field]) {
+            consolidatedInfo.analysis[`meta_${field}`] = allMeta[field];
           }
         }
       }
