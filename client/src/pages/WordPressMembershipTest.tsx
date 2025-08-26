@@ -15,6 +15,7 @@ export default function WordPressMembershipTest() {
   const [testUserId, setTestUserId] = useState<string>("");
   const [searchUsername, setSearchUsername] = useState<string>("luciaenriquez_sedema");
   const [showAllProducts, setShowAllProducts] = useState<boolean>(false);
+  const [showSpecificSearch, setShowSpecificSearch] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Obtener lista de usuarios de WordPress
@@ -83,6 +84,18 @@ export default function WordPressMembershipTest() {
     staleTime: 30 * 1000, // Cache por 30 segundos
   });
 
+  // Búsqueda específica de membresías (Profesional, Empresarial, Institucional)
+  const { 
+    data: specificSearchData, 
+    isLoading: specificSearchLoading, 
+    error: specificSearchError,
+    refetch: refetchSpecificSearch 
+  } = useQuery({
+    queryKey: ["/api/memberpress-search-memberships"],
+    enabled: showSpecificSearch,
+    staleTime: 2 * 60 * 1000, // Cache por 2 minutos
+  });
+
   const handleTestUser = () => {
     if (!selectedUserId) {
       toast({
@@ -148,14 +161,24 @@ export default function WordPressMembershipTest() {
               Herramienta para verificar si podemos obtener información de membresías desde WordPress
             </p>
           </div>
-          <Button 
-            onClick={() => setShowAllProducts(!showAllProducts)}
-            variant={showAllProducts ? "secondary" : "default"}
-            size="sm"
-          >
-            <Search className="w-4 h-4 mr-2" />
-            {showAllProducts ? "Ocultar Productos" : "Ver Todos los Productos"}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowAllProducts(!showAllProducts)}
+              variant={showAllProducts ? "secondary" : "default"}
+              size="sm"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              {showAllProducts ? "Ocultar Productos" : "Ver Todos los Productos"}
+            </Button>
+            <Button 
+              onClick={() => setShowSpecificSearch(!showSpecificSearch)}
+              variant={showSpecificSearch ? "secondary" : "outline"}
+              size="sm"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Buscar Membresías Específicas
+            </Button>
+          </div>
         </div>
 
         {/* Sección de todos los productos de MemberPress */}
@@ -315,6 +338,169 @@ export default function WordPressMembershipTest() {
                       })}
                     </div>
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Sección de búsqueda específica de membresías */}
+        {showSpecificSearch && (
+          <Card className="mt-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Búsqueda Específica de Membresías</CardTitle>
+                <Button 
+                  onClick={() => refetchSpecificSearch()} 
+                  disabled={specificSearchLoading}
+                  size="sm"
+                  variant="outline"
+                >
+                  <Search className="w-4 h-4 mr-1" />
+                  {specificSearchLoading ? "Buscando..." : "Buscar"}
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600">
+                Buscando específicamente: Membresía Profesional, Membresía Empresarial, Membresía Institucional
+              </p>
+            </CardHeader>
+            <CardContent>
+              {specificSearchLoading && (
+                <div className="text-center py-8">
+                  <Clock className="w-8 h-8 mx-auto animate-spin mb-4" />
+                  <p className="text-gray-600">Buscando membresías específicas en WordPress...</p>
+                </div>
+              )}
+
+              {specificSearchError && (
+                <div className="flex items-center text-red-600 bg-red-50 dark:bg-red-900/20 p-4 rounded">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  <div>
+                    <p className="font-medium">Error en búsqueda específica</p>
+                    <p className="text-sm">{specificSearchError.message}</p>
+                  </div>
+                </div>
+              )}
+
+              {specificSearchData && (
+                <div className="space-y-6">
+                  {/* Resumen de búsqueda */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded">
+                      <p className="text-2xl font-bold text-green-600">{specificSearchData.summary?.specific_memberships_found || 0}</p>
+                      <p className="text-sm text-gray-600">Membresías Encontradas</p>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded">
+                      <p className="text-2xl font-bold text-blue-600">{specificSearchData.summary?.profesional_found || 0}</p>
+                      <p className="text-sm text-gray-600">Profesional</p>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded">
+                      <p className="text-2xl font-bold text-purple-600">{specificSearchData.summary?.empresarial_found || 0}</p>
+                      <p className="text-sm text-gray-600">Empresarial</p>
+                    </div>
+                    <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded">
+                      <p className="text-2xl font-bold text-orange-600">{specificSearchData.summary?.institucional_found || 0}</p>
+                      <p className="text-sm text-gray-600">Institucional</p>
+                    </div>
+                  </div>
+
+                  {/* Membresías encontradas */}
+                  {specificSearchData.found_memberships && specificSearchData.found_memberships.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-lg mb-3">Membresías Específicas Encontradas</h3>
+                      <div className="space-y-4 max-h-96 overflow-y-auto border rounded p-4">
+                        {specificSearchData.found_memberships.map((membership: any, index: number) => (
+                          <div key={index} className="border rounded p-4 bg-gray-50 dark:bg-gray-800">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant="default">ID: {membership.id}</Badge>
+                                  <Badge 
+                                    variant={membership.membership_type === 'Profesional' ? 'default' : 
+                                             membership.membership_type === 'Empresarial' ? 'secondary' : 'outline'}
+                                  >
+                                    {membership.membership_type}
+                                  </Badge>
+                                  {membership.status && (
+                                    <Badge variant={membership.status === 'publish' ? 'default' : 'secondary'}>
+                                      {membership.status}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <h4 className="font-semibold text-lg mb-2">{membership.title}</h4>
+                                {membership.content && (
+                                  <p className="text-sm text-gray-600 mb-2">{membership.content}...</p>
+                                )}
+                              </div>
+                              <div className="text-right ml-4">
+                                {membership.price && (
+                                  <p className="text-lg font-bold text-green-600">${membership.price}</p>
+                                )}
+                                {membership.date && (
+                                  <p className="text-sm text-gray-500">
+                                    {new Date(membership.date).toLocaleDateString('es-ES')}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="text-xs text-gray-500 pt-2 border-t">
+                              <p><strong>Encontrado en:</strong> {membership.found_in_search || membership.found_in_endpoint || 'búsqueda'}</p>
+                              <p><strong>Tipo:</strong> {membership.type}</p>
+                              {membership.link && (
+                                <p><strong>URL:</strong> <a href={membership.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{membership.link}</a></p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Estado de búsquedas realizadas */}
+                  {specificSearchData.search_results && (
+                    <div>
+                      <h3 className="font-semibold text-lg mb-3">Estado de Búsquedas Realizadas</h3>
+                      <div className="space-y-2">
+                        {Object.entries(specificSearchData.search_results).map(([searchTerm, result]: [string, any]) => (
+                          <div key={searchTerm} className="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                            <span className="font-medium capitalize">Búsqueda: "{searchTerm}"</span>
+                            <div className="flex items-center gap-2">
+                              {result.status === 200 ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                  <Badge variant="default" size="sm">
+                                    {result.count || 0} resultados
+                                  </Badge>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="w-4 h-4 text-red-500" />
+                                  <Badge variant="destructive" size="sm">
+                                    {result.status || 'Error'}
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mensaje si no se encontraron membresías */}
+                  {specificSearchData.found_memberships && specificSearchData.found_memberships.length === 0 && (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
+                      <h3 className="text-lg font-semibold mb-2">No se encontraron membresías específicas</h3>
+                      <p className="text-gray-600 mb-4">
+                        No se pudieron encontrar membresías con los términos "Profesional", "Empresarial" o "Institucional"
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Esto puede indicar que las membresías tienen nombres diferentes o están en ubicaciones no consultadas.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

@@ -3397,6 +3397,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint específico para buscar membresías por términos específicos
+  app.get("/api/memberpress-search-memberships", async (req, res) => {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      console.log(`[MemberPress Search] Buscando membresías específicas...`);
+
+      // Búsquedas específicas para encontrar las membresías que necesitamos
+      const searchQueries = [
+        { term: "profesional", endpoint: "/wp-json/wp/v2/posts?search=profesional&per_page=100" },
+        { term: "empresarial", endpoint: "/wp-json/wp/v2/posts?search=empresarial&per_page=100" },
+        { term: "institucional", endpoint: "/wp-json/wp/v2/posts?search=institucional&per_page=100" },
+        { term: "membresía", endpoint: "/wp-json/wp/v2/posts?search=membresía&per_page=100" },
+        { term: "membership", endpoint: "/wp-json/wp/v2/posts?search=membership&per_page=100" },
+      ];
+
+      // También buscar en tipos de post específicos
+      const postTypeEndpoints = [
+        "/wp-json/wp/v2/posts?post_type=memberpressproduct&per_page=100",
+        "/wp-json/wp/v2/posts?post_type=product&per_page=100", 
+        "/wp-json/wp/v2/posts?per_page=100",
+        "/wp-json/mp/v1/memberships",
+      ];
+
+      const searchResults = {};
+      const foundMemberships = [];
+
+      // Buscar por términos específicos
+      for (const query of searchQueries) {
+        try {
+          console.log(`[MemberPress Search] Buscando "${query.term}": ${baseUrl}${query.endpoint}`);
+          
+          const response = await fetch(`${baseUrl}${query.endpoint}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`[MemberPress Search] "${query.term}" encontró ${Array.isArray(data) ? data.length : 1} resultados`);
+            
+            searchResults[query.term] = {
+              endpoint: query.endpoint,
+              status: response.status,
+              results: Array.isArray(data) ? data : [data],
+              count: Array.isArray(data) ? data.length : 1
+            };
+
+            // Analizar resultados para membresías específicas
+            const results = Array.isArray(data) ? data : [data];
+            for (const item of results) {
+              const title = item.title?.rendered || item.title || item.name || '';
+              const content = item.content?.rendered || item.content || '';
+              const excerpt = item.excerpt?.rendered || item.excerpt || '';
+              
+              // Buscar en título y contenido
+              const searchText = `${title} ${content} ${excerpt}`.toLowerCase();
+              
+              if (searchText.includes('profesional') || 
+                  searchText.includes('empresarial') || 
+                  searchText.includes('institucional')) {
+                
+                foundMemberships.push({
+                  id: item.id,
+                  title: title,
+                  content: content.substring(0, 200),
+                  type: item.type || 'post',
+                  status: item.status,
+                  date: item.date,
+                  price: item.meta?._price || item.price,
+                  membership_type: searchText.includes('profesional') ? 'Profesional' :
+                                   searchText.includes('empresarial') ? 'Empresarial' :
+                                   searchText.includes('institucional') ? 'Institucional' : 'Otra',
+                  found_in_search: query.term,
+                  link: item.link
+                });
+              }
+            }
+          } else {
+            console.log(`[MemberPress Search] Error ${response.status} en "${query.term}"`);
+            searchResults[query.term] = {
+              endpoint: query.endpoint,
+              status: response.status,
+              error: await response.text()
+            };
+          }
+        } catch (error: any) {
+          console.log(`[MemberPress Search] Excepción en "${query.term}":`, error.message);
+          searchResults[query.term] = {
+            endpoint: query.endpoint,
+            error: error.message
+          };
+        }
+      }
+
+      // Buscar en endpoints de tipos de post específicos
+      for (const endpoint of postTypeEndpoints) {
+        try {
+          console.log(`[MemberPress Search] Consultando tipo de post: ${baseUrl}${endpoint}`);
+          
+          const response = await fetch(`${baseUrl}${endpoint}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`[MemberPress Search] Tipo de post encontró ${Array.isArray(data) ? data.length : 1} resultados`);
+            
+            const key = endpoint.split('/').pop() || 'unknown';
+            searchResults[key] = {
+              endpoint: endpoint,
+              status: response.status,
+              results: Array.isArray(data) ? data : [data],
+              count: Array.isArray(data) ? data.length : 1
+            };
+
+            // Analizar estos resultados también
+            const results = Array.isArray(data) ? data : [data];
+            for (const item of results) {
+              const title = item.title?.rendered || item.title || item.name || '';
+              const content = item.content?.rendered || item.content || '';
+              
+              const searchText = `${title} ${content}`.toLowerCase();
+              
+              if ((searchText.includes('profesional') || 
+                   searchText.includes('empresarial') || 
+                   searchText.includes('institucional')) &&
+                  !foundMemberships.find(m => m.id === item.id)) {
+                
+                foundMemberships.push({
+                  id: item.id,
+                  title: title,
+                  content: content.substring(0, 200),
+                  type: item.type || 'membership',
+                  status: item.status,
+                  date: item.date,
+                  price: item.meta?._price || item.price,
+                  membership_type: searchText.includes('profesional') ? 'Profesional' :
+                                   searchText.includes('empresarial') ? 'Empresarial' :
+                                   searchText.includes('institucional') ? 'Institucional' : 'Otra',
+                  found_in_endpoint: endpoint,
+                  link: item.link
+                });
+              }
+            }
+          }
+        } catch (error: any) {
+          console.log(`[MemberPress Search] Error en endpoint ${endpoint}:`, error.message);
+        }
+      }
+
+      // Crear resumen de resultados
+      const summary = {
+        total_searches: searchQueries.length + postTypeEndpoints.length,
+        successful_searches: Object.values(searchResults).filter((r: any) => r.status === 200).length,
+        specific_memberships_found: foundMemberships.length,
+        profesional_found: foundMemberships.filter(m => m.membership_type === 'Profesional').length,
+        empresarial_found: foundMemberships.filter(m => m.membership_type === 'Empresarial').length,
+        institucional_found: foundMemberships.filter(m => m.membership_type === 'Institucional').length
+      };
+
+      console.log(`[MemberPress Search] Resumen: ${JSON.stringify(summary)}`);
+
+      res.json({
+        summary,
+        found_memberships: foundMemberships,
+        search_results: searchResults,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error: any) {
+      console.error('[MemberPress Search] Error general:', error.message);
+      res.status(500).json({ error: error.message, details: error.stack });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
