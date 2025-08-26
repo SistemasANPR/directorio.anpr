@@ -946,9 +946,13 @@ export default function WordPressMembershipTest() {
                                   {directMembershipData.analysis.latest_transaction_expires && (
                                     <div className="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-200">
                                       <div>
-                                        <p className="font-medium text-indigo-900 dark:text-indigo-100">💳 Última Transacción Exitosa</p>
+                                        <p className="font-medium text-indigo-900 dark:text-indigo-100">💳 Caducidad por Transacción</p>
                                         <p className="text-sm text-indigo-600">
-                                          Trans. ID: {directMembershipData.analysis.latest_transaction_id}
+                                          Trans. ID: {directMembershipData.analysis.latest_transaction_id} | 
+                                          ${directMembershipData.analysis.latest_transaction_amount}
+                                        </p>
+                                        <p className="text-xs text-indigo-500">
+                                          Fecha cuando la transacción caducará
                                         </p>
                                       </div>
                                       <div className="text-right">
@@ -962,6 +966,35 @@ export default function WordPressMembershipTest() {
                                           }`}></div>
                                           <p className="text-sm text-gray-500">
                                             {getExpirationInfo(directMembershipData.analysis.latest_transaction_expires).message}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {directMembershipData.analysis.active_transaction_expires && 
+                                   directMembershipData.analysis.active_transaction_expires !== directMembershipData.analysis.latest_transaction_expires && (
+                                    <div className="flex items-center justify-between p-3 bg-teal-50 dark:bg-teal-900/20 rounded border border-teal-200">
+                                      <div>
+                                        <p className="font-medium text-teal-900 dark:text-teal-100">🎯 Transacción con Mayor Vigencia</p>
+                                        <p className="text-sm text-teal-600">
+                                          Trans. ID: {directMembershipData.analysis.active_transaction_id}
+                                        </p>
+                                        <p className="text-xs text-teal-500">
+                                          Transacción que caduca más tarde
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-xl font-bold text-teal-600">
+                                          {new Date(directMembershipData.analysis.active_transaction_expires).toLocaleDateString('es-ES')}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            getExpirationInfo(directMembershipData.analysis.active_transaction_expires).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                            getExpirationInfo(directMembershipData.analysis.active_transaction_expires).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                          }`}></div>
+                                          <p className="text-sm text-gray-500">
+                                            {getExpirationInfo(directMembershipData.analysis.active_transaction_expires).message}
                                           </p>
                                         </div>
                                       </div>
@@ -1114,18 +1147,23 @@ export default function WordPressMembershipTest() {
                                   </div>
                                   <div>
                                     {transaction.expires_at && (
-                                      <div className="flex items-center gap-2">
-                                        <strong>Vencimiento:</strong>
-                                        <div className={`w-2 h-2 rounded-full ${
-                                          getExpirationInfo(transaction.expires_at).color === 'red' ? 'bg-red-500 animate-pulse' :
-                                          getExpirationInfo(transaction.expires_at).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
-                                        }`}></div>
-                                        <span className={`${
-                                          getExpirationInfo(transaction.expires_at).color === 'red' ? 'text-red-700' :
-                                          getExpirationInfo(transaction.expires_at).color === 'orange' ? 'text-orange-700' : 'text-green-700'
-                                        }`}>
-                                          {new Date(transaction.expires_at).toLocaleDateString('es-ES')}
-                                        </span>
+                                      <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <strong>Transacción Caduca:</strong>
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            getExpirationInfo(transaction.expires_at).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                            getExpirationInfo(transaction.expires_at).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                          }`}></div>
+                                          <span className={`${
+                                            getExpirationInfo(transaction.expires_at).color === 'red' ? 'text-red-700' :
+                                            getExpirationInfo(transaction.expires_at).color === 'orange' ? 'text-orange-700' : 'text-green-700'
+                                          }`}>
+                                            {new Date(transaction.expires_at).toLocaleDateString('es-ES')}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                          {getExpirationInfo(transaction.expires_at).message}
+                                        </p>
                                       </div>
                                     )}
                                     {transaction.subscription_id && (

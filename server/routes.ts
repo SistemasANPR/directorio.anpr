@@ -3415,9 +3415,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .filter((t: any) => t.status === 'complete' || t.status === 'confirmed')
           .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-        if (successfulTransactions.length > 0 && successfulTransactions[0].expires_at) {
-          consolidatedInfo.analysis.latest_transaction_expires = successfulTransactions[0].expires_at;
-          consolidatedInfo.analysis.latest_transaction_id = successfulTransactions[0].id;
+        if (successfulTransactions.length > 0) {
+          const latestTransaction = successfulTransactions[0];
+          if (latestTransaction.expires_at) {
+            consolidatedInfo.analysis.latest_transaction_expires = latestTransaction.expires_at;
+            consolidatedInfo.analysis.latest_transaction_id = latestTransaction.id;
+            consolidatedInfo.analysis.latest_transaction_amount = latestTransaction.amount;
+            consolidatedInfo.analysis.latest_transaction_created = latestTransaction.created_at;
+          }
+        }
+
+        // Buscar todas las transacciones con fechas de vencimiento válidas
+        const transactionsWithExpiration = consolidatedInfo.transactions
+          .filter((t: any) => t.expires_at && (t.status === 'complete' || t.status === 'confirmed'))
+          .sort((a: any, b: any) => new Date(b.expires_at).getTime() - new Date(a.expires_at).getTime());
+
+        if (transactionsWithExpiration.length > 0) {
+          consolidatedInfo.analysis.active_transaction_expires = transactionsWithExpiration[0].expires_at;
+          consolidatedInfo.analysis.active_transaction_id = transactionsWithExpiration[0].id;
         }
       }
 
