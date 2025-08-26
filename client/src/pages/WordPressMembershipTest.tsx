@@ -10,6 +10,38 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, User, Shield, Calendar, Clock, AlertCircle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// Función helper para obtener información sobre el estado de caducidad
+const getExpirationInfo = (date: string) => {
+  const expirationDate = new Date(date);
+  const today = new Date();
+  const diffTime = expirationDate.getTime() - today.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  let status = 'active';
+  let color = 'green';
+  let message = '';
+  
+  if (diffDays < 0) {
+    status = 'expired';
+    color = 'red';
+    message = `Expiró hace ${Math.abs(diffDays)} día${Math.abs(diffDays) !== 1 ? 's' : ''}`;
+  } else if (diffDays === 0) {
+    status = 'expires-today';
+    color = 'red';
+    message = 'Expira hoy';
+  } else if (diffDays <= 30) {
+    status = 'expiring-soon';
+    color = 'orange';
+    message = `Expira en ${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+  } else {
+    status = 'active';
+    color = 'green';
+    message = `Activa - ${diffDays} día${diffDays !== 1 ? 's' : ''} restantes`;
+  }
+  
+  return { status, color, message, days: diffDays };
+};
+
 export default function WordPressMembershipTest() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [testUserId, setTestUserId] = useState<string>("");
@@ -621,22 +653,38 @@ export default function WordPressMembershipTest() {
                     </div>
 
                     {completeMembershipData.expiration_date && (
-                      <Card className="mb-4 border-orange-200 bg-orange-50 dark:bg-orange-900/20">
+                      <Card className="mb-4 border-red-200 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20">
                         <CardContent className="pt-4">
-                          <div className="flex items-center">
-                            <Calendar className="w-5 h-5 mr-2 text-orange-600" />
-                            <div>
-                              <Label className="text-orange-800 dark:text-orange-200">Fecha de Vencimiento</Label>
-                              <p className="text-lg font-semibold text-orange-900 dark:text-orange-100">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Calendar className="w-6 h-6 mr-3 text-red-600" />
+                              <div>
+                                <Label className="text-red-800 dark:text-red-200 font-bold text-lg">🔴 Caducidad de Membresía</Label>
+                                <p className="text-sm text-red-600 dark:text-red-300">
+                                  Fuente: {completeMembershipData.expiration_source}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-red-600">
                                 {new Date(completeMembershipData.expiration_date).toLocaleDateString('es-ES', {
                                   year: 'numeric',
                                   month: 'long',
                                   day: 'numeric'
                                 })}
                               </p>
-                              <p className="text-sm text-orange-600 dark:text-orange-300">
-                                Fuente: {completeMembershipData.expiration_source}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full ${
+                                  getExpirationInfo(completeMembershipData.expiration_date).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                  getExpirationInfo(completeMembershipData.expiration_date).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                }`}></div>
+                                <p className={`text-sm font-medium ${
+                                  getExpirationInfo(completeMembershipData.expiration_date).color === 'red' ? 'text-red-700' :
+                                  getExpirationInfo(completeMembershipData.expiration_date).color === 'orange' ? 'text-orange-700' : 'text-green-700'
+                                }`}>
+                                  {getExpirationInfo(completeMembershipData.expiration_date).message}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </CardContent>
@@ -788,30 +836,128 @@ export default function WordPressMembershipTest() {
                             </div>
                           </div>
 
-                          {/* Fechas de vencimiento */}
-                          {(directMembershipData.analysis.expiration_date || directMembershipData.analysis.meta_expiration_date) && (
-                            <div className="mt-4 p-4 bg-orange-100 dark:bg-orange-900/20 rounded">
-                              <div className="flex items-center">
-                                <Calendar className="w-5 h-5 mr-2 text-orange-600" />
-                                <div>
-                                  <Label className="text-orange-800 dark:text-orange-200">Fecha de Vencimiento Encontrada</Label>
-                                  {directMembershipData.analysis.expiration_date && (
-                                    <p className="text-lg font-semibold text-orange-900 dark:text-orange-100">
-                                      API: {new Date(directMembershipData.analysis.expiration_date).toLocaleDateString('es-ES')}
-                                    </p>
+                          {/* Fechas de vencimiento mejoradas */}
+                          <div className="mt-4">
+                            {(directMembershipData.analysis.expiration_date || directMembershipData.analysis.meta_expiration_date || 
+                              directMembershipData.member_info?.expires_at || directMembershipData.subscriptions?.[0]?.expires_at) ? (
+                              <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200">
+                                <div className="flex items-center mb-3">
+                                  <Calendar className="w-6 h-6 mr-3 text-orange-600" />
+                                  <h4 className="text-lg font-semibold text-orange-800 dark:text-orange-200">
+                                    Información de Caducidad de Membresía
+                                  </h4>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                  {directMembershipData.member_info?.expires_at && (
+                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
+                                      <div>
+                                        <p className="font-medium text-gray-900 dark:text-gray-100">Registro de Miembro</p>
+                                        <p className="text-sm text-gray-600">Fecha principal de vencimiento</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-xl font-bold text-red-600">
+                                          {new Date(directMembershipData.member_info.expires_at).toLocaleDateString('es-ES')}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            getExpirationInfo(directMembershipData.member_info.expires_at).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                            getExpirationInfo(directMembershipData.member_info.expires_at).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                          }`}></div>
+                                          <p className="text-sm text-gray-500">
+                                            {getExpirationInfo(directMembershipData.member_info.expires_at).message}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
                                   )}
+
+                                  {directMembershipData.subscriptions?.[0]?.expires_at && (
+                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
+                                      <div>
+                                        <p className="font-medium text-gray-900 dark:text-gray-100">Suscripción Activa</p>
+                                        <p className="text-sm text-gray-600">Vencimiento de suscripción</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-xl font-bold text-orange-600">
+                                          {new Date(directMembershipData.subscriptions[0].expires_at).toLocaleDateString('es-ES')}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            getExpirationInfo(directMembershipData.subscriptions[0].expires_at).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                            getExpirationInfo(directMembershipData.subscriptions[0].expires_at).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                          }`}></div>
+                                          <p className="text-sm text-gray-500">
+                                            {getExpirationInfo(directMembershipData.subscriptions[0].expires_at).message}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {directMembershipData.analysis.expiration_date && (
+                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
+                                      <div>
+                                        <p className="font-medium text-gray-900 dark:text-gray-100">API MemberPress</p>
+                                        <p className="text-sm text-gray-600">Fecha desde API directa</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-xl font-bold text-blue-600">
+                                          {new Date(directMembershipData.analysis.expiration_date).toLocaleDateString('es-ES')}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            getExpirationInfo(directMembershipData.analysis.expiration_date).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                            getExpirationInfo(directMembershipData.analysis.expiration_date).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                          }`}></div>
+                                          <p className="text-sm text-gray-500">
+                                            {getExpirationInfo(directMembershipData.analysis.expiration_date).message}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
                                   {directMembershipData.analysis.meta_expiration_date && (
-                                    <p className="text-lg font-semibold text-orange-900 dark:text-orange-100">
-                                      Meta: {new Date(directMembershipData.analysis.meta_expiration_date).toLocaleDateString('es-ES')}
-                                      <span className="text-sm text-orange-600 ml-2">
-                                        ({directMembershipData.analysis.expiration_source})
-                                      </span>
-                                    </p>
+                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
+                                      <div>
+                                        <p className="font-medium text-gray-900 dark:text-gray-100">Metadatos de Usuario</p>
+                                        <p className="text-sm text-gray-600">
+                                          Campo: {directMembershipData.analysis.expiration_source}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-xl font-bold text-purple-600">
+                                          {new Date(directMembershipData.analysis.meta_expiration_date).toLocaleDateString('es-ES')}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            getExpirationInfo(directMembershipData.analysis.meta_expiration_date).color === 'red' ? 'bg-red-500 animate-pulse' :
+                                            getExpirationInfo(directMembershipData.analysis.meta_expiration_date).color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                                          }`}></div>
+                                          <p className="text-sm text-gray-500">
+                                            {getExpirationInfo(directMembershipData.analysis.meta_expiration_date).message}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            ) : (
+                              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
+                                <div className="flex items-center">
+                                  <AlertCircle className="w-5 h-5 mr-2 text-yellow-600" />
+                                  <p className="text-yellow-800 dark:text-yellow-200 font-medium">
+                                    No se encontraron fechas de caducidad para este usuario
+                                  </p>
+                                </div>
+                                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-2">
+                                  Esto puede indicar una membresía sin límite de tiempo o información no disponible en las fuentes consultadas.
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     )}
