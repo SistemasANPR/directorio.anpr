@@ -3244,6 +3244,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para acceder directamente a la API de MemberPress para membresías específicas de usuario
+  app.get("/api/memberpress-direct/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      console.log(`[MemberPress Direct] Consultando membresías directas para usuario ${userId}`);
+
+      // Endpoints específicos de MemberPress para membresías de usuario
+      const membershipEndpoints = [
+        `/wp-json/mp/v1/members/${userId}`,
+        `/wp-json/mp/v1/subscriptions?member=${userId}`,
+        `/wp-json/mp/v1/transactions?member=${userId}`,
+        `/wp-json/mp/v1/members/${userId}/subscriptions`,
+        `/wp-json/mp/v1/members/${userId}/transactions`,
+      ];
+
+      const results = {};
+      
+      // Consultar cada endpoint específico de MemberPress
+      for (const endpoint of membershipEndpoints) {
+        try {
+          console.log(`[MemberPress Direct] Consultando: ${baseUrl}${endpoint}`);
+          
+          const response = await fetch(`${baseUrl}${endpoint}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`[MemberPress Direct] Éxito en ${endpoint}:`, Array.isArray(data) ? `${data.length} items` : 'objeto');
+            
+            results[endpoint] = {
+              status: response.status,
+              data: data,
+              count: Array.isArray(data) ? data.length : 1
+            };
+          } else {
+            const errorText = await response.text();
+            console.log(`[MemberPress Direct] Error ${response.status} en ${endpoint}:`, errorText);
+            results[endpoint] = {
+              status: response.status,
+              error: errorText
+            };
+          }
+        } catch (error: any) {
+          console.log(`[MemberPress Direct] Excepción en ${endpoint}:`, error.message);
+          results[endpoint] = {
+            error: error.message
+          };
+        }
+      }
+
+      // También intentar obtener información de membresía a través de metadatos del usuario
+      let userMetadata = null;
+      try {
+        console.log(`[MemberPress Direct] Obteniendo metadatos del usuario ${userId}`);
+        const userResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users/${userId}?context=edit`, {
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          userMetadata = {
+            basic_info: {
+              id: userData.id,
+              name: userData.name,
+              email: userData.email,
+              username: userData.username
+            },
+            memberpress_meta: Object.keys(userData.meta || {})
+              .filter(key => key.includes('mepr') || key.includes('memberpress'))
+              .reduce((acc: any, key) => {
+                acc[key] = userData.meta[key];
+                return acc;
+              }, {}),
+            all_meta: userData.meta
+          };
+        }
+      } catch (error: any) {
+        console.log('[MemberPress Direct] Error obteniendo metadatos del usuario:', error.message);
+      }
+
+      // Consolidar información de membresía encontrada
+      const consolidatedInfo = {
+        user_id: userId,
+        user_metadata: userMetadata,
+        
+        // Información de membresía directa de MemberPress
+        member_info: results[`/wp-json/mp/v1/members/${userId}`]?.data || null,
+        subscriptions: results[`/wp-json/mp/v1/subscriptions?member=${userId}`]?.data || [],
+        transactions: results[`/wp-json/mp/v1/transactions?member=${userId}`]?.data || [],
+        
+        // Respuestas completas de todos los endpoints
+        raw_responses: results,
+        
+        // Análisis de datos encontrados
+        analysis: {
+          has_member_record: !!results[`/wp-json/mp/v1/members/${userId}`]?.data,
+          subscription_count: Array.isArray(results[`/wp-json/mp/v1/subscriptions?member=${userId}`]?.data) 
+            ? results[`/wp-json/mp/v1/subscriptions?member=${userId}`].data.length : 0,
+          transaction_count: Array.isArray(results[`/wp-json/mp/v1/transactions?member=${userId}`]?.data) 
+            ? results[`/wp-json/mp/v1/transactions?member=${userId}`].data.length : 0,
+          endpoints_successful: Object.values(results).filter((r: any) => r.status === 200).length,
+          endpoints_failed: Object.values(results).filter((r: any) => r.status !== 200).length
+        }
+      };
+
+      // Extraer fechas de vencimiento si están disponibles
+      if (consolidatedInfo.member_info) {
+        const memberData = consolidatedInfo.member_info;
+        if (memberData.expires_at) {
+          consolidatedInfo.analysis.expiration_date = memberData.expires_at;
+        }
+      }
+
+      // Buscar fechas de vencimiento en metadatos
+      if (userMetadata?.memberpress_meta) {
+        const meta = userMetadata.memberpress_meta;
+        const expirationFields = ['mepr_expires_at', '_mepr_expires_at', 'memberpress_expires'];
+        
+        for (const field of expirationFields) {
+          if (meta[field]) {
+            consolidatedInfo.analysis.meta_expiration_date = meta[field];
+            consolidatedInfo.analysis.expiration_source = field;
+            break;
+          }
+        }
+      }
+
+      console.log(`[MemberPress Direct] Análisis completo para usuario ${userId}:`, consolidatedInfo.analysis);
+
+      res.json(consolidatedInfo);
+
+    } catch (error: any) {
+      console.error('[MemberPress Direct] Error general:', error.message);
+      res.status(500).json({ error: error.message, details: error.stack });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

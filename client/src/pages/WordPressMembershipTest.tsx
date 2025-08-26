@@ -71,6 +71,18 @@ export default function WordPressMembershipTest() {
     staleTime: 2 * 60 * 1000, // Cache por 2 minutos
   });
 
+  // Obtener información directa de la API de MemberPress para el usuario
+  const { 
+    data: directMembershipData, 
+    isLoading: directMembershipLoading, 
+    error: directMembershipError,
+    refetch: refetchDirectMembership 
+  } = useQuery({
+    queryKey: [`/api/memberpress-direct/${usernameMembershipData?.user_id}`],
+    enabled: !!usernameMembershipData?.user_id,
+    staleTime: 30 * 1000, // Cache por 30 segundos
+  });
+
   const handleTestUser = () => {
     if (!selectedUserId) {
       toast({
@@ -543,6 +555,245 @@ export default function WordPressMembershipTest() {
                   <div className="mt-4 flex items-center text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded">
                     <AlertCircle className="w-4 h-4 mr-2" />
                     Error obteniendo membresía completa: {completeMembershipError.message}
+                  </div>
+                )}
+
+                {/* Información directa de la API de MemberPress */}
+                {directMembershipData && (
+                  <div className="mt-6 border-t pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">API Directa de MemberPress</h3>
+                      <Button 
+                        onClick={() => refetchDirectMembership()} 
+                        disabled={directMembershipLoading}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Search className="w-4 h-4 mr-1" />
+                        {directMembershipLoading ? "Consultando..." : "Actualizar"}
+                      </Button>
+                    </div>
+
+                    {/* Análisis de resultados */}
+                    {directMembershipData.analysis && (
+                      <Card className="mb-4 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+                        <CardHeader>
+                          <CardTitle className="text-blue-800 dark:text-blue-200">Análisis de Membresía</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-blue-600">
+                                {directMembershipData.analysis.has_member_record ? '✓' : '✗'}
+                              </p>
+                              <p className="text-sm text-gray-600">Registro de Miembro</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-green-600">
+                                {directMembershipData.analysis.subscription_count || 0}
+                              </p>
+                              <p className="text-sm text-gray-600">Suscripciones</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-purple-600">
+                                {directMembershipData.analysis.transaction_count || 0}
+                              </p>
+                              <p className="text-sm text-gray-600">Transacciones</p>
+                            </div>
+                          </div>
+
+                          {/* Fechas de vencimiento */}
+                          {(directMembershipData.analysis.expiration_date || directMembershipData.analysis.meta_expiration_date) && (
+                            <div className="mt-4 p-4 bg-orange-100 dark:bg-orange-900/20 rounded">
+                              <div className="flex items-center">
+                                <Calendar className="w-5 h-5 mr-2 text-orange-600" />
+                                <div>
+                                  <Label className="text-orange-800 dark:text-orange-200">Fecha de Vencimiento Encontrada</Label>
+                                  {directMembershipData.analysis.expiration_date && (
+                                    <p className="text-lg font-semibold text-orange-900 dark:text-orange-100">
+                                      API: {new Date(directMembershipData.analysis.expiration_date).toLocaleDateString('es-ES')}
+                                    </p>
+                                  )}
+                                  {directMembershipData.analysis.meta_expiration_date && (
+                                    <p className="text-lg font-semibold text-orange-900 dark:text-orange-100">
+                                      Meta: {new Date(directMembershipData.analysis.meta_expiration_date).toLocaleDateString('es-ES')}
+                                      <span className="text-sm text-orange-600 ml-2">
+                                        ({directMembershipData.analysis.expiration_source})
+                                      </span>
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Información del miembro */}
+                    {directMembershipData.member_info && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle>Registro de Miembro en MemberPress</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2 text-sm">
+                            {directMembershipData.member_info.id && (
+                              <p><strong>ID de Miembro:</strong> {directMembershipData.member_info.id}</p>
+                            )}
+                            {directMembershipData.member_info.user_id && (
+                              <p><strong>ID de Usuario:</strong> {directMembershipData.member_info.user_id}</p>
+                            )}
+                            {directMembershipData.member_info.membership_id && (
+                              <p><strong>ID de Membresía:</strong> {directMembershipData.member_info.membership_id}</p>
+                            )}
+                            {directMembershipData.member_info.status && (
+                              <p><strong>Estado:</strong> 
+                                <Badge variant={directMembershipData.member_info.status === 'active' ? 'default' : 'secondary'} className="ml-2">
+                                  {directMembershipData.member_info.status}
+                                </Badge>
+                              </p>
+                            )}
+                            {directMembershipData.member_info.created_at && (
+                              <p><strong>Creado:</strong> {new Date(directMembershipData.member_info.created_at).toLocaleDateString('es-ES')}</p>
+                            )}
+                            {directMembershipData.member_info.expires_at && (
+                              <p><strong>Vence:</strong> {new Date(directMembershipData.member_info.expires_at).toLocaleDateString('es-ES')}</p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Suscripciones */}
+                    {directMembershipData.subscriptions && directMembershipData.subscriptions.length > 0 && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle>Suscripciones Activas ({directMembershipData.subscriptions.length})</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {directMembershipData.subscriptions.map((subscription: any, index: number) => (
+                              <div key={index} className="border rounded p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                  <Badge variant="default">ID: {subscription.id}</Badge>
+                                  {subscription.status && (
+                                    <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
+                                      {subscription.status}
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                <div className="text-sm space-y-1">
+                                  {subscription.membership_id && (
+                                    <p><strong>Membresía ID:</strong> {subscription.membership_id}</p>
+                                  )}
+                                  {subscription.period && subscription.period_type && (
+                                    <p><strong>Período:</strong> {subscription.period} {subscription.period_type}</p>
+                                  )}
+                                  {subscription.price && (
+                                    <p><strong>Precio:</strong> ${subscription.price}</p>
+                                  )}
+                                  {subscription.next_billing_at && (
+                                    <p><strong>Próximo Cobro:</strong> {new Date(subscription.next_billing_at).toLocaleDateString('es-ES')}</p>
+                                  )}
+                                  {subscription.expires_at && (
+                                    <p><strong>Expira:</strong> {new Date(subscription.expires_at).toLocaleDateString('es-ES')}</p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Transacciones */}
+                    {directMembershipData.transactions && directMembershipData.transactions.length > 0 && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle>Historial de Transacciones ({directMembershipData.transactions.length})</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3 max-h-60 overflow-y-auto">
+                            {directMembershipData.transactions.map((transaction: any, index: number) => (
+                              <div key={index} className="border rounded p-3 text-sm">
+                                <div className="flex items-center justify-between mb-2">
+                                  <Badge variant="outline">Trans. #{transaction.id}</Badge>
+                                  {transaction.status && (
+                                    <Badge variant={transaction.status === 'complete' ? 'default' : 'secondary'}>
+                                      {transaction.status}
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                <div className="space-y-1">
+                                  {transaction.membership_id && (
+                                    <p><strong>Membresía:</strong> {transaction.membership_id}</p>
+                                  )}
+                                  {transaction.amount && (
+                                    <p><strong>Monto:</strong> ${transaction.amount}</p>
+                                  )}
+                                  {transaction.created_at && (
+                                    <p><strong>Fecha:</strong> {new Date(transaction.created_at).toLocaleDateString('es-ES')}</p>
+                                  )}
+                                  {transaction.gateway && (
+                                    <p><strong>Método:</strong> {transaction.gateway}</p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Estado de APIs consultadas */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Estado de Endpoints de MemberPress</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {directMembershipData.raw_responses && Object.entries(directMembershipData.raw_responses).map(([endpoint, response]: [string, any]) => (
+                            <div key={endpoint} className="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                              <span className="font-mono text-xs">{endpoint}</span>
+                              <div className="flex items-center gap-2">
+                                {response.status === 200 ? (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                    <Badge variant="default" size="sm">
+                                      {response.count || 1} items
+                                    </Badge>
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="w-4 h-4 text-red-500" />
+                                    <Badge variant="destructive" size="sm">
+                                      {response.status || 'Error'}
+                                    </Badge>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {directMembershipLoading && (
+                  <div className="mt-4 text-center">
+                    <Clock className="w-6 h-6 mx-auto animate-spin mb-2" />
+                    <p className="text-sm text-gray-600">Consultando API directa de MemberPress...</p>
+                  </div>
+                )}
+
+                {directMembershipError && (
+                  <div className="mt-4 flex items-center text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded">
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Error en API directa: {directMembershipError.message}
                   </div>
                 )}
               </CardContent>
