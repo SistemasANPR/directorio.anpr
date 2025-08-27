@@ -431,6 +431,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to get user transactions from WordPress/MemberPress
+  async function getUserTransactions(wordpressUserId: string): Promise<any[]> {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        console.log('[User Transactions] No WordPress configuration found');
+        return [];
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Obtener transacciones del usuario desde MemberPress
+      const transactionsResponse = await fetch(`${baseUrl}/wp-json/mp/v1/transactions?member=${wordpressUserId}`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!transactionsResponse.ok) {
+        console.log(`[User Transactions] Failed to get transactions for user ${wordpressUserId}`);
+        return [];
+      }
+
+      const transactions = await transactionsResponse.json();
+      
+      if (!Array.isArray(transactions)) {
+        console.log(`[User Transactions] Invalid response format for user ${wordpressUserId}`);
+        return [];
+      }
+
+      // Filtrar y organizar transacciones
+      const validTransactions = transactions
+        .filter((t: any) => t.status === 'complete' || t.status === 'confirmed')
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      console.log(`[User Transactions] Found ${validTransactions.length} valid transactions for user ${wordpressUserId}`);
+      return validTransactions;
+
+    } catch (error: any) {
+      console.error(`[User Transactions] Error getting transactions for user ${wordpressUserId}:`, error.message);
+      return [];
+    }
+  }
+
   // Helper function to get transaction expiration date from WordPress/MemberPress
   async function getTransactionExpirationDate(wordpressUserId: string): Promise<string | null> {
     try {
@@ -1830,6 +1876,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Endpoint para obtener información detallada de membresía de un usuario específico de WordPress
+  // Endpoint para obtener transacciones de un usuario específico
+  app.get("/api/wordpress-user-transactions/:userId", async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const transactions = await getUserTransactions(userId);
+      
+      if (transactions.length === 0) {
+        return res.status(404).json({ 
+          error: "No se encontraron transacciones válidas para este usuario",
+          transactions: []
+        });
+      }
+
+      res.json({ 
+        transactions: transactions.map(t => ({
+          id: t.id,
+          status: t.status,
+          amount: t.amount,
+          total: t.total,
+          created_at: t.created_at,
+          expires_at: t.expires_at,
+          membership_name: t.membership?.title || 'Sin plan',
+          transaction_id: t.transaction_id
+        })),
+        count: transactions.length
+      });
+
+    } catch (error: any) {
+      console.error(`Error fetching user transactions:`, error);
+      res.status(500).json({ 
+        error: "Error al obtener transacciones del usuario",
+        details: error.message 
+      });
+    }
+  });
+
   app.get("/api/wordpress-user-membership/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
