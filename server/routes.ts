@@ -431,6 +431,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to get transaction expiration date from WordPress/MemberPress
+  async function getTransactionExpirationDate(wordpressUserId: string): Promise<string | null> {
+    try {
+      const settings = await storage.getIntegrationSettings();
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        console.log('[Transaction Expiration] No WordPress configuration found');
+        return null;
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Obtener transacciones del usuario desde MemberPress
+      const transactionsResponse = await fetch(`${baseUrl}/wp-json/mp/v1/transactions?member=${wordpressUserId}`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!transactionsResponse.ok) {
+        console.log(`[Transaction Expiration] Failed to get transactions for user ${wordpressUserId}`);
+        return null;
+      }
+
+      const transactions = await transactionsResponse.json();
+      
+      if (!Array.isArray(transactions) || transactions.length === 0) {
+        console.log(`[Transaction Expiration] No transactions found for user ${wordpressUserId}`);
+        return null;
+      }
+
+      // Buscar transacciones exitosas con fechas de vencimiento
+      const successfulTransactions = transactions
+        .filter((t: any) => t.status === 'complete' || t.status === 'confirmed')
+        .filter((t: any) => t.expires_at)
+        .sort((a: any, b: any) => new Date(b.expires_at).getTime() - new Date(a.expires_at).getTime());
+
+      if (successfulTransactions.length > 0) {
+        const latestExpirationDate = successfulTransactions[0].expires_at;
+        console.log(`[Transaction Expiration] Found expiration date for user ${wordpressUserId}: ${latestExpirationDate}`);
+        return latestExpirationDate;
+      }
+
+      console.log(`[Transaction Expiration] No valid expiration dates found for user ${wordpressUserId}`);
+      return null;
+
+    } catch (error: any) {
+      console.error(`[Transaction Expiration] Error getting expiration date for user ${wordpressUserId}:`, error.message);
+      return null;
+    }
+  }
+
   app.post("/api/companies", async (req, res) => {
     try {
       const { wordpressUser, ...companyData } = req.body;
@@ -438,9 +491,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let userId = null;
       
+      let transactionExpirationDate = null;
+
       // Si se seleccionó un usuario de WordPress, crear/obtener usuario representante
       if (wordpressUser && wordpressUser.email && wordpressUser.username) {
         try {
+          // Obtener fecha de caducidad de transacción desde WordPress
+          if (wordpressUser.id) {
+            transactionExpirationDate = await getTransactionExpirationDate(wordpressUser.id.toString());
+          }
+
           // Verificar si el usuario ya existe en el sistema por email
           let existingUser = await storage.getUserByEmail(wordpressUser.email);
           
@@ -476,10 +536,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Crear la empresa con el userId del representante si se pudo crear/encontrar
-      const companyWithUser = {
+      let companyWithUser = {
         ...parsedCompanyData,
         userId: userId
       };
+
+      // Si se obtuvo una fecha de caducidad de transacción, actualizar las fechas de vencimiento del plan
+      if (transactionExpirationDate) {
+        try {
+          // Convertir la fecha de WordPress a formato que acepta nuestra base de datos
+          const expirationDate = new Date(transactionExpirationDate);
+          
+          // Calcular fecha de inicio (un año antes de la caducidad)
+          const startDate = new Date(expirationDate);
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          
+          companyWithUser.fechaInicioMembresia = startDate.toISOString().split('T')[0];
+          companyWithUser.fechaFinMembresia = expirationDate.toISOString().split('T')[0];
+          
+          console.log(`[Company Creation] Updated membership dates from transaction:`);
+          console.log(`[Company Creation] Start: ${companyWithUser.fechaInicioMembresia}`);
+          console.log(`[Company Creation] End: ${companyWithUser.fechaFinMembresia}`);
+          console.log(`[Company Creation] Source: WordPress transaction expiration`);
+          
+        } catch (dateError) {
+          console.error('[Company Creation] Error processing transaction expiration date:', dateError);
+          // Continuar con las fechas originales si hay error
+        }
+      }
       
       const company = await storage.createCompany(companyWithUser);
       res.status(201).json(company);
@@ -495,8 +579,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/companies/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const companyData = insertCompanySchema.partial().parse(req.body);
-      const company = await storage.updateCompany(id, companyData);
+      const { wordpressUser, ...companyData } = req.body;
+      const parsedCompanyData = insertCompanySchema.partial().parse(companyData);
+      
+      let updatedData = { ...parsedCompanyData };
+      let transactionExpirationDate = null;
+
+      // Si se seleccionó un usuario de WordPress para asignar/cambiar representante
+      if (wordpressUser && wordpressUser.email && wordpressUser.username) {
+        try {
+          // Obtener fecha de caducidad de transacción desde WordPress
+          if (wordpressUser.id) {
+            transactionExpirationDate = await getTransactionExpirationDate(wordpressUser.id.toString());
+          }
+
+          // Verificar si el usuario ya existe en el sistema por email
+          let existingUser = await storage.getUserByEmail(wordpressUser.email);
+          
+          if (!existingUser) {
+            // Crear nuevo usuario representante con datos de WordPress
+            const newUserData = {
+              firebaseUid: `wp_${wordpressUser.id}_${Date.now()}`, // UID único temporal para WordPress
+              email: wordpressUser.email,
+              displayName: wordpressUser.name || wordpressUser.username,
+              role: "representante",
+              photoURL: null,
+              stripeCustomerId: null,
+              stripeSubscriptionId: null,
+              autoRenewal: false
+            };
+            
+            existingUser = await storage.createUser(newUserData);
+            console.log(`[Update Company] Created new representative user from WordPress: ${existingUser.email}`);
+          } else if (existingUser && existingUser.role !== "representante" && existingUser.role !== "admin") {
+            // Si existe pero no es representante ni admin, actualizarlo a representante
+            const updatedUser = await storage.updateUser(existingUser.id, { role: "representante" });
+            if (updatedUser) {
+              existingUser = updatedUser;
+              console.log(`[Update Company] Updated user ${existingUser.email} to representative role`);
+            }
+          }
+          
+          // Asignar el usuario a la empresa
+          if (existingUser) {
+            updatedData.userId = existingUser.id;
+          }
+
+        } catch (userError) {
+          console.error("[Update Company] Error creating/updating representative user:", userError);
+          // Continuar con la actualización de la empresa sin asignar usuario
+        }
+      }
+
+      // Si se obtuvo una fecha de caducidad de transacción, actualizar las fechas de vencimiento del plan
+      if (transactionExpirationDate) {
+        try {
+          // Convertir la fecha de WordPress a formato que acepta nuestra base de datos
+          const expirationDate = new Date(transactionExpirationDate);
+          
+          // Calcular fecha de inicio (un año antes de la caducidad)
+          const startDate = new Date(expirationDate);
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          
+          updatedData.fechaInicioMembresia = startDate.toISOString().split('T')[0];
+          updatedData.fechaFinMembresia = expirationDate.toISOString().split('T')[0];
+          
+          console.log(`[Update Company] Updated membership dates from transaction:`);
+          console.log(`[Update Company] Start: ${updatedData.fechaInicioMembresia}`);
+          console.log(`[Update Company] End: ${updatedData.fechaFinMembresia}`);
+          console.log(`[Update Company] Source: WordPress transaction expiration`);
+          
+        } catch (dateError) {
+          console.error('[Update Company] Error processing transaction expiration date:', dateError);
+          // Continuar con las fechas originales si hay error
+        }
+      }
+
+      const company = await storage.updateCompany(id, updatedData);
       if (!company) {
         return res.status(404).json({ error: "Company not found" });
       }

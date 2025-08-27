@@ -25,6 +25,7 @@ The system uses a PostgreSQL database with a normalized schema design. Key areas
 - **UI/UX Decisions**: Employs a consistent design system (`shadcn/ui`), uses Tailwind CSS for styling with a focus on modern aesthetics, and provides a clear, intuitive user experience. Specific UI enhancements include visual icons for categories, drag-and-drop file upload interfaces, and clear error messaging for payment processes. The system allows administrators to customize header, menu, footer, contact information, social media links, and custom styling.
 - **Feature Specifications**:
     - **Company Management**: Detailed company profiles including contact info, social media, membership details, and geographic data. Supports bulk import/export via Excel/CSV.
+    - **WordPress Integration**: Comprehensive MemberPress integration with transaction expiration date synchronization. When assigning WordPress representatives to companies, membership dates are automatically updated based on transaction expiration dates from MemberPress.
     - **Project Management**: Project creation and management is exclusively handled through dashboard interfaces for representatives.
     - **Certificate Management**: System for assigning and managing certificates, with role-based visibility.
     - **Review System**: Differentiated systems for company opinions and platform reviews, with distinct interfaces and moderation.
@@ -39,6 +40,11 @@ The system uses a PostgreSQL database with a normalized schema design. Key areas
 ### Authentication
 - **Firebase Authentication**: Provides core user authentication, password recovery, and session management.
 - **Google OAuth**: Integrated for social login capabilities.
+
+### WordPress/MemberPress Integration
+- **WordPress API**: Direct integration with WordPress REST API for user synchronization and membership validation.
+- **MemberPress API**: Advanced integration for accessing membership transactions, subscription data, and expiration dates.
+- **Automatic Date Synchronization**: When assigning WordPress representatives to companies, the system automatically retrieves transaction expiration dates from MemberPress and updates company membership dates accordingly.
 
 ### Maps and Geolocation
 - **Google Maps API**: Used for interactive maps, geocoding, and location-based search functionalities.
