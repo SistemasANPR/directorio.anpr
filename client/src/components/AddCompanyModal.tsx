@@ -1834,28 +1834,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   </div>
                 </div>
 
-                {/* Descripción de la empresa */}
-                <FormField
-                  control={form.control}
-                  name="descripcionEmpresa"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        Descripción de la Empresa
-                      </FormLabel>
-                      <FormControl>
-                        <RichTextEditor
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          placeholder="Describe detalladamente los productos o servicios que ofrece la empresa, su historia, misión, valores y cualquier información relevante para los clientes..."
-                          height={250}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
 
                 {/* Redes Sociales Dinámicas */}
                 <div className="md:col-span-2 space-y-4">

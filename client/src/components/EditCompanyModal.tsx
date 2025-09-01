@@ -1057,28 +1057,6 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   </FormItem>
                 )}
               />
-              
-              <FormField
-                control={form.control}
-                name="descripcionEmpresa"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descripción de la Empresa *</FormLabel>
-                    <FormDescription>
-                      Describe los servicios, productos y experiencia de tu empresa
-                    </FormDescription>
-                    <FormControl>
-                      <RichTextEditor
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        placeholder="Describe tu empresa, servicios principales, experiencia en el mercado..."
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
 
             </div>
 
