@@ -293,13 +293,32 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const handleGaleriaSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     
-    if (galeriaPreviews.length + files.length > 10) {
-      toast({
-        title: "Límite excedido",
-        description: "Máximo 10 imágenes permitidas en la galería",
-        variant: "destructive",
-      });
-      return;
+    // Verificar límites del plan de membresía actual
+    const selectedMembershipId = form.watch("membershipTypeId");
+    const selectedMembership = membershipTypes.find(m => m.id === selectedMembershipId);
+    
+    if (selectedMembership) {
+      const maxProducts = selectedMembership.cantidadProductosAdmitidos;
+      
+      // Verificar límite de productos (usando galería como productos)
+      if (maxProducts !== -1 && maxProducts !== null && galeriaPreviews.length + files.length > maxProducts) {
+        toast({
+          title: "Límite de productos excedido",
+          description: `Tu plan "${selectedMembership.nombrePlan}" permite máximo ${maxProducts} productos. Actualmente tienes ${galeriaPreviews.length}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // Fallback al límite estándar si no hay plan seleccionado
+      if (galeriaPreviews.length + files.length > 10) {
+        toast({
+          title: "Límite excedido",
+          description: "Máximo 10 imágenes permitidas en la galería",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     const validFiles = files.filter(validateImage);
@@ -408,7 +427,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         direccionFisica: company.direccionFisica || "",
         descripcionEmpresa: cleanDescription,
         ubicacionPrincipal: company.ubicacionPrincipal || "",
-        ubicacionGeografica: company.ubicacionGeografica || "",
+        ubicacionGeografica: String(company.ubicacionGeografica || ""),
         representantesVentas: cleanRepresentantes,
         catalogoDigitalUrl: String(company.catalogoDigitalUrl || ""),
         categoriesIds: Array.isArray(company.categoriesIds) ? company.categoriesIds : [],

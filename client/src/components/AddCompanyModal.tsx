@@ -755,31 +755,26 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const handleGaleriaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     
-    // Verificar si hay plan seleccionado
-    if (!selectedMembershipType) {
+    // Verificar límites del plan de membresía seleccionado
+    const selectedMembershipId = form.watch("membershipTypeId");
+    const selectedMembership = membershipTypes.find(m => m.id === selectedMembershipId);
+    
+    if (selectedMembership) {
+      const maxProducts = selectedMembership.cantidadProductosAdmitidos;
+      
+      // Verificar límite de productos (usando galería como productos)
+      if (maxProducts !== -1 && maxProducts !== null && galeriaFiles.length + files.length > maxProducts) {
+        toast({
+          title: "Límite de productos excedido",
+          description: `Tu plan "${selectedMembership.nombrePlan}" permite máximo ${maxProducts} productos. Actualmente tienes ${galeriaFiles.length}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
       toast({
         title: "Error",
         description: "Selecciona un plan de membresía antes de agregar imágenes",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const currentLimit = maxProductImages === Infinity ? 999 : maxProductImages;
-    if (galeriaFiles.length + files.length > currentLimit) {
-      toast({
-        title: "Error",
-        description: `Solo se permiten máximo ${maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes según tu plan de membresía`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Verificar límites de plan de membresía para productos
-    if (selectedCompanyId && !canAddProducts) {
-      toast({
-        title: "Límite de productos alcanzado",
-        description: "Has alcanzado el límite de productos de tu plan de membresía. Actualiza tu plan para agregar más productos.",
         variant: "destructive",
       });
       return;
@@ -1694,7 +1689,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                             <div className="bg-white p-3 rounded border">
                               <div className="font-medium text-gray-700">Fotos</div>
                               <div className="text-lg font-bold text-blue-600">
-                                {currentMembershipType.cantidadFotosAdmitidas === -1 ? "Sin límite" : (currentMembershipType.cantidadFotosAdmitidas || "Sin límite")}
+                                Sin límite
                               </div>
                             </div>
                             <div className="bg-white p-3 rounded border">
