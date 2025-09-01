@@ -33,7 +33,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertCompanySchema, Category, MembershipType, Certificate } from "@shared/schema";
 import TagSelector from "@/components/TagSelector";
-import MembershipLimitsValidator from "@/components/MembershipLimitsValidator";
+import MembershipLimitsDisplay from "@/components/MembershipLimitsDisplay";
 import { paisesAmericaLatina, estadosMexico, ciudadesPorEstado } from "@/lib/locationData";
 import { 
   Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
@@ -937,7 +937,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
             <div className="space-y-6">
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-primary">Información de Contacto</h3>
-                <p className="text-sm text-gray-600">Datos de contacto y representante</p>
+                <p className="text-sm text-gray-600">Datos de contacto y representantes</p>
               </div>
 
               {/* BUSCADOR DE WORDPRESS - UBICADO EN INFORMACIÓN DE CONTACTO */}
@@ -1186,18 +1186,80 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nombre de la empresa */}
+                <FormField
+                  control={form.control}
+                  name="nombreEmpresa"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Empresa *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ejemplo de Empresa Parques" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Teléfono principal */}
+                <FormField
+                  control={form.control}
+                  name="telefono1"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono Principal *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Teléfono principal" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* Email principal */}
                 <FormField
                   control={form.control}
                   name="email1"
                   render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        Email Principal *
-                      </FormLabel>
+                    <FormItem>
+                      <FormLabel>Email Principal *</FormLabel>
                       <FormControl>
-                        <Input placeholder="contacto@empresa.com" type="email" {...field} />
+                        <Input placeholder="luciacallizov@gmail.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Sitio Web */}
+                <FormField
+                  control={form.control}
+                  name="sitioWeb"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sitio Web</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://www.empresa.com" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Dirección Física */}
+                <FormField
+                  control={form.control}
+                  name="direccionFisica"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Dirección Física *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Dirección completa de la empresa"
+                          className="min-h-[80px]"
+                          {...field} 
+                          value={field.value || ""}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1240,24 +1302,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 </div>
 
-                {/* Teléfono principal */}
-                <FormField
-                  control={form.control}
-                  name="telefono1"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        Teléfono Principal
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="+52 55 1234 5678" {...field} value={field.value || ""} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 {/* Teléfonos adicionales */}
                 <div className="md:col-span-2 space-y-3">
                   <FormLabel>Teléfonos Adicionales</FormLabel>
@@ -1293,7 +1337,40 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 </div>
 
-
+                {/* Enlaces a perfiles profesionales */}
+                <div className="md:col-span-2 space-y-3">
+                  <FormLabel>Enlaces a Perfiles Profesionales</FormLabel>
+                  {representantes.map((rep, index) => (
+                    <div key={index} className="flex gap-3 items-start">
+                      <Input
+                        placeholder="https://anpr.org.mx/profile-2/?usuario/"
+                        value={rep}
+                        onChange={(e) => updateRepresentante(index, e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeRepresentante(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {representantes.length < 3 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addRepresentante}
+                      className="flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Agregar Enlace ({representantes.length}/3)
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1301,24 +1378,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
             <div className="space-y-6">
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-primary">Información de la Empresa</h3>
-                <p className="text-sm text-gray-600">Datos principales de la empresa</p>
+                <p className="text-sm text-gray-600">Multimedia y contenido de la empresa</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Nombre de la empresa */}
-                <FormField
-                  control={form.control}
-                  name="nombreEmpresa"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Nombre de la Empresa *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nombre completo de la empresa" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 {/* Logotipo con drag and drop */}
                 <FormItem className="md:col-span-2">
@@ -2076,11 +2139,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   <h3 className="text-lg font-semibold text-primary">Validación de Límites del Plan</h3>
                   <p className="text-sm text-gray-600">Verificación de límites según el plan de membresía seleccionado</p>
                 </div>
-                <MembershipLimitsValidator
-                  companyId={selectedCompanyId || 0}
-                  additionalProducts={galeriaFiles.length}
-                  additionalProjects={0}
-                  onLimitsChange={handleLimitsChange}
+                <MembershipLimitsDisplay
+                  membershipType={selectedMembershipType}
+                  productCount={galeriaFiles.length}
+                  projectCount={0}
+                  className="mb-4"
                 />
               </div>
             )}
