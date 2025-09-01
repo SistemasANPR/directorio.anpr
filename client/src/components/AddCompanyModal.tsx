@@ -335,6 +335,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     queryKey: ["/api/certificates"],
   });
 
+  const { data: tags = [] } = useQuery<any[]>({
+    queryKey: ["/api/tags"],
+  });
+
   // Get the selected membership type to use its limits
   const selectedMembershipType = membershipTypes.find(type => type.id === watchedMembershipTypeId);
   
@@ -1529,6 +1533,28 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           </div>
                         ))}
                       </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Etiquetas */}
+                <FormField
+                  control={form.control}
+                  name="tagIds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Etiquetas</FormLabel>
+                      <FormDescription>
+                        Selecciona etiquetas que describan mejor tus productos y servicios
+                      </FormDescription>
+                      <FormControl>
+                        <TagSelector
+                          availableTags={tags}
+                          selectedTagIds={field.value || []}
+                          onTagsChange={field.onChange}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
