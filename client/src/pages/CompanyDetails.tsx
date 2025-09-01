@@ -82,6 +82,19 @@ export default function CompanyDetails() {
     },
   });
 
+  // Query para opiniones de la empresa
+  const { data: companyOpinions = [] } = useQuery({
+    queryKey: ["/api/opinions", { tipo: "empresa", companyId: id, estado: "aprobada" }],
+    queryFn: async () => {
+      if (!id) return [];
+      const response = await fetch(`/api/opinions?tipo=empresa&companyId=${id}&estado=aprobada`);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.opinions || [];
+    },
+    enabled: !!id,
+  });
+
 
 
 
@@ -153,12 +166,12 @@ export default function CompanyDetails() {
 
       {/* Hero Section */}
       <div className="relative overflow-hidden text-white">
-        {/* Fondo con imagen de producto */}
+        {/* Fondo con foto de portada */}
         <div className="absolute inset-0">
-          {company.galeriaProductosUrls && company.galeriaProductosUrls.length > 0 ? (
+          {company.fotoPortadaUrl ? (
             <img
-              src={company.galeriaProductosUrls[0]}
-              alt={`Producto de ${company.nombreEmpresa}`}
+              src={company.fotoPortadaUrl}
+              alt={`Portada de ${company.nombreEmpresa}`}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -409,28 +422,37 @@ export default function CompanyDetails() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {/* Reseñas de ejemplo */}
-                  <div className="border-l-4 border-blue-500 pl-4">
-                    <div className="flex items-center mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-gray-700 mb-2">"Excelente servicio y calidad en todos sus productos. Muy recomendados."</p>
-                    <p className="text-sm text-gray-500">- Cliente Satisfecho</p>
+                {companyOpinions && companyOpinions.length > 0 ? (
+                  <div className="space-y-6">
+                    {companyOpinions.map((opinion: any) => (
+                      <div key={opinion.id} className="border-l-4 border-blue-500 pl-4">
+                        <div className="flex items-center mb-2">
+                          {[...Array(opinion.calificacion || 5)].map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                          {opinion.calificacion < 5 && [...Array(5 - (opinion.calificacion || 5))].map((_, i) => (
+                            <Star key={`empty-${i}`} className="h-4 w-4 text-gray-300" />
+                          ))}
+                        </div>
+                        <p className="text-gray-700 mb-2">"{opinion.comentario}"</p>
+                        <p className="text-sm text-gray-500">- {opinion.nombre}</p>
+                        {opinion.fechaCreacion && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(opinion.fechaCreacion).toLocaleDateString('es-ES')}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div className="border-l-4 border-green-500 pl-4">
-                    <div className="flex items-center mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-gray-700 mb-2">"Profesionalismo y compromiso en cada proyecto. Muy satisfecho con los resultados."</p>
-                    <p className="text-sm text-gray-500">- Empresa Asociada</p>
+                ) : (
+                  <div className="text-center py-8">
+                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">Aún no hay reseñas para esta empresa</p>
+                    <p className="text-sm text-gray-400">
+                      Sé el primero en compartir tu experiencia con {company.nombreEmpresa}
+                    </p>
                   </div>
-                </div>
+                )}
                 
                 <div className="mt-6 text-center">
                   <Button 
