@@ -1,169 +1,113 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Package, Briefcase, Crown } from "lucide-react";
+import { AlertTriangle, Package, Briefcase, Crown, CheckCircle, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+interface MembershipType {
+  cantidadProductosAdmitidos?: number | null;
+  cantidadProyectosAdmitidos?: number | null;
+  nombrePlan?: string;
+}
+
 interface MembershipLimitsDisplayProps {
-  companyId: number;
+  membershipType: MembershipType;
+  productCount: number;
+  projectCount: number;
+  className?: string;
 }
 
-interface LimitsData {
-  planName: string;
-  projects: {
-    limit: number;
-    current: number;
-    available: number;
+export default function MembershipLimitsDisplay({ 
+  membershipType, 
+  productCount, 
+  projectCount,
+  className = "" 
+}: MembershipLimitsDisplayProps) {
+  
+  const formatLimit = (limit: number | null | undefined): string => {
+    if (limit === null || limit === undefined || limit === -1) {
+      return "Sin límite";
+    }
+    return limit.toString();
   };
-  products: {
-    limit: number;
-    current: number;
-    available: number;
-  };
-}
 
-export default function MembershipLimitsDisplay({ companyId }: MembershipLimitsDisplayProps) {
-  const { data: limits, isLoading, error } = useQuery<LimitsData>({
-    queryKey: [`/api/companies/${companyId}/limits`],
-    enabled: !!companyId,
-  });
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5" />
-            Límites del Plan
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error || !limits) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5" />
-            Límites del Plan
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              No se pudieron cargar los límites del plan de membresía.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const getProgressColor = (current: number, limit: number) => {
-    if (limit === 0) return "bg-gray-400"; // Sin límite
+  const getProgressColor = (current: number, limit: number | null | undefined): string => {
+    if (limit === null || limit === undefined || limit === -1) return "#10b981"; // Verde para ilimitado
     const percentage = (current / limit) * 100;
-    if (percentage >= 90) return "bg-red-500";
-    if (percentage >= 75) return "bg-yellow-500";
-    return "bg-green-500";
+    if (percentage >= 100) return "#ef4444"; // Rojo
+    if (percentage >= 80) return "#f59e0b"; // Amarillo
+    return "#10b981"; // Verde
   };
 
-  const getUsageStatus = (current: number, limit: number, available: number) => {
-    if (limit === 0) return { text: "Sin límite", variant: "secondary" as const };
-    if (available === 0) return { text: "Límite alcanzado", variant: "destructive" as const };
-    if (available <= 2) return { text: "Casi lleno", variant: "destructive" as const };
-    return { text: "Disponible", variant: "default" as const };
+  const getValidationIcon = (current: number, limit: number | null | undefined) => {
+    if (limit === null || limit === undefined || limit === -1) {
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    }
+    return current <= limit ? 
+      <CheckCircle className="h-4 w-4 text-green-600" /> : 
+      <XCircle className="h-4 w-4 text-red-600" />;
   };
+
+  const canAddProducts = membershipType.cantidadProductosAdmitidos === -1 || 
+    membershipType.cantidadProductosAdmitidos === null || 
+    productCount <= (membershipType.cantidadProductosAdmitidos || 0);
+
+  const canAddProjects = membershipType.cantidadProyectosAdmitidos === -1 || 
+    membershipType.cantidadProyectosAdmitidos === null || 
+    projectCount <= (membershipType.cantidadProyectosAdmitidos || 0);
+
+  if (!membershipType) {
+    return (
+      <Alert className={className}>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          No se pudo cargar la información del plan de membresía.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-[#bcce16]" />
-          Límites del Plan: {limits.planName}
+    <Card className={className}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Crown className="h-4 w-4" />
+          Validación de Límites
+          <Badge variant="outline">{membershipType.nombrePlan || "Plan no especificado"}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Proyectos */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+      <CardContent className="space-y-4">
+        {/* Validación de Productos */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-blue-600" />
-              <span className="font-medium">Proyectos</span>
-            </div>
-            <Badge variant={getUsageStatus(limits.projects.current, limits.projects.limit, limits.projects.available).variant}>
-              {getUsageStatus(limits.projects.current, limits.projects.limit, limits.projects.available).text}
-            </Badge>
-          </div>
-          
-          {limits.projects.limit > 0 ? (
-            <>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>{limits.projects.current} de {limits.projects.limit} usados</span>
-                <span>{limits.projects.available} disponibles</span>
-              </div>
-              <Progress 
-                value={(limits.projects.current / limits.projects.limit) * 100} 
-                className="h-2"
-                style={{
-                  background: `linear-gradient(to right, ${getProgressColor(limits.projects.current, limits.projects.limit)} 0%, ${getProgressColor(limits.projects.current, limits.projects.limit)} ${(limits.projects.current / limits.projects.limit) * 100}%, #e5e7eb ${(limits.projects.current / limits.projects.limit) * 100}%, #e5e7eb 100%)`
-                }}
-              />
-              {limits.projects.available === 0 && (
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Has alcanzado el límite de proyectos. Actualiza tu plan para agregar más proyectos.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </>
-          ) : (
-            <div className="text-sm text-gray-600">
-              Sin límite de proyectos en este plan
-            </div>
-          )}
-        </div>
-
-        {/* Productos */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-green-600" />
+              <Package className="h-4 w-4" />
               <span className="font-medium">Productos</span>
+              {getValidationIcon(productCount, membershipType.cantidadProductosAdmitidos)}
             </div>
-            <Badge variant={getUsageStatus(limits.products.current, limits.products.limit, limits.products.available).variant}>
-              {getUsageStatus(limits.products.current, limits.products.limit, limits.products.available).text}
-            </Badge>
+            <div className="text-sm text-gray-600">
+              {productCount} de {formatLimit(membershipType.cantidadProductosAdmitidos)} usados
+            </div>
           </div>
-          
-          {limits.products.limit > 0 ? (
+
+          {membershipType.cantidadProductosAdmitidos !== -1 && 
+           membershipType.cantidadProductosAdmitidos !== null && 
+           membershipType.cantidadProductosAdmitidos !== undefined ? (
             <>
               <div className="flex justify-between text-sm text-gray-600">
-                <span>{limits.products.current} de {limits.products.limit} usados</span>
-                <span>{limits.products.available} disponibles</span>
+                <span>{productCount} de {membershipType.cantidadProductosAdmitidos} usados</span>
+                <span>{Math.max(0, membershipType.cantidadProductosAdmitidos - productCount)} disponibles</span>
               </div>
               <Progress 
-                value={(limits.products.current / limits.products.limit) * 100} 
-                className="h-2"
-                style={{
-                  background: `linear-gradient(to right, ${getProgressColor(limits.products.current, limits.products.limit)} 0%, ${getProgressColor(limits.products.current, limits.products.limit)} ${(limits.products.current / limits.products.limit) * 100}%, #e5e7eb ${(limits.products.current / limits.products.limit) * 100}%, #e5e7eb 100%)`
-                }}
+                value={(productCount / membershipType.cantidadProductosAdmitidos) * 100} 
+                className="h-2 mt-2"
+                style={{ backgroundColor: getProgressColor(productCount, membershipType.cantidadProductosAdmitidos) + "20" }}
               />
-              {limits.products.available === 0 && (
-                <Alert>
+              {!canAddProducts && (
+                <Alert className="mt-2">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    Has alcanzado el límite de productos. Actualiza tu plan para agregar más productos.
+                    Has alcanzado el límite de productos para tu plan actual.
                   </AlertDescription>
                 </Alert>
               )}
@@ -171,6 +115,48 @@ export default function MembershipLimitsDisplay({ companyId }: MembershipLimitsD
           ) : (
             <div className="text-sm text-gray-600">
               Sin límite de productos en este plan
+            </div>
+          )}
+        </div>
+
+        {/* Validación de Proyectos */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              <span className="font-medium">Proyectos</span>
+              {getValidationIcon(projectCount, membershipType.cantidadProyectosAdmitidos)}
+            </div>
+            <div className="text-sm text-gray-600">
+              {projectCount} de {formatLimit(membershipType.cantidadProyectosAdmitidos)} usados
+            </div>
+          </div>
+
+          {membershipType.cantidadProyectosAdmitidos !== -1 && 
+           membershipType.cantidadProyectosAdmitidos !== null && 
+           membershipType.cantidadProyectosAdmitidos !== undefined ? (
+            <>
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>{projectCount} de {membershipType.cantidadProyectosAdmitidos} usados</span>
+                <span>{Math.max(0, membershipType.cantidadProyectosAdmitidos - projectCount)} disponibles</span>
+              </div>
+              <Progress 
+                value={(projectCount / membershipType.cantidadProyectosAdmitidos) * 100} 
+                className="h-2 mt-2"
+                style={{ backgroundColor: getProgressColor(projectCount, membershipType.cantidadProyectosAdmitidos) + "20" }}
+              />
+              {!canAddProjects && (
+                <Alert className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Has alcanzado el límite de proyectos para tu plan actual.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
+          ) : (
+            <div className="text-sm text-gray-600">
+              Sin límite de proyectos en este plan
             </div>
           )}
         </div>

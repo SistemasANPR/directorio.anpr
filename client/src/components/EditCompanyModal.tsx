@@ -33,7 +33,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertCompanySchema, Category, MembershipType, Certificate, CompanyWithDetails, Tag } from "@shared/schema";
 import TagSelector from "@/components/TagSelector";
-import MembershipLimitsValidator from "@/components/MembershipLimitsValidator";
+import MembershipLimitsDisplay from "@/components/MembershipLimitsDisplay";
 import { paisesAmericaLatina, estadosMexico, ciudadesPorEstado } from "@/lib/locationData";
 import { 
   Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
@@ -850,7 +850,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 <FormDescription>
                   Sube imágenes de tus productos (máximo 10 imágenes)
                   {currentMembershipType && (
-                    <MembershipLimitsValidator
+                    <MembershipLimitsDisplay
                       membershipType={currentMembershipType}
                       productCount={galeriaPreviews.length}
                       projectCount={0}
