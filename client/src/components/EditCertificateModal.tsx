@@ -56,6 +56,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
   // Debug: Log para verificar el estado del usuario y admin
   console.log("EditCertificateModal - User:", user);
   console.log("EditCertificateModal - IsAdmin:", isAdmin);
+  console.log("EditCertificateModal - Certificate:", certificate);
 
   // Obtener tipos de membresía para la selección
   const { data: membershipTypes = [] } = useQuery<any[]>({
@@ -96,7 +97,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         imagenUrl: certificate.imagenUrl || "",
         estado: certificate.estado || "activo",
         asignacionAutomatica: certificate.asignacionAutomatica || false,
-        membershipPlanIds: certificate.membershipPlanIds || [],
+        membershipPlanIds: Array.isArray(certificate.membershipPlanIds) ? certificate.membershipPlanIds : [],
       });
     }
   }, [certificate, open, form]);
@@ -109,6 +110,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         ...data,
         fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString() : null,
         fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento).toISOString() : null,
+        membershipPlanIds: data.membershipPlanIds || [],
       };
       return apiRequest("PUT", `/api/certificates/${certificate.id}`, certificateData);
     },
