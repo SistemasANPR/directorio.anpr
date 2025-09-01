@@ -1667,6 +1667,47 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                       )}
                     />
 
+                    {/* Mostrar límites del plan seleccionado */}
+                    {(() => {
+                      const selectedMembershipId = form.watch("membershipTypeId");
+                      const currentMembershipType = membershipTypes.find(m => m.id === selectedMembershipId);
+                      
+                      return currentMembershipType ? (
+                        <div className="md:col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                            <Crown className="h-4 w-4" />
+                            Límites del Plan: {currentMembershipType.nombrePlan}
+                          </h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div className="bg-white p-3 rounded border">
+                              <div className="font-medium text-gray-700">Productos</div>
+                              <div className="text-lg font-bold text-blue-600">
+                                {currentMembershipType.cantidadProductosAdmitidos === -1 ? "Sin límite" : (currentMembershipType.cantidadProductosAdmitidos || "Sin límite")}
+                              </div>
+                            </div>
+                            <div className="bg-white p-3 rounded border">
+                              <div className="font-medium text-gray-700">Proyectos</div>
+                              <div className="text-lg font-bold text-blue-600">
+                                {currentMembershipType.cantidadProyectosAdmitidos === -1 ? "Sin límite" : (currentMembershipType.cantidadProyectosAdmitidos || "Sin límite")}
+                              </div>
+                            </div>
+                            <div className="bg-white p-3 rounded border">
+                              <div className="font-medium text-gray-700">Fotos</div>
+                              <div className="text-lg font-bold text-blue-600">
+                                {currentMembershipType.cantidadFotosAdmitidas === -1 ? "Sin límite" : (currentMembershipType.cantidadFotosAdmitidas || "Sin límite")}
+                              </div>
+                            </div>
+                            <div className="bg-white p-3 rounded border">
+                              <div className="font-medium text-gray-700">Visibilidad</div>
+                              <div className="text-lg font-bold text-blue-600 capitalize">
+                                {currentMembershipType.visibilidad}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+
                     {/* Periodicidad de Membresía */}
                     <FormField
                       control={form.control}
