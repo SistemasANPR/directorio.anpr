@@ -992,6 +992,17 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                   }
                                   setRepresentantes(newRepresentantes);
                                 }
+                                // Auto-configurar campos de membresía
+                                // Buscar "membresía empresarial" en los tipos de membresía
+                                const membershipEmpresarial = membershipTypes.find(mt => 
+                                  mt.nombre.toLowerCase().includes('empresarial')
+                                );
+                                if (membershipEmpresarial) {
+                                  form.setValue("membershipTypeId", membershipEmpresarial.id);
+                                }
+                                form.setValue("membershipPeriodicidad", "anual");
+                                form.setValue("formaPago", "otro");
+                                
                                 // Cargar transacciones del usuario seleccionado
                                 if (user.id) {
                                   loadUserTransactions(user.id.toString());
@@ -1064,7 +1075,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                               </div>
                             )}
                             <div className="text-xs text-green-700 font-medium mt-1">
-                              ✨ Campos auto-llenados: Email y Enlace a perfil profesional
+                              ✨ Campos auto-llenados: Email, Enlace a perfil profesional, y configuración de membresía (Empresarial/Anual/Otro)
                             </div>
                             <div className="pt-2">
                               <Button
