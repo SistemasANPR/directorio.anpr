@@ -108,7 +108,7 @@ export default function CertificateTable({ certificates, onEdit, onDelete }: Cer
                         <span className="text-sm text-green-600 font-medium">Automática</span>
                         {certificate.membershipPlanIds && Array.isArray(certificate.membershipPlanIds) && certificate.membershipPlanIds.length > 0 && (
                           <Badge variant="outline" className="text-xs">
-                            {certificate.membershipPlanIds.length} plan{certificate.membershipPlanIds.length !== 1 ? 'es' : ''}
+                            {(certificate.membershipPlanIds as number[]).length} plan{(certificate.membershipPlanIds as number[]).length !== 1 ? 'es' : ''}
                           </Badge>
                         )}
                       </div>
