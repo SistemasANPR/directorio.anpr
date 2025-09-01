@@ -47,7 +47,7 @@ import RichTextEditor from "./RichTextEditor";
 // Schema completo para edición 
 const companySchema = z.object({
   nombreEmpresa: z.string().min(1, "Nombre de empresa es requerido"),
-  telefono1: z.string().min(1, "Teléfono principal es requerido"),
+  telefono1: z.string().optional(),
   telefono2: z.string().optional(),
   email1: z.string().email("Email inválido").min(1, "Email principal es requerido"),
   email2: z.string().email("Email inválido").optional().or(z.literal("")),

@@ -45,7 +45,7 @@ import MapLocationPicker from "./MapLocationPicker";
 import RichTextEditor from "./RichTextEditor";
 
 const companySchema = insertCompanySchema.extend({
-  telefono1: z.string().min(1, "Teléfono principal es requerido"),
+  telefono1: z.string().optional(),
   telefono2: z.string().optional(),
   email1: z.string().email("Email inválido"),
   email2: z.string().optional(),
