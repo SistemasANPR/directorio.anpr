@@ -389,8 +389,43 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
   const createCompanyMutation = useMutation({
     mutationFn: async (data: CompanyFormData) => {
-      const result = await apiRequest("POST", "/api/companies", data);
-      return result;
+      // Crear FormData para enviar archivos
+      const formData = new FormData();
+      
+      // Agregar todos los campos del formulario
+      Object.entries(data).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+      
+      // Agregar archivos
+      if (logoFile) formData.append("logoFile", logoFile);
+      if (fotoPortadaFile) formData.append("fotoPortadaFile", fotoPortadaFile);
+      if (catalogoFile) formData.append("catalogoFile", catalogoFile);
+      
+      // Agregar archivos de galería
+      galeriaFiles.forEach((file) => {
+        formData.append(`galeriaFiles`, file);
+      });
+
+      // Agregar usuario de WordPress si existe
+      if (selectedWordPressUser) {
+        formData.append("wordpressUser", JSON.stringify(selectedWordPressUser));
+      }
+
+      const response = await fetch('/api/companies/with-files', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al crear la empresa');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
@@ -475,8 +510,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         ubicacionGeografica: ubicacionPrincipal,
         direccionFisica: direccionCompleta,
 
-        // Agregar galería de imágenes
-        galeriaImagenes: galeriaPreviews,
+        // Agregar galería de productos
+        galeriaProductosUrls: galeriaPreviews,
         // Agregar redes sociales
         redesSociales: redesSociales,
         // Agregar logo si existe

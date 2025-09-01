@@ -530,6 +530,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Nueva ruta POST para crear empresas con archivos
+  app.post("/api/companies/with-files", uploadImage.fields([
+    { name: 'logoFile', maxCount: 1 },
+    { name: 'fotoPortadaFile', maxCount: 1 },
+    { name: 'catalogoFile', maxCount: 1 },
+    { name: 'galeriaFiles', maxCount: 20 }
+  ]), async (req, res) => {
+    try {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      // Procesar los datos del formulario
+      let companyData: any = {};
+      
+      // Procesar campos normales del formulario
+      for (const [key, value] of Object.entries(req.body)) {
+        if (key !== 'logoFile' && key !== 'fotoPortadaFile' && key !== 'catalogoFile' && key !== 'galeriaFiles') {
+          try {
+            // Intentar parsear como JSON para arrays y objetos
+            companyData[key] = JSON.parse(value as string);
+          } catch {
+            // Si no es JSON válido, usar como string
+            companyData[key] = value;
+          }
+        }
+      }
+      
+      // Procesar archivos de logo
+      if (files?.logoFile?.[0]) {
+        companyData.logotipoUrl = `/uploads/images/${files.logoFile[0].filename}`;
+      }
+      
+      // Procesar archivos de foto de portada
+      if (files?.fotoPortadaFile?.[0]) {
+        companyData.fotoPortadaUrl = `/uploads/images/${files.fotoPortadaFile[0].filename}`;
+      }
+      
+      // Procesar archivos de catálogo
+      if (files?.catalogoFile?.[0]) {
+        companyData.catalogoDigitalUrl = `/uploads/documents/${files.catalogoFile[0].filename}`;
+      }
+      
+      // Procesar archivos de galería
+      if (files?.galeriaFiles?.length > 0) {
+        companyData.galeriaProductosUrls = files.galeriaFiles.map(file => `/uploads/images/${file.filename}`);
+      }
+
+      const { wordpressUser, ...companyDataToSave } = companyData;
+      const parsedCompanyData = insertCompanySchema.parse(companyDataToSave);
+      
+      let userId = null;
+      let transactionExpirationDate = null;
+
+      // Si se seleccionó un usuario de WordPress, crear/obtener usuario representante
+      if (wordpressUser && wordpressUser.email && wordpressUser.username) {
+        try {
+          // Obtener fecha de caducidad de transacción desde WordPress
+          if (wordpressUser.id) {
+            transactionExpirationDate = await getTransactionExpirationDate(wordpressUser.id.toString());
+          }
+
+          // Verificar si el usuario ya existe en el sistema por email
+          let existingUser = await storage.getUserByEmail(wordpressUser.email);
+          
+          if (!existingUser) {
+            // Crear nuevo usuario representante con datos de WordPress
+            const newUserData = {
+              firebaseUid: `wp_${wordpressUser.id}_${Date.now()}`,
+              email: wordpressUser.email,
+              displayName: wordpressUser.name || wordpressUser.username,
+              role: "representante",
+              photoURL: null,
+              stripeCustomerId: null,
+              stripeSubscriptionId: null,
+              autoRenewal: false
+            };
+            
+            existingUser = await storage.createUser(newUserData);
+          }
+          
+          userId = existingUser?.id || null;
+        } catch (userError) {
+          console.error("Error creating/updating representative user:", userError);
+        }
+      }
+      
+      // Crear la empresa con el userId del representante si se pudo crear/encontrar
+      let companyWithUser = {
+        ...parsedCompanyData,
+        userId: userId
+      };
+
+      // Si se obtuvo una fecha de caducidad de transacción, actualizar las fechas de vencimiento del plan
+      if (transactionExpirationDate) {
+        try {
+          const expirationDate = new Date(transactionExpirationDate);
+          const startDate = new Date(expirationDate);
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          
+          companyWithUser.fechaInicioMembresia = startDate.toISOString().split('T')[0];
+          companyWithUser.fechaFinMembresia = expirationDate.toISOString().split('T')[0];
+        } catch (dateError) {
+          console.error('[Company Creation] Error processing transaction expiration date:', dateError);
+        }
+      }
+      
+      const company = await storage.createCompany(companyWithUser);
+      res.status(201).json(company);
+    } catch (error) {
+      console.error("Error creating company with files:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create company" });
+    }
+  });
+
   app.post("/api/companies", async (req, res) => {
     try {
       const { wordpressUser, ...companyData } = req.body;
@@ -619,6 +735,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error creating company:", error);
       res.status(500).json({ error: "Failed to create company" });
+    }
+  });
+
+  // Nueva ruta PATCH para actualizar empresas con archivos
+  app.patch("/api/companies/:id", uploadImage.fields([
+    { name: 'logoFile', maxCount: 1 },
+    { name: 'fotoPortadaFile', maxCount: 1 },
+    { name: 'catalogoFile', maxCount: 1 },
+    { name: 'galeriaFiles', maxCount: 20 }
+  ]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      // Procesar los datos del formulario
+      let updateData: any = {};
+      
+      // Procesar campos normales del formulario
+      for (const [key, value] of Object.entries(req.body)) {
+        if (key !== 'logoFile' && key !== 'fotoPortadaFile' && key !== 'catalogoFile' && key !== 'galeriaFiles') {
+          try {
+            // Intentar parsear como JSON para arrays y objetos
+            updateData[key] = JSON.parse(value as string);
+          } catch {
+            // Si no es JSON válido, usar como string
+            updateData[key] = value;
+          }
+        }
+      }
+      
+      // Procesar archivos de logo
+      if (files?.logoFile?.[0]) {
+        updateData.logotipoUrl = `/uploads/images/${files.logoFile[0].filename}`;
+      }
+      
+      // Procesar archivos de foto de portada
+      if (files?.fotoPortadaFile?.[0]) {
+        updateData.fotoPortadaUrl = `/uploads/images/${files.fotoPortadaFile[0].filename}`;
+      }
+      
+      // Procesar archivos de catálogo
+      if (files?.catalogoFile?.[0]) {
+        updateData.catalogoDigitalUrl = `/uploads/documents/${files.catalogoFile[0].filename}`;
+      }
+      
+      // Procesar archivos de galería
+      if (files?.galeriaFiles?.length > 0) {
+        const newImages = files.galeriaFiles.map(file => `/uploads/images/${file.filename}`);
+        // Si ya existe galeriaProductosUrls en updateData, agregar las nuevas imágenes
+        if (updateData.galeriaProductosUrls && Array.isArray(updateData.galeriaProductosUrls)) {
+          updateData.galeriaProductosUrls = [...updateData.galeriaProductosUrls, ...newImages];
+        } else {
+          // Si no existe, usar solo las nuevas imágenes
+          updateData.galeriaProductosUrls = newImages;
+        }
+      }
+
+      // Validar datos con schema parcial
+      const parsedData = insertCompanySchema.partial().parse(updateData);
+      
+      const company = await storage.updateCompany(id, parsedData);
+      if (!company) {
+        return res.status(404).json({ error: "Company not found" });
+      }
+      
+      res.json(company);
+    } catch (error) {
+      console.error("Error updating company with files:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update company" });
     }
   });
 

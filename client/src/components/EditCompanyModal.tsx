@@ -538,7 +538,16 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         formData.append(`galeriaFiles`, file);
       });
 
-      return apiRequest("PATCH", `/api/companies/${company?.id}`, formData);
+      const response = await fetch(`/api/companies/${company?.id}`, {
+        method: 'PATCH',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al actualizar la empresa');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
