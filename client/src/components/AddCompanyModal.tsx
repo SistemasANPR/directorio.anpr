@@ -995,7 +995,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 // Auto-configurar campos de membresía
                                 // Buscar "membresía empresarial" en los tipos de membresía
                                 const membershipEmpresarial = membershipTypes.find(mt => 
-                                  mt.nombre.toLowerCase().includes('empresarial')
+                                  mt.nombrePlan?.toLowerCase().includes('empresarial')
                                 );
                                 if (membershipEmpresarial) {
                                   form.setValue("membershipTypeId", membershipEmpresarial.id);
