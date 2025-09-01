@@ -100,9 +100,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const [redesSociales, setRedesSociales] = useState<Array<{plataforma: string, url: string}>>([]);
   const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
   const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
-  const [emailsAdicionales, setEmailsAdicionales] = useState<string[]>([]);
-  const [telefonosAdicionales, setTelefonosAdicionales] = useState<string[]>([]);
-  const [representantes, setRepresentantes] = useState<string[]>([]);
+
   const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[ciudad: string]: string}>({});
   const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[ciudad: string]: { lat: number; lng: number; address: string }}>({});
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
@@ -254,9 +252,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setRedesSociales([]);
       setGaleriaFiles([]);
       setGaleriaPreviews([]);
-      setEmailsAdicionales([]);
-      setTelefonosAdicionales([]);
-      setRepresentantes([]);
       setDireccionesPorCiudad({});
       setUbicacionesPorCiudad({});
       setVideosUrls([]);
@@ -413,9 +408,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setFotoPortadaPreview("");
       setSelectedEstados([]);
       setVideosUrls([]);
-      setEmailsAdicionales([]);
-      setTelefonosAdicionales([]);
-      setRepresentantes([]);
       setGaleriaFiles([]);
       setGaleriaPreviews([]);
       setDireccionesPorCiudad({});
@@ -482,15 +474,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
         ubicacionGeografica: ubicacionPrincipal,
         direccionFisica: direccionCompleta,
-        // Agregar emails y teléfonos adicionales
-        email2: emailsAdicionales[0] || null,
-        email3: emailsAdicionales[1] || null,
-        telefono2: telefonosAdicionales[0] || null,
-        telefono3: telefonosAdicionales[1] || null,
-        // Agregar representantes
-        representante1: representantes[0] || null,
-        representante2: representantes[1] || null,
-        representante3: representantes[2] || null,
+
         // Agregar galería de imágenes
         galeriaImagenes: galeriaPreviews,
         // Agregar redes sociales
@@ -830,59 +814,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     setGaleriaPreviews(newPreviews);
   };
 
-  // Funciones para emails adicionales
-  const addEmail = () => {
-    if (emailsAdicionales.length < 2) { // máximo 3 emails total (1 principal + 2 adicionales)
-      setEmailsAdicionales([...emailsAdicionales, ""]);
-    }
-  };
 
-  const removeEmail = (index: number) => {
-    const newEmails = emailsAdicionales.filter((_, i) => i !== index);
-    setEmailsAdicionales(newEmails);
-  };
-
-  const updateEmail = (index: number, value: string) => {
-    const newEmails = [...emailsAdicionales];
-    newEmails[index] = value;
-    setEmailsAdicionales(newEmails);
-  };
-
-  // Funciones para teléfonos adicionales
-  const addTelefono = () => {
-    if (telefonosAdicionales.length < 2) { // máximo 3 teléfonos total (1 principal + 2 adicionales)
-      setTelefonosAdicionales([...telefonosAdicionales, ""]);
-    }
-  };
-
-  const removeTelefono = (index: number) => {
-    const newTelefonos = telefonosAdicionales.filter((_, i) => i !== index);
-    setTelefonosAdicionales(newTelefonos);
-  };
-
-  const updateTelefono = (index: number, value: string) => {
-    const newTelefonos = [...telefonosAdicionales];
-    newTelefonos[index] = value;
-    setTelefonosAdicionales(newTelefonos);
-  };
-
-  // Funciones para representantes
-  const addRepresentante = () => {
-    if (representantes.length < 3) {
-      setRepresentantes([...representantes, ""]);
-    }
-  };
-
-  const removeRepresentante = (index: number) => {
-    const newRepresentantes = representantes.filter((_, i) => i !== index);
-    setRepresentantes(newRepresentantes);
-  };
-
-  const updateRepresentante = (index: number, value: string) => {
-    const newRepresentantes = [...representantes];
-    newRepresentantes[index] = value;
-    setRepresentantes(newRepresentantes);
-  };
 
   // Funciones para manejar videos
   const addVideo = () => {
@@ -990,17 +922,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 if (user.email) {
                                   form.setValue("email1", user.email);
                                 }
-                                // Auto-llenar el primer representante con la URL de PeepSo
-                                if (user.username) {
-                                  const peepsoUrl = `https://anpr.org.mx/profile-2/?${user.username}/`;
-                                  const newRepresentantes = [...representantes];
-                                  if (newRepresentantes.length === 0) {
-                                    newRepresentantes.push(peepsoUrl);
-                                  } else {
-                                    newRepresentantes[0] = peepsoUrl;
-                                  }
-                                  setRepresentantes(newRepresentantes);
-                                }
+
                                 // Auto-configurar campos de membresía
                                 // Buscar "membresía empresarial" en los tipos de membresía
                                 const membershipEmpresarial = membershipTypes.find(mt => 
