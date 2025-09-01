@@ -45,7 +45,10 @@ import MapLocationPicker from "./MapLocationPicker";
 import RichTextEditor from "./RichTextEditor";
 
 const companySchema = insertCompanySchema.extend({
+  telefono1: z.string().min(1, "Teléfono principal es requerido"),
+  telefono2: z.string().optional(),
   email1: z.string().email("Email inválido"),
+  email2: z.string().optional(),
   nombreEmpresa: z.string().min(1, "El nombre de la empresa es requerido"),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
@@ -189,8 +192,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     resolver: zodResolver(companySchema),
     defaultValues: {
       nombreEmpresa: "",
-      email1: "",
       telefono1: "",
+      telefono2: "",
+      email1: "",
+      email2: "",
       sitioWeb: "",
       videosUrls: [],
       descripcionEmpresa: "",
@@ -1209,7 +1214,22 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     <FormItem>
                       <FormLabel>Teléfono Principal *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Teléfono principal" {...field} value={field.value || ""} />
+                        <Input placeholder="+52 55 1234 5678" {...field} value={field.value || ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Teléfono secundario - Agregar campo faltante */}
+                <FormField
+                  control={form.control}
+                  name="telefono2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono Secundario</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+52 55 8765 4321" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1224,7 +1244,22 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     <FormItem>
                       <FormLabel>Email Principal *</FormLabel>
                       <FormControl>
-                        <Input placeholder="luciacallizov@gmail.com" type="email" {...field} />
+                        <Input placeholder="contacto@empresa.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Email secundario - Agregar campo faltante */}
+                <FormField
+                  control={form.control}
+                  name="email2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Secundario</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ventas@empresa.com" type="email" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1236,7 +1271,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   control={form.control}
                   name="sitioWeb"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="md:col-span-2">
                       <FormLabel>Sitio Web</FormLabel>
                       <FormControl>
                         <Input placeholder="https://www.empresa.com" {...field} value={field.value || ""} />
@@ -1266,111 +1301,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 />
 
-                {/* Emails adicionales */}
-                <div className="md:col-span-2 space-y-3">
-                  <FormLabel>Emails Adicionales</FormLabel>
-                  {emailsAdicionales.map((email, index) => (
-                    <div key={index} className="flex gap-3 items-start">
-                      <Input
-                        placeholder={`email${index + 2}@empresa.com`}
-                        value={email}
-                        onChange={(e) => updateEmail(index, e.target.value)}
-                        type="email"
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeEmail(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  {emailsAdicionales.length < 2 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addEmail}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Agregar Email Adicional
-                    </Button>
-                  )}
-                </div>
 
-                {/* Teléfonos adicionales */}
-                <div className="md:col-span-2 space-y-3">
-                  <FormLabel>Teléfonos Adicionales</FormLabel>
-                  {telefonosAdicionales.map((telefono, index) => (
-                    <div key={index} className="flex gap-3 items-start">
-                      <Input
-                        placeholder={`+52 55 1234 567${index + 8}`}
-                        value={telefono}
-                        onChange={(e) => updateTelefono(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeTelefono(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  {telefonosAdicionales.length < 2 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addTelefono}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Agregar Teléfono Adicional
-                    </Button>
-                  )}
-                </div>
-
-                {/* Enlaces a perfiles profesionales */}
-                <div className="md:col-span-2 space-y-3">
-                  <FormLabel>Enlaces a Perfiles Profesionales</FormLabel>
-                  {representantes.map((rep, index) => (
-                    <div key={index} className="flex gap-3 items-start">
-                      <Input
-                        placeholder="https://anpr.org.mx/profile-2/?usuario/"
-                        value={rep}
-                        onChange={(e) => updateRepresentante(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeRepresentante(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  {representantes.length < 3 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addRepresentante}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Agregar Enlace ({representantes.length}/3)
-                    </Button>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -1527,6 +1458,27 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     </p>
                   )}
                 </div>
+              
+              <FormField
+                control={form.control}
+                name="descripcionEmpresa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción de la Empresa *</FormLabel>
+                    <FormDescription>
+                      Describe los servicios, productos y experiencia de tu empresa
+                    </FormDescription>
+                    <FormControl>
+                      <RichTextEditor
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder="Describe tu empresa, servicios principales, experiencia en el mercado..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
                 {/* Categorías */}
                 <FormField
