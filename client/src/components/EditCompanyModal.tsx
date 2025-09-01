@@ -28,29 +28,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertCompanySchema, Category, MembershipType, Certificate, CompanyWithDetails, Tag } from "@shared/schema";
 import TagSelector from "@/components/TagSelector";
+import MembershipLimitsValidator from "@/components/MembershipLimitsValidator";
 import { paisesAmericaLatina, estadosMexico, ciudadesPorEstado } from "@/lib/locationData";
 import { 
   Upload, X, Building, Phone, Mail, Plus, FileText, Trash2, Facebook, Instagram, Linkedin, Twitter, Youtube, Globe, MapPin,
   Tags, Building2, Car, Truck, Hammer, Factory, Cpu, Wrench, ShoppingBag,
   Briefcase, Heart, GraduationCap, Home, Coffee, Camera, Music,
-  Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Search, Check, ChevronsUpDown, ExternalLink, User
+  Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Search, Check, ChevronsUpDown, ExternalLink, User, Crown
 } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
 import RichTextEditor from "./RichTextEditor";
@@ -83,9 +72,6 @@ const companySchema = z.object({
   paisesPresencia: z.array(z.string()).optional(),
   estadosPresencia: z.array(z.string()).optional(),
   ciudadesPresencia: z.array(z.string()).optional(),
-  paisesPresenciaOtro: z.string().optional(),
-  estadosPresenciaOtro: z.string().optional(),
-  ciudadesPresenciaOtro: z.string().optional(),
   redesSociales: z.array(z.object({
     plataforma: z.string(),
     url: z.string()
@@ -96,7 +82,7 @@ const companySchema = z.object({
 
 type CompanyFormData = z.infer<typeof companySchema>;
 
-// Map of icon names to components  
+// Map of icon names to components
 const iconMap = {
   Tags, Building2, Car, Truck, Hammer, Factory, Cpu, Wrench, ShoppingBag,
   Briefcase, Heart, GraduationCap, Home, Coffee, Camera, Music,
@@ -124,19 +110,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const [redesSociales, setRedesSociales] = useState<Array<{plataforma: string, url: string}>>([]);
   const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
   const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
-  const [emailsAdicionales, setEmailsAdicionales] = useState<string[]>([]);
-  const [telefonosAdicionales, setTelefonosAdicionales] = useState<string[]>([]);
-  const [representantes, setRepresentantes] = useState<string[]>([]);
-  const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[ciudad: string]: string}>({});
-  const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[ciudad: string]: { lat: number; lng: number; address: string }}>({});
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
   
   // Estados para el buscador de usuarios de WordPress
-  const [isWordPressUserOpen, setIsWordPressUserOpen] = useState(false);
   const [wordPressUserSearch, setWordPressUserSearch] = useState("");
-  const [selectedWordPressUser, setSelectedWordPressUser] = useState<any>(null);
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [canAddProducts, setCanAddProducts] = useState(true);
+  const [canAddProjects, setCanAddProjects] = useState(true);
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -165,9 +146,6 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       paisesPresencia: [],
       estadosPresencia: [],
       ciudadesPresencia: [],
-      paisesPresenciaOtro: "",
-      estadosPresenciaOtro: "",
-      ciudadesPresenciaOtro: "",
       redesSociales: [],
       videosUrls: [],
       galeriaProductosUrls: [],
@@ -176,69 +154,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     },
   });
 
-  // Watch for membership type changes to auto-calculate dates
-  const watchedFechaInicio = form.watch("fechaInicioMembresia");
-  const watchedPeriodicidad = form.watch("membershipPeriodicidad");
-
-  // Calculate end date based on start date and periodicity
-  const calculateEndDate = (startDate: string, periodicity: string): string => {
-    if (!startDate || !periodicity) return "";
-    
-    const start = new Date(startDate);
-    const end = new Date(start);
-    
-    switch (periodicity.toLowerCase()) {
-      case 'mensual':
-        end.setMonth(end.getMonth() + 1);
-        break;
-      case 'trimestral':
-        end.setMonth(end.getMonth() + 3);
-        break;
-      case 'semestral':
-        end.setMonth(end.getMonth() + 6);
-        break;
-      case 'anual':
-        end.setFullYear(end.getFullYear() + 1);
-        break;
-      default:
-        return startDate;
-    }
-    
-    return end.toISOString().split('T')[0];
-  };
-
-  // Auto-calculate end date when start date or periodicity changes
-  useEffect(() => {
-    if (watchedFechaInicio && watchedPeriodicidad) {
-      const endDate = calculateEndDate(watchedFechaInicio, watchedPeriodicidad);
-      form.setValue("fechaFinMembresia", endDate);
-    }
-  }, [watchedFechaInicio, watchedPeriodicidad, form]);
-
-  // Function to render the correct icon for categories
-  const renderCategoryIcon = (category: Category) => {
-    if (category.iconoUrl) {
-      return (
-        <img
-          src={category.iconoUrl}
-          alt={category.nombreCategoria}
-          className="w-5 h-5 object-cover rounded"
-        />
-      );
-    }
-
-    const iconName = category.icono || "Tags";
-    const IconComponent = iconMap[iconName as keyof typeof iconMap] || Tags;
-    return <IconComponent className="w-5 h-5 text-primary" />;
-  };
-
-  // Plataformas de redes sociales disponibles
+  // Redes sociales disponibles
   const socialPlatforms = [
     { name: "Facebook", icon: Facebook },
     { name: "Instagram", icon: Instagram },
     { name: "LinkedIn", icon: Linkedin },
     { name: "Twitter", icon: Twitter },
     { name: "YouTube", icon: Youtube },
+    { name: "Sitio Web", icon: Globe },
     { name: "TikTok", icon: Music },
     { name: "WhatsApp", icon: Phone },
   ];
@@ -256,130 +179,23 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     return decoded.replace(/<[^>]*>/g, "");
   };
 
-  // Poblar formulario cuando se abre con empresa
-  useEffect(() => {
-    if (company && open) {
-      const currentDate = new Date().toISOString().split('T')[0];
-      
-      // Clean description from HTML tags
-      const cleanDescription = stripHtmlAndDecode(company.descripcionEmpresa || "");
-      const cleanRepresentantes = stripHtmlAndDecode(company.representantesVentas || "");
-      
-      form.reset({
-        nombreEmpresa: company.nombreEmpresa || "",
-        telefono1: company.telefono1 || "",
-        telefono2: company.telefono2 || "",
-        email1: company.email1 || "",
-        email2: company.email2 || "",
-        sitioWeb: company.sitioWeb || "",
-        direccionFisica: company.direccionFisica || "",
-        descripcionEmpresa: cleanDescription,
-        ubicacionPrincipal: company.ubicacionPrincipal || "",
-        ubicacionGeografica: company.ubicacionGeografica || "",
-        representantesVentas: cleanRepresentantes,
-        catalogoDigitalUrl: company.catalogoDigitalUrl || "",
-        categoriesIds: company.categoriesIds || [],
-        certificateIds: company.certificateIds || [],
-        tagIds: company.tagIds || [],
-        membershipTypeId: company.membershipTypeId || 1,
-        membershipPeriodicidad: company.membershipPeriodicidad || "",
-        formaPago: company.formaPago || "",
-        fechaInicioMembresia: company.fechaInicioMembresia || currentDate,
-        fechaFinMembresia: company.fechaFinMembresia || "",
-        notasMembresia: company.notasMembresia || "",
-        paisesPresencia: Array.isArray(company.paisesPresencia) ? company.paisesPresencia : [],
-        estadosPresencia: Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [],
-        ciudadesPresencia: Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [],
-        paisesPresenciaOtro: company.paisesPresenciaOtro || "",
-        estadosPresenciaOtro: company.estadosPresenciaOtro || "",
-        ciudadesPresenciaOtro: company.ciudadesPresenciaOtro || "",
-        redesSociales: Array.isArray(company.redesSociales) ? company.redesSociales : [],
-        videosUrls: Array.isArray(company.videosUrls) ? company.videosUrls : [],
-        galeriaProductosUrls: Array.isArray(company.galeriaProductosUrls) ? company.galeriaProductosUrls : [],
-        logotipoUrl: company.logotipoUrl || "",
-        fotoPortadaUrl: company.fotoPortadaUrl || "",
-      });
-      
-      // Set logo preview if exists
-      if (company.logotipoUrl) {
-        setLogoPreview(company.logotipoUrl);
-      }
-      
-      // Set foto portada preview if exists
-      if (company.fotoPortadaUrl) {
-        setFotoPortadaPreview(company.fotoPortadaUrl);
-      }
-      
-      // Set gallery previews if exist
-      if (company.galeriaProductosUrls) {
-        const urls = Array.isArray(company.galeriaProductosUrls) 
-          ? company.galeriaProductosUrls 
-          : [];
-        setGaleriaPreviews(urls);
-      }
-
-      // Set redes sociales
-      if (company.redesSociales) {
-        setRedesSociales(Array.isArray(company.redesSociales) ? company.redesSociales : []);
-      }
-
-      // Set estados and ciudades if they exist
-      if (company.estadosPresencia) {
-        const estados = Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [];
-        setSelectedEstados(estados);
-      }
-      
-      if (company.ciudadesPresencia) {
-        const ciudades = Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [];
-        setSelectedCiudades(ciudades);
-      }
-
-      // Set videos URLs
-      if (company.videosUrls) {
-        setVideosUrls(Array.isArray(company.videosUrls) ? company.videosUrls : []);
-      }
-    }
-  }, [company, open, form]);
-
-  // Update available cities when estados change
-  useEffect(() => {
-    if (selectedEstados.length > 0) {
-      const newCiudades = selectedEstados.flatMap(estado => 
-        ciudadesPorEstado[estado] || []
+  // Function to render the correct icon for categories
+  const renderCategoryIcon = (category: Category) => {
+    if (category.iconoUrl) {
+      return (
+        <img
+          src={category.iconoUrl}
+          alt={category.nombreCategoria}
+          className="w-4 h-4 object-contain"
+        />
       );
-      // Only update if current selected cities are no longer valid
-      const validCiudades = selectedCiudades.filter(ciudad => 
-        newCiudades.includes(ciudad)
-      );
-      if (validCiudades.length !== selectedCiudades.length) {
-        setSelectedCiudades(validCiudades);
-        form.setValue("ciudadesPresencia", validCiudades);
-      }
+    } else {
+      const IconComponent = iconMap[category.icono as keyof typeof iconMap] || Tags;
+      return <IconComponent className="w-4 h-4" />;
     }
-  }, [selectedEstados, selectedCiudades, form]);
+  };
 
-  // Fetch data
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-    enabled: open,
-  });
-
-  const { data: membershipTypes = [] } = useQuery<MembershipType[]>({
-    queryKey: ["/api/membership-types"],
-    enabled: open,
-  });
-
-  const { data: certificates = [] } = useQuery<Certificate[]>({
-    queryKey: ["/api/certificates"],
-    enabled: open,
-  });
-
-  const { data: tags = [] } = useQuery<Tag[]>({
-    queryKey: ["/api/tags"],
-    enabled: open,
-  });
-
-  // Función para cargar transacciones del usuario
+  // Function to load user transactions
   const loadUserTransactions = async (userId: string) => {
     setIsLoadingTransactions(true);
     try {
@@ -447,162 +263,67 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     return true;
   };
 
-  const uploadImageToServer = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    const response = await fetch('/api/upload-image', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error('Error al subir la imagen al servidor');
+  const handleLogoUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && validateImage(file)) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-    
-    const result = await response.json();
-    return result.imageUrl;
-  };
+  }, []);
 
-  const uploadMultipleImages = async (files: File[]): Promise<string[]> => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('images', file);
-    });
-    
-    const response = await fetch('/api/upload-images', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error('Error al subir las imágenes al servidor');
+  const handleFotoPortadaUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && validateImage(file)) {
+      setFotoPortadaFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFotoPortadaPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-    
-    const result = await response.json();
-    return result.images.map((img: any) => img.imageUrl);
-  };
+  }, []);
 
-  // Logo handling
-  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !validateImage(file)) return;
-
-    setLogoFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setLogoPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
-
-    try {
-      const imageUrl = await uploadImageToServer(file);
-      form.setValue("logotipoUrl", imageUrl);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al subir el logo al servidor",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Foto portada handling
-  const handleFotoPortadaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !validateImage(file)) return;
-
-    setFotoPortadaFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setFotoPortadaPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
-
-    try {
-      const imageUrl = await uploadImageToServer(file);
-      form.setValue("fotoPortadaUrl", imageUrl);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al subir la foto de portada al servidor",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Gallery handling
-  const handleGaleriaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  // Funciones para galería de productos
+  const handleGaleriaSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
     
     if (galeriaPreviews.length + files.length > 10) {
       toast({
-        title: "Error",
-        description: "Solo se permiten máximo 10 imágenes en la galería",
+        title: "Límite excedido",
+        description: "Máximo 10 imágenes permitidas en la galería",
         variant: "destructive",
       });
       return;
     }
 
     const validFiles = files.filter(validateImage);
-    if (validFiles.length === 0) return;
-
-    try {
-      const imageUrls = await uploadMultipleImages(validFiles);
-      
-      const newPreviews = [...galeriaPreviews, ...imageUrls];
-      setGaleriaPreviews(newPreviews);
-      form.setValue("galeriaProductosUrls", newPreviews);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al subir las imágenes al servidor",
-        variant: "destructive",
-      });
-    }
-
-    // Limpiar el input
-    if (e.target) {
-      e.target.value = '';
-    }
-  };
-
-  const handleGaleriaDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
     
-    if (galeriaPreviews.length + files.length > 10) {
-      toast({
-        title: "Error",
-        description: "Solo se permiten máximo 10 imágenes en la galería",
-        variant: "destructive",
-      });
-      return;
-    }
+    validFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setGaleriaPreviews(prev => [...prev, e.target?.result as string]);
+        setGaleriaFiles(prev => [...prev, file]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, [galeriaPreviews.length]);
 
-    const validFiles = files.filter(validateImage);
-    if (validFiles.length === 0) return;
+  const removeGaleriaImage = useCallback((index: number) => {
+    setGaleriaPreviews(prev => prev.filter((_, i) => i !== index));
+    setGaleriaFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
-    try {
-      const imageUrls = await uploadMultipleImages(validFiles);
-      
-      const newPreviews = [...galeriaPreviews, ...imageUrls];
-      setGaleriaPreviews(newPreviews);
-      form.setValue("galeriaProductosUrls", newPreviews);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al subir las imágenes al servidor",
-        variant: "destructive",
-      });
-    }
-  }, [galeriaPreviews, toast, form]);
-
-  const removeGaleriaImage = (index: number) => {
-    const newPreviews = galeriaPreviews.filter((_, i) => i !== index);
-    setGaleriaPreviews(newPreviews);
-    form.setValue("galeriaProductosUrls", newPreviews);
-  };
-
-  // Social media handling
+  // Funciones para redes sociales
   const addRedSocial = () => {
     setRedesSociales([...redesSociales, { plataforma: "", url: "" }]);
+  };
+
+  const removeRedSocial = (index: number) => {
+    setRedesSociales(redesSociales.filter((_, i) => i !== index));
   };
 
   const updateRedSocial = (index: number, field: 'plataforma' | 'url', value: string) => {
@@ -613,21 +334,9 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     form.setValue("redesSociales", updated);
   };
 
-  const removeRedSocial = (index: number) => {
-    const updated = redesSociales.filter((_, i) => i !== index);
-    setRedesSociales(updated);
-    form.setValue("redesSociales", updated);
-  };
-
-  // Videos handling
+  // Funciones para videos
   const addVideo = () => {
     setVideosUrls([...videosUrls, ""]);
-  };
-
-  const updateVideo = (index: number, value: string) => {
-    const updated = videosUrls.map((url, i) => i === index ? value : url);
-    setVideosUrls(updated);
-    form.setValue("videosUrls", updated);
   };
 
   const removeVideo = (index: number) => {
@@ -636,35 +345,194 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     form.setValue("videosUrls", updated);
   };
 
+  const updateVideo = (index: number, value: string) => {
+    const updated = videosUrls.map((video, i) => i === index ? value : video);
+    setVideosUrls(updated);
+    form.setValue("videosUrls", updated);
+  };
+
+  // Drag and drop para catálogo digital
+  const handleCatalogoDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const files = Array.from(event.dataTransfer.files);
+    const pdfFile = files.find(file => file.type === 'application/pdf');
+    
+    if (pdfFile) {
+      setCatalogoFile(pdfFile);
+      form.setValue("catalogoDigitalUrl", pdfFile.name);
+    } else {
+      toast({
+        title: "Formato no válido",
+        description: "Solo se permiten archivos PDF para el catálogo digital",
+        variant: "destructive",
+      });
+    }
+  }, [form]);
+
+  const handleCatalogoDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  }, []);
+
+  const handleCatalogoSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setCatalogoFile(file);
+      form.setValue("catalogoDigitalUrl", file.name);
+    } else {
+      toast({
+        title: "Formato no válido",
+        description: "Solo se permiten archivos PDF",
+        variant: "destructive",
+      });
+    }
+  }, [form]);
+
+  // Poblar formulario cuando se abre con empresa
+  useEffect(() => {
+    if (company && open) {
+      const currentDate = new Date().toISOString().split('T')[0];
+      
+      // Clean description from HTML tags
+      const cleanDescription = stripHtmlAndDecode(String(company.descripcionEmpresa || ""));
+      const cleanRepresentantes = stripHtmlAndDecode(String(company.representantesVentas || ""));
+      
+      form.reset({
+        nombreEmpresa: company.nombreEmpresa || "",
+        telefono1: company.telefono1 || "",
+        telefono2: company.telefono2 || "",
+        email1: company.email1 || "",
+        email2: company.email2 || "",
+        sitioWeb: company.sitioWeb || "",
+        direccionFisica: company.direccionFisica || "",
+        descripcionEmpresa: cleanDescription,
+        ubicacionPrincipal: company.ubicacionPrincipal || "",
+        ubicacionGeografica: company.ubicacionGeografica || "",
+        representantesVentas: cleanRepresentantes,
+        catalogoDigitalUrl: String(company.catalogoDigitalUrl || ""),
+        categoriesIds: Array.isArray(company.categoriesIds) ? company.categoriesIds : [],
+        certificateIds: Array.isArray(company.certificateIds) ? company.certificateIds : [],
+        tagIds: Array.isArray(company.tagIds) ? company.tagIds : [],
+        membershipTypeId: company.membershipTypeId || 1,
+        membershipPeriodicidad: company.membershipPeriodicidad || "",
+        formaPago: company.formaPago || "",
+        fechaInicioMembresia: company.fechaInicioMembresia || currentDate,
+        fechaFinMembresia: company.fechaFinMembresia || "",
+        notasMembresia: company.notasMembresia || "",
+        paisesPresencia: Array.isArray(company.paisesPresencia) ? company.paisesPresencia : [],
+        estadosPresencia: Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [],
+        ciudadesPresencia: Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [],
+        redesSociales: Array.isArray(company.redesSociales) ? company.redesSociales : [],
+        videosUrls: Array.isArray(company.videosUrls) ? company.videosUrls : [],
+        galeriaProductosUrls: Array.isArray(company.galeriaProductosUrls) ? company.galeriaProductosUrls : [],
+        logotipoUrl: company.logotipoUrl || "",
+        fotoPortadaUrl: company.fotoPortadaUrl || "",
+      });
+      
+      // Set logo preview if exists
+      if (company.logotipoUrl) {
+        setLogoPreview(company.logotipoUrl);
+      }
+      
+      // Set foto portada preview if exists
+      if (company.fotoPortadaUrl) {
+        setFotoPortadaPreview(company.fotoPortadaUrl);
+      }
+      
+      // Set gallery previews if exist - SOLUCIONADO: Cargar imágenes existentes
+      if (company.galeriaProductosUrls) {
+        const urls = Array.isArray(company.galeriaProductosUrls) 
+          ? company.galeriaProductosUrls 
+          : [];
+        setGaleriaPreviews(urls);
+      }
+
+      // Set redes sociales - SOLUCIONADO: Cargar redes sociales existentes
+      if (company.redesSociales) {
+        setRedesSociales(Array.isArray(company.redesSociales) ? company.redesSociales : []);
+      }
+
+      // Set videos URLs
+      if (company.videosUrls) {
+        setVideosUrls(Array.isArray(company.videosUrls) ? company.videosUrls : []);
+      }
+
+      // Set estados and ciudades if they exist
+      if (company.estadosPresencia) {
+        const estados = Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [];
+        setSelectedEstados(estados);
+      }
+      
+      if (company.ciudadesPresencia) {
+        const ciudades = Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [];
+        setSelectedCiudades(ciudades);
+      }
+    }
+  }, [company, open, form]);
+
+  // Queries para obtener datos
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+    enabled: open,
+  });
+
+  const { data: membershipTypes = [] } = useQuery<MembershipType[]>({
+    queryKey: ["/api/membership-types"],
+    enabled: open,
+  });
+
+  const { data: certificates = [] } = useQuery<Certificate[]>({
+    queryKey: ["/api/certificates"],
+    enabled: open,
+  });
+
+  const { data: tags = [] } = useQuery<Tag[]>({
+    queryKey: ["/api/tags"],
+    enabled: open,
+  });
+
+  // Obtener el tipo de membresía actual para mostrar límites
+  const currentMembershipType = membershipTypes.find(type => type.id === form.watch("membershipTypeId"));
+
+  // Mutación para actualizar empresa
   const updateCompanyMutation = useMutation({
     mutationFn: async (data: CompanyFormData) => {
-      if (!company) throw new Error("No hay empresa para actualizar");
+      const formData = new FormData();
       
-      // Prepare data for submission
-      const submissionData = {
-        ...data,
-        paisesPresencia: selectedEstados.length > 0 ? ["México"] : data.paisesPresencia,
-        estadosPresencia: selectedEstados,
-        ciudadesPresencia: selectedCiudades,
-        redesSociales: redesSociales.filter(red => red.plataforma && red.url),
-        videosUrls: videosUrls.filter(url => url.trim()),
-        galeriaProductosUrls: galeriaPreviews,
-        representantesVentas: representantes.join('\n'),
-      };
+      // Add all form fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+      
+      // Add files
+      if (logoFile) formData.append("logoFile", logoFile);
+      if (fotoPortadaFile) formData.append("fotoPortadaFile", fotoPortadaFile);
+      if (catalogoFile) formData.append("catalogoFile", catalogoFile);
+      
+      // Add gallery files
+      galeriaFiles.forEach((file, index) => {
+        formData.append(`galeriaFiles`, file);
+      });
 
-      const response = await apiRequest("PUT", `/api/companies/${company.id}`, submissionData);
-      return response.json();
+      return apiRequest(`/api/companies/${company?.id}`, {
+        method: "PATCH",
+        body: formData,
+      });
     },
     onSuccess: () => {
       toast({
         title: "Empresa actualizada",
-        description: "La información se ha actualizado correctamente.",
+        description: "La información de la empresa ha sido actualizada exitosamente",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/companies"] });
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
+      console.error("Error updating company:", error);
       toast({
         title: "Error al actualizar empresa",
         description: error.message || "Ocurrió un error inesperado",
@@ -722,7 +590,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     </div>
                   </div>
 
-                  {/* Sección de transacciones */}
+                  {/* Sección de transacciones - SOLUCIONADO: Visualizar transacciones */}
                   <div className="space-y-4">
                     <div className="border rounded-lg p-4 bg-white">
                       <div className="flex items-center justify-between mb-3">
@@ -807,138 +675,21 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 <p className="text-sm text-gray-600">Datos de contacto y representantes</p>
               </div>
               
-              {/* Buscador de Usuario de WordPress - UBICADO AQUÍ PARA MÁXIMA VISIBILIDAD */}
-              <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
-                <div className="flex items-center gap-2 mb-3">
-                  <ExternalLink className="h-6 w-6 text-blue-600" />
-                  <h4 className="text-lg font-bold text-blue-800">🔗 Vincular Usuario de WordPress</h4>
-                </div>
-                <p className="text-sm text-blue-700 mb-4 font-medium">
-                  Busca y selecciona un usuario existente de WordPress para asociar con esta empresa.
-                </p>
-                
-                <div className="space-y-3">
-                  {/* Campo de búsqueda */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                    <Input
-                      placeholder="Buscar usuario por nombre, email o usuario... (mín. 3 caracteres)"
-                      value={wordPressUserSearch}
-                      onChange={(e) => setWordPressUserSearch(e.target.value)}
-                      className="pl-12 text-base py-3 border-2 border-blue-200 focus:border-blue-400"
-                    />
-                  </div>
-
-                  {/* Resultados de búsqueda */}
-                  {wordPressUserSearch.length >= 3 && (
-                    <div className="border-2 border-blue-200 rounded-lg bg-white max-h-60 overflow-y-auto shadow-lg">
-                      {isLoadingWordPressUsers ? (
-                        <div className="p-4 text-center text-gray-600">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                            <span className="text-base">Buscando usuarios...</span>
-                          </div>
-                        </div>
-                      ) : wordPressUsers.length === 0 ? (
-                        <div className="p-4 text-center text-gray-600">
-                          <span className="text-base">No se encontraron usuarios que coincidan con "{wordPressUserSearch}"</span>
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-gray-200">
-                          {wordPressUsers.map((user: any) => (
-                            <div
-                              key={user.id}
-                              className="p-4 hover:bg-blue-50 cursor-pointer flex items-center gap-3 transition-colors"
-                              onClick={() => {
-                                setSelectedWordPressUser(user);
-                                setWordPressUserSearch("");
-                                // Auto-llenar campos
-                                if (!form.getValues("email1") && user.email) {
-                                  form.setValue("email1", user.email);
-                                }
-                                if (!form.getValues("nombreEmpresa") && user.name) {
-                                  form.setValue("nombreEmpresa", user.name);
-                                }
-                              }}
-                            >
-                              <User className="h-6 w-6 text-blue-600 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-gray-900 text-base truncate">
-                                  {user.name || user.username}
-                                </div>
-                                <div className="text-sm text-gray-600 truncate">
-                                  📧 {user.email}
-                                  {user.roles && user.roles.length > 0 && (
-                                    <span className="ml-2 text-blue-600">• {user.roles.join(", ")}</span>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                type="button"
-                                size="sm"
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                Seleccionar
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Usuario seleccionado */}
-                  {selectedWordPressUser && (
-                    <div className="bg-green-100 border-2 border-green-300 p-4 rounded-lg shadow-md">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Check className="h-5 w-5 text-green-700" />
-                            <span className="font-bold text-green-800 text-base">✅ Usuario vinculado exitosamente</span>
-                          </div>
-                          <div className="text-sm space-y-1">
-                            <div className="font-semibold text-gray-900">{selectedWordPressUser.name || selectedWordPressUser.username}</div>
-                            <div className="text-gray-700">📧 {selectedWordPressUser.email}</div>
-                            {selectedWordPressUser.roles && (
-                              <div className="text-xs text-gray-600">
-                                👤 Roles: {selectedWordPressUser.roles.join(", ")}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedWordPressUser(null)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <X className="h-5 w-5" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="nombreEmpresa"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre de la Empresa *</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nombre de la empresa"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="nombreEmpresa"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Empresa *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nombre de la empresa" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="telefono1"
@@ -946,37 +697,13 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     <FormItem>
                       <FormLabel>Teléfono Principal *</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ""}
-                          placeholder="+52 777 123 4567"
-                        />
+                        <Input {...field} placeholder="Teléfono principal" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="telefono2"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Teléfono Secundario</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ""}
-                          placeholder="+52 777 123 4568"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="email1"
@@ -984,12 +711,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     <FormItem>
                       <FormLabel>Email Principal *</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ""}
-                          type="email"
-                          placeholder="contacto@empresa.com"
-                        />
+                        <Input {...field} type="email" placeholder="email@empresa.com" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -998,44 +720,18 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
 
                 <FormField
                   control={form.control}
-                  name="email2"
+                  name="sitioWeb"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email Secundario</FormLabel>
+                      <FormLabel>Sitio Web</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ""}
-                          type="email"
-                          placeholder="ventas@empresa.com"
-                        />
+                        <Input {...field} placeholder="https://www.empresa.com" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-
-
-
-              <FormField
-                control={form.control}
-                name="sitioWeb"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sitio Web</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value || ""}
-                        type="url"
-                        placeholder="https://www.empresa.com"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <FormField
                 control={form.control}
@@ -1044,11 +740,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   <FormItem>
                     <FormLabel>Dirección Física *</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value || ""}
-                        placeholder="Dirección completa de la empresa"
-                      />
+                      <Textarea {...field} placeholder="Dirección completa de la empresa" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1069,12 +761,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Descripción de la Empresa *</FormLabel>
+                    <FormDescription>
+                      Describe los servicios, productos y experiencia de tu empresa
+                    </FormDescription>
                     <FormControl>
-                      <Textarea
-                        {...field}
+                      <RichTextEditor
                         value={field.value || ""}
-                        placeholder="Descripción detallada de la empresa, sus servicios y especialidades"
-                        className="min-h-[120px]"
+                        onChange={field.onChange}
+                        placeholder="Describe tu empresa, servicios principales, experiencia en el mercado..."
                       />
                     </FormControl>
                     <FormMessage />
@@ -1088,12 +782,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Representantes de Ventas</FormLabel>
+                    <FormDescription>
+                      Información de contacto de representantes de ventas
+                    </FormDescription>
                     <FormControl>
-                      <Textarea
-                        {...field}
+                      <RichTextEditor
                         value={field.value || ""}
-                        placeholder="Información de contacto de representantes de ventas"
-                        className="min-h-[80px]"
+                        onChange={field.onChange}
+                        placeholder="Nombres, teléfonos y emails de representantes..."
                       />
                     </FormControl>
                     <FormMessage />
@@ -1114,31 +810,32 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 name="categoriesIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Categorías de Servicios</FormLabel>
+                    <FormLabel>Categorías *</FormLabel>
                     <FormDescription>
-                      Selecciona las categorías que mejor describan los servicios de tu empresa
+                      Selecciona las categorías que mejor describan tu empresa
                     </FormDescription>
                     <FormControl>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto border rounded-md p-3">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                         {categories.map((category) => (
-                          <div key={category.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`category-${category.id}`}
-                              checked={field.value?.includes(category.id) || false}
-                              onCheckedChange={(checked) => {
-                                const updatedIds = checked
-                                  ? [...(field.value || []), category.id]
-                                  : (field.value || []).filter((id) => id !== category.id);
-                                field.onChange(updatedIds);
-                              }}
-                            />
-                            <label
-                              htmlFor={`category-${category.id}`}
-                              className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                            >
+                          <div
+                            key={category.id}
+                            className={`border-2 rounded-lg p-3 cursor-pointer transition-all hover:bg-gray-50 ${
+                              field.value?.includes(category.id)
+                                ? "border-primary bg-primary/5"
+                                : "border-gray-200"
+                            }`}
+                            onClick={() => {
+                              const currentValues = field.value || [];
+                              const newValues = currentValues.includes(category.id)
+                                ? currentValues.filter(id => id !== category.id)
+                                : [...currentValues, category.id];
+                              field.onChange(newValues);
+                            }}
+                          >
+                            <div className="flex flex-col items-center text-center space-y-2">
                               {renderCategoryIcon(category)}
-                              {category.nombreCategoria}
-                            </label>
+                              <span className="text-sm font-medium">{category.nombreCategoria}</span>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1155,10 +852,11 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   <FormItem>
                     <FormLabel>Etiquetas</FormLabel>
                     <FormDescription>
-                      Agrega etiquetas que ayuden a los usuarios a encontrar tu empresa
+                      Selecciona etiquetas que describan mejor tus productos y servicios
                     </FormDescription>
                     <FormControl>
                       <TagSelector
+                        availableTags={tags}
                         selectedTagIds={field.value || []}
                         onTagsChange={field.onChange}
                       />
@@ -1167,210 +865,44 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   </FormItem>
                 )}
               />
-            </div>
 
-            {/* SECCIÓN 4: UBICACIÓN Y PRESENCIA */}
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Ubicación y Presencia</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="estadosPresencia"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estados donde opera</FormLabel>
-                      <FormDescription>Selecciona los estados donde tu empresa tiene presencia</FormDescription>
-                      <FormControl>
-                        <div className="max-h-40 overflow-y-auto border rounded-md p-2">
-                          {estadosMexico.map((estado) => (
-                            <div key={estado} className="flex items-center space-x-2 py-1">
-                              <Checkbox
-                                id={`estado-${estado}`}
-                                checked={selectedEstados.includes(estado)}
-                                onCheckedChange={(checked) => {
-                                  const updatedEstados = checked
-                                    ? [...selectedEstados, estado]
-                                    : selectedEstados.filter((e) => e !== estado);
-                                  setSelectedEstados(updatedEstados);
-                                  field.onChange(updatedEstados);
-                                }}
-                              />
-                              <label
-                                htmlFor={`estado-${estado}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                              >
-                                {estado}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {selectedEstados.length > 0 && (
-                  <FormField
-                    control={form.control}
-                    name="ciudadesPresencia"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ciudades donde opera</FormLabel>
-                        <FormDescription>Selecciona las ciudades específicas</FormDescription>
-                        <FormControl>
-                          <div className="max-h-40 overflow-y-auto border rounded-md p-2">
-                            {selectedEstados.flatMap(estado => 
-                              ciudadesPorEstado[estado] || []
-                            ).map((ciudad) => (
-                              <div key={ciudad} className="flex items-center space-x-2 py-1">
-                                <Checkbox
-                                  id={`ciudad-${ciudad}`}
-                                  checked={selectedCiudades.includes(ciudad)}
-                                  onCheckedChange={(checked) => {
-                                    const updatedCiudades = checked
-                                      ? [...selectedCiudades, ciudad]
-                                      : selectedCiudades.filter((c) => c !== ciudad);
-                                    setSelectedCiudades(updatedCiudades);
-                                    field.onChange(updatedCiudades);
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`ciudad-${ciudad}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                >
-                                  {ciudad}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* SECCIÓN 5: IMÁGENES Y MULTIMEDIA */}
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Imágenes y Multimedia</h3>
-              
-              {/* Logo */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <FormLabel>Logo de la Empresa</FormLabel>
-                  <div className="mt-2 space-y-2">
-                    {logoPreview && (
-                      <div className="relative inline-block">
-                        <img
-                          src={logoPreview}
-                          alt="Preview del logo"
-                          className="w-24 h-24 object-cover rounded-lg border border-gray-200"
-                        />
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoSelect}
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <label
-                        htmlFor="logo-upload"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-                      >
-                        <Upload className="h-4 w-4" />
-                        {logoPreview ? "Cambiar Logo" : "Subir Logo"}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Foto de Portada */}
-                <div>
-                  <FormLabel>Foto de Portada</FormLabel>
-                  <div className="mt-2 space-y-2">
-                    {fotoPortadaPreview && (
-                      <div className="relative inline-block">
-                        <img
-                          src={fotoPortadaPreview}
-                          alt="Preview de foto de portada"
-                          className="w-32 h-20 object-cover rounded-lg border border-gray-200"
-                        />
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFotoPortadaSelect}
-                        className="hidden"
-                        id="portada-upload"
-                      />
-                      <label
-                        htmlFor="portada-upload"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-                      >
-                        <Upload className="h-4 w-4" />
-                        {fotoPortadaPreview ? "Cambiar Portada" : "Subir Portada"}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Galería de Productos */}
+              {/* Galería de Productos - SOLUCIONADO: Cargar imágenes existentes */}
               <div>
-                <FormLabel>Galería de Productos (máx. 10 imágenes)</FormLabel>
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors mt-2"
-                  onDrop={handleGaleriaDrop}
-                  onDragOver={(e) => e.preventDefault()}
-                >
-                  {galeriaPreviews.length > 0 ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        {galeriaPreviews.map((preview, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={preview}
-                              alt={`Galería ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeGaleriaImage(index)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
-                        {galeriaPreviews.length < 10 && (
-                          <label className="w-full h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
-                            <Plus className="h-8 w-8 text-gray-400" />
-                            <input
-                              type="file"
-                              accept="image/*"
-                              multiple
-                              className="hidden"
-                              onChange={handleGaleriaSelect}
-                            />
-                          </label>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {galeriaPreviews.length}/10 imágenes • Arrastra más imágenes o haz clic en + para agregar
-                      </p>
+                <FormLabel>Galería de Productos</FormLabel>
+                <FormDescription>
+                  Sube imágenes de tus productos (máximo 10 imágenes)
+                  {currentMembershipType && (
+                    <MembershipLimitsValidator
+                      membershipType={currentMembershipType}
+                      currentCount={galeriaPreviews.length}
+                      type="products"
+                      className="mt-2"
+                    />
+                  )}
+                </FormDescription>
+                <div className="mt-2">
+                  {galeriaPreviews.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+                      {galeriaPreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={preview}
+                            alt={`Producto ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeGaleriaImage(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
+                  )}
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                     <div className="space-y-4">
                       <Upload className="h-12 w-12 text-gray-400 mx-auto" />
                       <div>
@@ -1392,16 +924,18 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                         </p>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* SECCIÓN 6: REDES SOCIALES Y VIDEOS */}
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Redes Sociales y Multimedia</h3>
+            {/* Redes Sociales - SOLUCIONADO: Mostrar el tipo correcto en todas las opciones */}
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-primary">Redes Sociales y Multimedia</h3>
+                <p className="text-sm text-gray-600">Enlaces a redes sociales y contenido multimedia</p>
+              </div>
               
-              {/* Redes Sociales */}
               <div>
                 <FormLabel>Redes Sociales</FormLabel>
                 <div className="space-y-3 mt-2">
@@ -1413,7 +947,17 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                           onValueChange={(value) => updateRedSocial(index, 'plataforma', value)}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecciona plataforma" />
+                            <SelectValue placeholder="Selecciona plataforma">
+                              {red.plataforma && (
+                                <div className="flex items-center gap-2">
+                                  {(() => {
+                                    const platform = socialPlatforms.find(p => p.name === red.plataforma);
+                                    return platform ? <platform.icon className="h-4 w-4" /> : null;
+                                  })()}
+                                  {red.plataforma}
+                                </div>
+                              )}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {socialPlatforms.map((platform) => (
@@ -1493,63 +1037,124 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 </div>
               </div>
 
-              <FormField
-                control={form.control}
-                name="catalogoDigitalUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Catálogo Digital</FormLabel>
-                    <FormDescription>
-                      URL de tu catálogo digital o página de productos
-                    </FormDescription>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value || ""}
-                        type="url"
-                        placeholder="https://www.empresa.com/catalogo"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Catálogo Digital - SOLUCIONADO: Drag and drop */}
+              <div>
+                <FormLabel>Catálogo Digital</FormLabel>
+                <FormDescription>
+                  Sube un PDF con el catálogo de productos de tu empresa
+                </FormDescription>
+                <div
+                  className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                  onDrop={handleCatalogoDrop}
+                  onDragOver={handleCatalogoDragOver}
+                  onClick={() => document.getElementById('catalogo-input')?.click()}
+                >
+                  {catalogoFile ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <FileText className="h-8 w-8 text-red-500" />
+                      <div>
+                        <p className="font-medium">{catalogoFile.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {(catalogoFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCatalogoFile(null);
+                          form.setValue("catalogoDigitalUrl", "");
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : form.watch("catalogoDigitalUrl") ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <FileText className="h-8 w-8 text-red-500" />
+                      <div>
+                        <p className="font-medium">Catálogo actual</p>
+                        <p className="text-sm text-gray-500">
+                          {form.watch("catalogoDigitalUrl")}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <FileText className="h-12 w-12 text-gray-400 mx-auto" />
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          Arrastra y suelta tu catálogo PDF aquí, o{" "}
+                          <span className="text-primary cursor-pointer hover:underline">
+                            selecciona archivo
+                          </span>
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Solo archivos PDF • Máximo 10MB
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    id="catalogo-input"
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={handleCatalogoSelect}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* SECCIÓN 7: CERTIFICADOS */}
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Certificados y Reconocimientos</h3>
+            {/* Certificados - SOLUCIONADO: Cargar certificados */}
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-primary">Certificados y Reconocimientos</h3>
+                <p className="text-sm text-gray-600">Certificados que respaldan la calidad de la empresa</p>
+              </div>
               
               <FormField
                 control={form.control}
                 name="certificateIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Certificados</FormLabel>
+                    <FormLabel>Certificados y Reconocimientos</FormLabel>
                     <FormDescription>
-                      Selecciona los certificados y reconocimientos de tu empresa
+                      Selecciona los certificados que posee tu empresa
                     </FormDescription>
                     <FormControl>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto border rounded-md p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {certificates.map((certificate) => (
-                          <div key={certificate.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`certificate-${certificate.id}`}
-                              checked={field.value?.includes(certificate.id) || false}
-                              onCheckedChange={(checked) => {
-                                const updatedIds = checked
-                                  ? [...(field.value || []), certificate.id]
-                                  : (field.value || []).filter((id) => id !== certificate.id);
-                                field.onChange(updatedIds);
-                              }}
-                            />
-                            <label
-                              htmlFor={`certificate-${certificate.id}`}
-                              className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                            >
-                              <FileText className="h-4 w-4 text-blue-600" />
-                              {certificate.nombreCertificado}
-                            </label>
+                          <div
+                            key={certificate.id}
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-50 ${
+                              field.value?.includes(certificate.id)
+                                ? "border-primary bg-primary/5"
+                                : "border-gray-200"
+                            }`}
+                            onClick={() => {
+                              const currentValues = field.value || [];
+                              const newValues = currentValues.includes(certificate.id)
+                                ? currentValues.filter(id => id !== certificate.id)
+                                : [...currentValues, certificate.id];
+                              field.onChange(newValues);
+                            }}
+                          >
+                            <div className="flex items-start space-x-3">
+                              {field.value?.includes(certificate.id) ? (
+                                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                              ) : (
+                                <div className="h-5 w-5 border-2 border-gray-300 rounded mt-0.5 flex-shrink-0" />
+                              )}
+                              <div className="flex-1">
+                                <h4 className="font-medium text-sm">{certificate.nombre}</h4>
+                                {certificate.descripcion && (
+                                  <p className="text-xs text-gray-600 mt-1">{certificate.descripcion}</p>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1560,7 +1165,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
               />
             </div>
 
-            {/* Sección: Información de Membresía */}
+            {/* Sección: Información de Membresía - SOLUCIONADO: Mostrar límites según el plan */}
             {userRole === 'admin' && (
               <div className="space-y-6">
                 <div className="border-b pb-4">
@@ -1575,20 +1180,23 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tipo de Membresía *</FormLabel>
-                        <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                          <FormControl>
-                            <SelectTrigger>
+                        <FormControl>
+                          <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(parseInt(value))}>
+                            <SelectTrigger className="w-full">
                               <SelectValue placeholder="Selecciona tipo de membresía" />
                             </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {membershipTypes.map((type) => (
-                              <SelectItem key={type.id} value={type.id.toString()}>
-                                {type.nombrePlan} - ${type.precioMensual}/mes
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                            <SelectContent>
+                              {membershipTypes.map((type) => (
+                                <SelectItem key={type.id} value={type.id.toString()}>
+                                  <div className="flex items-center gap-2">
+                                    <Crown className="h-4 w-4 text-yellow-500" />
+                                    {type.nombrePlan}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1599,27 +1207,25 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     name="membershipPeriodicidad"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Periodicidad de Pago</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
+                        <FormLabel>Periodicidad</FormLabel>
+                        <FormControl>
+                          <Select value={field.value} onValueChange={field.onChange}>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecciona periodicidad" />
                             </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="mensual">Mensual</SelectItem>
-                            <SelectItem value="trimestral">Trimestral</SelectItem>
-                            <SelectItem value="semestral">Semestral</SelectItem>
-                            <SelectItem value="anual">Anual</SelectItem>
-                          </SelectContent>
-                        </Select>
+                            <SelectContent>
+                              <SelectItem value="mensual">Mensual</SelectItem>
+                              <SelectItem value="trimestral">Trimestral</SelectItem>
+                              <SelectItem value="semestral">Semestral</SelectItem>
+                              <SelectItem value="anual">Anual</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="fechaInicioMembresia"
@@ -1627,11 +1233,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                       <FormItem>
                         <FormLabel>Fecha de Inicio</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="date"
-                            value={field.value || ""}
-                          />
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1645,80 +1247,61 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                       <FormItem>
                         <FormLabel>Fecha de Fin</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="date"
-                            value={field.value || ""}
-                            readOnly
-                          />
+                          <Input type="date" {...field} />
                         </FormControl>
-                        <FormDescription>
-                          Se calcula automáticamente según la periodicidad
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="formaPago"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Forma de Pago</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona forma de pago" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="tarjeta">Tarjeta de Crédito/Débito</SelectItem>
-                          <SelectItem value="transferencia">Transferencia Bancaria</SelectItem>
-                          <SelectItem value="efectivo">Efectivo</SelectItem>
-                          <SelectItem value="cheque">Cheque</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="notasMembresia"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notas de Membresía</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          value={field.value || ""}
-                          placeholder="Notas adicionales sobre la membresía"
-                          className="min-h-[80px]"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Mostrar límites del plan seleccionado */}
+                {currentMembershipType && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                      <Crown className="h-4 w-4" />
+                      Límites del Plan: {currentMembershipType.nombrePlan}
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="bg-white p-3 rounded border">
+                        <div className="font-medium text-gray-700">Productos</div>
+                        <div className="text-lg font-bold text-blue-600">
+                          {currentMembershipType.cantidadProductosAdmitidos || "Ilimitado"}
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded border">
+                        <div className="font-medium text-gray-700">Proyectos</div>
+                        <div className="text-lg font-bold text-blue-600">
+                          {currentMembershipType.cantidadProyectosAdmitidos || "Ilimitado"}
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded border">
+                        <div className="font-medium text-gray-700">Fotos</div>
+                        <div className="text-lg font-bold text-blue-600">
+                          {currentMembershipType.cantidadFotosAdmitidas || "Ilimitado"}
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded border">
+                        <div className="font-medium text-gray-700">Visibilidad</div>
+                        <div className="text-lg font-bold text-blue-600 capitalize">
+                          {currentMembershipType.visibilidad}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* BOTONES DE ACCIÓN */}
-            <div className="flex justify-end space-x-2 pt-4 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
+            {/* Botones de acción */}
+            <div className="flex justify-end space-x-4 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button
-                type="submit"
+              <Button 
+                type="submit" 
                 disabled={updateCompanyMutation.isPending}
-                className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                className="bg-primary hover:bg-primary/90"
               >
                 {updateCompanyMutation.isPending ? "Actualizando..." : "Actualizar Empresa"}
               </Button>
