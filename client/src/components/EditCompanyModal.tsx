@@ -705,6 +705,21 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   )}
                 />
 
+                {/* Teléfono secundario */}
+                <FormField
+                  control={form.control}
+                  name="telefono2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono Secundario</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+52 55 8765 4321" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* Email principal */}
                 <FormField
                   control={form.control}
@@ -713,7 +728,22 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     <FormItem>
                       <FormLabel>Email Principal *</FormLabel>
                       <FormControl>
-                        <Input placeholder="luciacallizov@gmail.com" type="email" {...field} />
+                        <Input placeholder="contacto@empresa.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Email secundario */}
+                <FormField
+                  control={form.control}
+                  name="email2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Secundario</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ventas@empresa.com" type="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -725,7 +755,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   control={form.control}
                   name="sitioWeb"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="md:col-span-2">
                       <FormLabel>Sitio Web</FormLabel>
                       <FormControl>
                         <Input placeholder="https://www.empresa.com" {...field} />
