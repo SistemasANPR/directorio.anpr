@@ -54,9 +54,10 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
   const { isAdmin, user } = useAuth();
   
   // Debug: Log para verificar el estado del usuario y admin
-  console.log("EditCertificateModal - User:", user);
-  console.log("EditCertificateModal - IsAdmin:", isAdmin);
-  console.log("EditCertificateModal - Certificate:", certificate);
+  console.log("EditCertificateModal RENDER - User:", user);
+  console.log("EditCertificateModal RENDER - IsAdmin:", isAdmin);
+  console.log("EditCertificateModal RENDER - Open:", open);
+  console.log("EditCertificateModal RENDER - Certificate:", certificate);
 
   // Obtener tipos de membresía para la selección
   const { data: membershipTypes = [] } = useQuery<any[]>({
@@ -285,8 +286,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
 
             {/* Campos de asignación automática - Solo para administradores */}
             {(() => {
-              console.log("EditCertificateModal - Checking isAdmin in render:", isAdmin);
-              console.log("EditCertificateModal - membershipTypes:", membershipTypes);
+              console.log("EditCertificateModal CONDITIONAL - isAdmin:", isAdmin, "typeof:", typeof isAdmin);
               return isAdmin;
             })() && (
               <div className="space-y-4 border-t pt-4">
