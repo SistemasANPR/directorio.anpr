@@ -284,7 +284,11 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
             />
 
             {/* Campos de asignación automática - Solo para administradores */}
-            {isAdmin && (
+            {(() => {
+              console.log("EditCertificateModal - Checking isAdmin in render:", isAdmin);
+              console.log("EditCertificateModal - membershipTypes:", membershipTypes);
+              return isAdmin;
+            })() && (
               <div className="space-y-4 border-t pt-4">
                 <h3 className="text-lg font-semibold text-gray-900">Asignación Automática</h3>
                 
