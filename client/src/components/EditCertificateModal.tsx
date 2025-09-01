@@ -54,13 +54,11 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
   const { isAdmin, user } = useAuth();
   
   // Debug: Log para verificar el estado del usuario y admin
-  console.log("EditCertificateModal RENDER - User:", user);
-  console.log("EditCertificateModal RENDER - IsAdmin:", isAdmin);
-  console.log("EditCertificateModal RENDER - Open:", open);
-  console.log("EditCertificateModal RENDER - Certificate:", certificate);
-  
-  // Log específico para verificar si la sección se renderiza
-  console.log("EditCertificateModal - Will render admin section:", isAdmin && open);
+  if (open) {
+    console.log("🚨 EditCertificateModal OPENED - User:", user);
+    console.log("🚨 EditCertificateModal OPENED - IsAdmin:", isAdmin);
+    console.log("🚨 EditCertificateModal OPENED - Certificate:", certificate);
+  }
 
   // Obtener tipos de membresía para la selección
   const { data: membershipTypes = [] } = useQuery<any[]>({
