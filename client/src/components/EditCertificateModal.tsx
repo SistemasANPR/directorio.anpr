@@ -42,13 +42,20 @@ interface EditCertificateModalProps {
 
 const formSchema = insertCertificateSchema.extend({
   fechaEmision: z.string().optional(),
+  fechaVencimiento: z.string().optional(),
+  asignacionAutomatica: z.boolean().optional(),
+  membershipPlanIds: z.array(z.number()).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 export default function EditCertificateModal({ open, onOpenChange, certificate }: EditCertificateModalProps) {
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  
+  // Debug: Log para verificar el estado del usuario y admin
+  console.log("EditCertificateModal - User:", user);
+  console.log("EditCertificateModal - IsAdmin:", isAdmin);
 
   // Obtener tipos de membresía para la selección
   const { data: membershipTypes = [] } = useQuery<any[]>({
