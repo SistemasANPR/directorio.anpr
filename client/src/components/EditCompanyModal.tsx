@@ -135,6 +135,8 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const [isWordPressUserOpen, setIsWordPressUserOpen] = useState(false);
   const [wordPressUserSearch, setWordPressUserSearch] = useState("");
   const [selectedWordPressUser, setSelectedWordPressUser] = useState<any>(null);
+  const [userTransactions, setUserTransactions] = useState<any[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -376,6 +378,34 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     queryKey: ["/api/tags"],
     enabled: open,
   });
+
+  // Función para cargar transacciones del usuario
+  const loadUserTransactions = async (userId: string) => {
+    setIsLoadingTransactions(true);
+    try {
+      const response = await fetch(`/api/wordpress-user-transactions/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserTransactions(data.transactions || []);
+        
+        // Auto-completar fechas de membresía si hay transacciones
+        if (data.transactions && data.transactions.length > 0) {
+          const latestTransaction = data.transactions[0];
+          if (latestTransaction.expires_at) {
+            const expirationDate = new Date(latestTransaction.expires_at);
+            const creationDate = new Date(latestTransaction.created_at);
+            
+            form.setValue("fechaInicioMembresia", creationDate.toISOString().split('T')[0]);
+            form.setValue("fechaFinMembresia", expirationDate.toISOString().split('T')[0]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user transactions:', error);
+    } finally {
+      setIsLoadingTransactions(false);
+    }
+  };
 
   // Query para obtener usuarios de WordPress
   const { data: wordPressUsers = [], isLoading: isLoadingWordPressUsers } = useQuery<any[]>({
@@ -662,9 +692,120 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
-            {/* SECCIÓN 1: INFORMACIÓN BÁSICA */}
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Información Básica</h3>
+            {/* INFORMACIÓN DEL USUARIO WORDPRESS (SI EXISTE) */}
+            {company?.user && (
+              <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="h-5 w-5 text-blue-600" />
+                  <h4 className="font-bold text-blue-800">👤 Usuario de WordPress Vinculado</h4>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="bg-green-100 border-2 border-green-300 p-3 rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Check className="h-4 w-4 text-green-700" />
+                          <span className="font-bold text-green-800">✅ Usuario vinculado</span>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <div className="font-medium text-gray-900">{company.user.displayName || company.user.email}</div>
+                          <div className="text-gray-700">📧 {company.user.email}</div>
+                          <div className="text-xs text-gray-600">
+                            👤 Rol: {company.user.role}
+                          </div>
+                          <div className="text-xs text-green-700 font-medium mt-1">
+                            🔗 Esta empresa está vinculada a un usuario de WordPress
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sección de transacciones */}
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4 bg-white">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                          💳 Información de Membresía
+                        </h4>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (company.user?.id) {
+                              loadUserTransactions(company.user.id.toString());
+                            }
+                          }}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Search className="h-3 w-3 mr-1" />
+                          Verificar Transacciones
+                        </Button>
+                      </div>
+
+                      {isLoadingTransactions ? (
+                        <div className="text-center py-4 text-gray-500">
+                          <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                          Cargando información de membresía...
+                        </div>
+                      ) : userTransactions.length > 0 ? (
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {userTransactions.map((transaction: any, index: number) => (
+                            <div key={transaction.id} className={`p-3 border rounded-lg ${index === 0 ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'}`}>
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900">
+                                    {transaction.membership_name}
+                                    {index === 0 && (
+                                      <span className="ml-2 px-2 py-1 text-xs bg-blue-600 text-white rounded-full">
+                                        Más reciente
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-gray-600 space-y-1 mt-1">
+                                    <div>💰 Total: ${transaction.total || transaction.amount}</div>
+                                    <div>📅 Creada: {new Date(transaction.created_at).toLocaleDateString('es-ES')}</div>
+                                    {transaction.expires_at && (
+                                      <div className="font-medium text-red-600">
+                                        ⏰ Vence: {new Date(transaction.expires_at).toLocaleDateString('es-ES')}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  transaction.status === 'complete' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {transaction.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500">
+                          <div className="text-2xl mb-2">📄</div>
+                          <div>Información de membresía desde WordPress</div>
+                          <div className="text-xs mt-1">
+                            Click en "Verificar Transacciones" para cargar datos
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Sección: Información de Contacto */}
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-primary">Información de Contacto</h3>
+                <p className="text-sm text-gray-600">Datos de contacto y representantes</p>
+              </div>
               
               {/* Buscador de Usuario de WordPress - UBICADO AQUÍ PARA MÁXIMA VISIBILIDAD */}
               <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
@@ -915,9 +1056,12 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
               />
             </div>
 
-            {/* SECCIÓN 2: DESCRIPCIÓN Y SERVICIOS */}
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Descripción y Servicios</h3>
+            {/* Sección: Información de la Empresa */}
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-primary">Información de la Empresa</h3>
+                <p className="text-sm text-gray-600">Datos básicos y descripción de la empresa</p>
+              </div>
               
               <FormField
                 control={form.control}
@@ -958,9 +1102,12 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
               />
             </div>
 
-            {/* SECCIÓN 3: CATEGORÍAS Y ETIQUETAS */}
-            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Categorías y Clasificación</h3>
+            {/* Sección: Galería de Productos */}
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-primary">Galería de Productos</h3>
+                <p className="text-sm text-gray-600">Categorías, etiquetas y galería de productos</p>
+              </div>
               
               <FormField
                 control={form.control}
@@ -1413,10 +1560,13 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
               />
             </div>
 
-            {/* SECCIÓN 8: MEMBRESÍA */}
+            {/* Sección: Información de Membresía */}
             {userRole === 'admin' && (
-              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Información de Membresía</h3>
+              <div className="space-y-6">
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold text-primary">Información de Membresía</h3>
+                  <p className="text-sm text-gray-600">Configuración de plan y fechas de membresía</p>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
