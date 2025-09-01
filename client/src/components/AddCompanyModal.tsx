@@ -1577,7 +1577,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                       </FormDescription>
                       <FormControl>
                         <TagSelector
-                          tags={tags}
                           selectedTagIds={field.value || []}
                           onTagsChange={field.onChange}
                         />
@@ -2139,12 +2138,14 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   <h3 className="text-lg font-semibold text-primary">Validación de Límites del Plan</h3>
                   <p className="text-sm text-gray-600">Verificación de límites según el plan de membresía seleccionado</p>
                 </div>
-                <MembershipLimitsDisplay
-                  membershipType={selectedMembershipType}
-                  productCount={galeriaFiles.length}
-                  projectCount={0}
-                  className="mb-4"
-                />
+                {selectedMembershipType && (
+                  <MembershipLimitsDisplay
+                    membershipType={selectedMembershipType}
+                    productCount={galeriaFiles.length}
+                    projectCount={0}
+                    className="mb-4"
+                  />
+                )}
               </div>
             )}
 

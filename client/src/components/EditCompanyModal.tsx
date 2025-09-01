@@ -119,6 +119,8 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const [canAddProducts, setCanAddProducts] = useState(true);
   const [canAddProjects, setCanAddProjects] = useState(true);
 
+
+
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -672,7 +674,8 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 <p className="text-sm text-gray-600">Datos de contacto y representantes</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nombre de la empresa */}
                 <FormField
                   control={form.control}
                   name="nombreEmpresa"
@@ -680,13 +683,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     <FormItem>
                       <FormLabel>Nombre de la Empresa *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Nombre de la empresa" />
+                        <Input placeholder="Ejemplo de Empresa Parques" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
+                {/* Teléfono principal */}
                 <FormField
                   control={form.control}
                   name="telefono1"
@@ -694,13 +698,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     <FormItem>
                       <FormLabel>Teléfono Principal *</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Teléfono principal" />
+                        <Input placeholder="Teléfono principal" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
+                {/* Email principal */}
                 <FormField
                   control={form.control}
                   name="email1"
@@ -708,13 +713,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     <FormItem>
                       <FormLabel>Email Principal *</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" placeholder="email@empresa.com" />
+                        <Input placeholder="luciacallizov@gmail.com" type="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
+                {/* Sitio Web */}
                 <FormField
                   control={form.control}
                   name="sitioWeb"
@@ -722,35 +728,305 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     <FormItem>
                       <FormLabel>Sitio Web</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="https://www.empresa.com" />
+                        <Input placeholder="https://www.empresa.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Dirección Física */}
+                <FormField
+                  control={form.control}
+                  name="direccionFisica"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Dirección Física *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Dirección completa de la empresa"
+                          className="min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Email adicional */}
+                <FormField
+                  control={form.control}
+                  name="email2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Adicional</FormLabel>
+                      <FormControl>
+                        <Input placeholder="email2@empresa.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Teléfono adicional */}
+                <FormField
+                  control={form.control}
+                  name="telefono2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono Adicional</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+52 55 1234 5679" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Representantes de ventas */}
+                <FormField
+                  control={form.control}
+                  name="representantesVentas"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Enlaces a Perfiles Profesionales</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enlaces a perfiles de PeepSo, LinkedIn, etc. (uno por línea)"
+                          className="min-h-[80px]"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-
-              <FormField
-                control={form.control}
-                name="direccionFisica"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección Física *</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} placeholder="Dirección completa de la empresa" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             {/* Sección: Información de la Empresa */}
             <div className="space-y-6">
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-primary">Información de la Empresa</h3>
-                <p className="text-sm text-gray-600">Datos básicos y descripción de la empresa</p>
+                <p className="text-sm text-gray-600">Multimedia y contenido de la empresa</p>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Logotipo con drag and drop */}
+                <div className="md:col-span-2">
+                  <FormLabel>Logotipo de la Empresa</FormLabel>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors"
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files[0];
+                      if (file && file.type.startsWith('image/')) {
+                        setLogoFile(file);
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                          setLogoPreview(e.target?.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    {logoPreview ? (
+                      <div className="relative">
+                        <img
+                          src={logoPreview}
+                          alt="Preview"
+                          className="max-h-32 mx-auto rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => {
+                            setLogoFile(null);
+                            setLogoPreview("");
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            Arrastra y suelta tu logotipo aquí, o{" "}
+                            <label className="text-primary cursor-pointer hover:underline">
+                              selecciona un archivo
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file && file.type.startsWith('image/')) {
+                                    setLogoFile(file);
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                      setLogoPreview(e.target?.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Formatos: JPG, PNG, GIF (máx. 5MB)
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Foto de Portada con drag and drop */}
+                <div className="md:col-span-2">
+                  <FormLabel>Foto de Portada de la Empresa</FormLabel>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors"
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files[0];
+                      if (file && file.type.startsWith('image/')) {
+                        setFotoPortadaFile(file);
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                          setFotoPortadaPreview(e.target?.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    {fotoPortadaPreview ? (
+                      <div className="relative">
+                        <img
+                          src={fotoPortadaPreview}
+                          alt="Preview Portada"
+                          className="max-h-40 w-full object-cover mx-auto rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => {
+                            setFotoPortadaFile(null);
+                            setFotoPortadaPreview("");
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            Arrastra y suelta tu foto de portada aquí, o{" "}
+                            <label className="text-primary cursor-pointer hover:underline">
+                              selecciona un archivo
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file && file.type.startsWith('image/')) {
+                                    setFotoPortadaFile(file);
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                      setFotoPortadaPreview(e.target?.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Imagen para mostrar como banner principal de la empresa<br />
+                            Formatos: JPG, PNG, GIF (máx. 5MB) - Recomendado: 1200x400px
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Videos dinámicos */}
+                <div className="md:col-span-2 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Videos de la Empresa</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addVideo}
+                      disabled={videosUrls.length >= 5}
+                      className="flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Agregar Video ({videosUrls.length}/5)
+                    </Button>
+                  </div>
+                  
+                  {videosUrls.map((video, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        placeholder="https://youtube.com/watch?v=..."
+                        value={video}
+                        onChange={(e) => updateVideo(index, e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeVideo(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  {videosUrls.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      No hay videos agregados. Haz clic en "Agregar Video" para añadir enlaces de YouTube, Vimeo, etc.
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="descripcionEmpresa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción de la Empresa *</FormLabel>
+                    <FormDescription>
+                      Describe los servicios, productos y experiencia de tu empresa
+                    </FormDescription>
+                    <FormControl>
+                      <RichTextEditor
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder="Describe tu empresa, servicios principales, experiencia en el mercado..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}
@@ -834,7 +1110,6 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     </FormDescription>
                     <FormControl>
                       <TagSelector
-                        tags={tags}
                         selectedTagIds={field.value || []}
                         onTagsChange={field.onChange}
                       />
