@@ -176,14 +176,14 @@ export default function MembershipDataTable({ memberships, onEdit, onView }: Mem
                     <TableCell>
                       <div className="text-center">
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {membership.cantidadProductosAdmitidos || 0}
+                          {membership.cantidadProductosAdmitidos === -1 ? "Sin límite" : (membership.cantidadProductosAdmitidos || 0)}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-center">
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {membership.cantidadProyectosAdmitidos || 0}
+                          {membership.cantidadProyectosAdmitidos === -1 ? "Sin límite" : (membership.cantidadProyectosAdmitidos || 0)}
                         </span>
                       </div>
                     </TableCell>

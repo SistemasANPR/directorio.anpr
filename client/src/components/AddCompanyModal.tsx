@@ -1293,43 +1293,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 </div>
 
-                {/* Representantes de ventas */}
-                <div className="md:col-span-2 space-y-3">
-                  <FormLabel>Enlaces a Representantes/Ejecutivos</FormLabel>
-                  <FormDescription className="text-xs text-gray-600">
-                    URLs directas a perfiles profesionales o páginas de contacto
-                  </FormDescription>
-                  {representantes.map((rep, index) => (
-                    <div key={index} className="flex gap-3 items-start">
-                      <Input
-                        placeholder="https://anpr.org.mx/profile-2/?usuario/"
-                        value={rep}
-                        onChange={(e) => updateRepresentante(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeRepresentante(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  {representantes.length < 3 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addRepresentante}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Agregar Representante
-                    </Button>
-                  )}
-                </div>
+
               </div>
             </div>
 
@@ -1550,7 +1514,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                       </FormDescription>
                       <FormControl>
                         <TagSelector
-                          availableTags={tags}
+                          tags={tags}
                           selectedTagIds={field.value || []}
                           onTagsChange={field.onChange}
                         />
@@ -2026,7 +1990,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 {/* Galería de Fotografías */}
                 <div className="md:col-span-2">
                   <FormLabel>
-                    Galería de Fotografías (máx. {maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes)
+                    Galería de Fotografías (máx. {maxProductImages === Infinity ? 'sin límite' : maxProductImages} imágenes)
                     {!selectedMembershipType && (
                       <span className="text-sm text-gray-500 ml-2">- Selecciona un plan de membresía primero</span>
                     )}
@@ -2071,7 +2035,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           )}
                         </div>
                         <p className="text-xs text-gray-500">
-                          {galeriaFiles.length}/{maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes • Arrastra más imágenes o haz clic en + para agregar
+                          {galeriaFiles.length}/{maxProductImages === Infinity ? 'sin límite' : maxProductImages} imágenes • Arrastra más imágenes o haz clic en + para agregar
                         </p>
                       </div>
                     ) : (
@@ -2093,7 +2057,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             {selectedMembershipType 
-                              ? `Máximo ${maxProductImages === Infinity ? 'ilimitadas' : maxProductImages} imágenes • Cada imagen: máx. 5MB, min. 800x800px, formato 1:1`
+                              ? `Máximo ${maxProductImages === Infinity ? 'sin límite' : maxProductImages} imágenes • Cada imagen: máx. 5MB, min. 800x800px, formato 1:1`
                               : 'Selecciona un plan de membresía para ver los límites'
                             }
                           </p>

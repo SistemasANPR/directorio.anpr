@@ -503,7 +503,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         if (Array.isArray(value)) {
           formData.append(key, JSON.stringify(value));
         } else if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
+          formData.append(key, value.toString());
         }
       });
       
@@ -517,10 +517,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         formData.append(`galeriaFiles`, file);
       });
 
-      return apiRequest(`/api/companies/${company?.id}`, {
-        method: "PATCH",
-        body: formData,
-      });
+      return apiRequest("PATCH", `/api/companies/${company?.id}`, formData);
     },
     onSuccess: () => {
       toast({
@@ -776,26 +773,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="representantesVentas"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Representantes de Ventas</FormLabel>
-                    <FormDescription>
-                      Información de contacto de representantes de ventas
-                    </FormDescription>
-                    <FormControl>
-                      <RichTextEditor
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        placeholder="Nombres, teléfonos y emails de representantes..."
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
             </div>
 
             {/* Sección: Galería de Productos */}
@@ -856,7 +834,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     </FormDescription>
                     <FormControl>
                       <TagSelector
-                        availableTags={tags}
+                        tags={tags}
                         selectedTagIds={field.value || []}
                         onTagsChange={field.onChange}
                       />
@@ -874,8 +852,8 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   {currentMembershipType && (
                     <MembershipLimitsValidator
                       membershipType={currentMembershipType}
-                      currentCount={galeriaPreviews.length}
-                      type="products"
+                      productCount={galeriaPreviews.length}
+                      projectCount={0}
                       className="mt-2"
                     />
                   )}
@@ -1149,7 +1127,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                                 <div className="h-5 w-5 border-2 border-gray-300 rounded mt-0.5 flex-shrink-0" />
                               )}
                               <div className="flex-1">
-                                <h4 className="font-medium text-sm">{certificate.nombre}</h4>
+                                <h4 className="font-medium text-sm">{certificate.nombreCertificado}</h4>
                                 {certificate.descripcion && (
                                   <p className="text-xs text-gray-600 mt-1">{certificate.descripcion}</p>
                                 )}
@@ -1266,19 +1244,19 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                       <div className="bg-white p-3 rounded border">
                         <div className="font-medium text-gray-700">Productos</div>
                         <div className="text-lg font-bold text-blue-600">
-                          {currentMembershipType.cantidadProductosAdmitidos || "Ilimitado"}
+                          {currentMembershipType.cantidadProductosAdmitidos === -1 ? "Sin límite" : (currentMembershipType.cantidadProductosAdmitidos || "Sin límite")}
                         </div>
                       </div>
                       <div className="bg-white p-3 rounded border">
                         <div className="font-medium text-gray-700">Proyectos</div>
                         <div className="text-lg font-bold text-blue-600">
-                          {currentMembershipType.cantidadProyectosAdmitidos || "Ilimitado"}
+                          {currentMembershipType.cantidadProyectosAdmitidos === -1 ? "Sin límite" : (currentMembershipType.cantidadProyectosAdmitidos || "Sin límite")}
                         </div>
                       </div>
                       <div className="bg-white p-3 rounded border">
                         <div className="font-medium text-gray-700">Fotos</div>
                         <div className="text-lg font-bold text-blue-600">
-                          {currentMembershipType.cantidadFotosAdmitidas || "Ilimitado"}
+                          {currentMembershipType.cantidadProductosAdmitidos === -1 ? "Sin límite" : (currentMembershipType.cantidadProductosAdmitidos || "Sin límite")}
                         </div>
                       </div>
                       <div className="bg-white p-3 rounded border">

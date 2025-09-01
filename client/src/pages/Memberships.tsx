@@ -628,7 +628,7 @@ export default function Memberships() {
                   <label className="text-sm font-medium text-gray-500">Productos Permitidos</label>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {selectedMembership.cantidadProductosAdmitidos || 0}
+                      {selectedMembership.cantidadProductosAdmitidos === -1 ? "Sin límite" : (selectedMembership.cantidadProductosAdmitidos || 0)}
                     </span>
                   </div>
                 </div>
@@ -636,7 +636,7 @@ export default function Memberships() {
                   <label className="text-sm font-medium text-gray-500">Proyectos Permitidos</label>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {selectedMembership.cantidadProyectosAdmitidos || 0}
+                      {selectedMembership.cantidadProyectosAdmitidos === -1 ? "Sin límite" : (selectedMembership.cantidadProyectosAdmitidos || 0)}
                     </span>
                   </div>
                 </div>

@@ -76,7 +76,7 @@ export default function MembershipLimitsValidator({
   };
 
   const formatLimit = (limit: number): string => {
-    return limit === -1 ? "Ilimitado" : limit.toString();
+    return limit === -1 ? "Sin límite" : limit.toString();
   };
 
   if (isLoading) {
@@ -138,7 +138,7 @@ export default function MembershipLimitsValidator({
             </div>
             <Badge variant={canAddProducts ? "default" : "destructive"}>
               {limits.products.limit === -1 ? (
-                "Ilimitado"
+                "Sin límite"
               ) : (
                 `${limits.products.current + additionalProducts}/${limits.products.limit}`
               )}
@@ -182,7 +182,7 @@ export default function MembershipLimitsValidator({
             </div>
             <Badge variant={canAddProjects ? "default" : "destructive"}>
               {limits.projects.limit === -1 ? (
-                "Ilimitado"
+                "Sin límite"
               ) : (
                 `${limits.projects.current + additionalProjects}/${limits.projects.limit}`
               )}
