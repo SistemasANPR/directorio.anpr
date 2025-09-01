@@ -14,8 +14,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, Edit, Trash2, MoreHorizontal, Award } from "lucide-react";
+import { Eye, Edit, Trash2, MoreHorizontal, Award, Settings } from "lucide-react";
 import { Certificate } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CertificateTableProps {
   certificates: Certificate[];
@@ -35,6 +36,7 @@ const getVisibilityBadgeColor = (visibility?: string) => {
 };
 
 export default function CertificateTable({ certificates, onEdit, onDelete }: CertificateTableProps) {
+  const { isAdmin } = useAuth();
   if (certificates.length === 0) {
     return (
       <div className="text-center py-8">
@@ -57,8 +59,13 @@ export default function CertificateTable({ certificates, onEdit, onDelete }: Cer
               Descripción
             </TableHead>
             <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
-              Visibilidad
+              Estado
             </TableHead>
+            {isAdmin && (
+              <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
+                Asignación Automática
+              </TableHead>
+            )}
             <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
               Acciones
             </TableHead>
@@ -92,6 +99,25 @@ export default function CertificateTable({ certificates, onEdit, onDelete }: Cer
                   {certificate.estado?.charAt(0).toUpperCase() + certificate.estado?.slice(1) || "Activo"}
                 </Badge>
               </TableCell>
+              {isAdmin && (
+                <TableCell className="py-4 px-4">
+                  <div className="flex items-center space-x-2">
+                    {certificate.asignacionAutomatica ? (
+                      <div className="flex items-center space-x-2">
+                        <Settings className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-600 font-medium">Automática</span>
+                        {certificate.membershipPlanIds && Array.isArray(certificate.membershipPlanIds) && certificate.membershipPlanIds.length > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {certificate.membershipPlanIds.length} plan{certificate.membershipPlanIds.length !== 1 ? 'es' : ''}
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500">Manual</span>
+                    )}
+                  </div>
+                </TableCell>
+              )}
               <TableCell className="py-4 px-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

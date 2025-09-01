@@ -26,11 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertCertificateSchema, Certificate } from "@shared/schema";
 import { Award } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EditCertificateModalProps {
   open: boolean;
@@ -46,6 +48,13 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function EditCertificateModal({ open, onOpenChange, certificate }: EditCertificateModalProps) {
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
+
+  // Obtener tipos de membresía para la selección
+  const { data: membershipTypes = [] } = useQuery<any[]>({
+    queryKey: ["/api/membership-types"],
+    enabled: isAdmin // Solo cargar si es admin
+  });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -57,6 +66,8 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
       fechaVencimiento: "",
       imagenUrl: "",
       estado: "activo",
+      asignacionAutomatica: false,
+      membershipPlanIds: [],
     },
   });
 
@@ -77,6 +88,8 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         fechaVencimiento,
         imagenUrl: certificate.imagenUrl || "",
         estado: certificate.estado || "activo",
+        asignacionAutomatica: certificate.asignacionAutomatica || false,
+        membershipPlanIds: certificate.membershipPlanIds || [],
       });
     }
   }, [certificate, open, form]);
@@ -260,6 +273,73 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                 </FormItem>
               )}
             />
+
+            {/* Campos de asignación automática - Solo para administradores */}
+            {isAdmin && (
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900">Asignación Automática</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="asignacionAutomatica"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Asignar automáticamente a planes de membresía
+                        </FormLabel>
+                        <div className="text-sm text-gray-500">
+                          Si está habilitado, este certificado se asignará automáticamente a las empresas de los planes seleccionados
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("asignacionAutomatica") && (
+                  <FormField
+                    control={form.control}
+                    name="membershipPlanIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Planes de Membresía</FormLabel>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {membershipTypes.map((membershipType: any) => (
+                            <div key={membershipType.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`edit-plan-${membershipType.id}`}
+                                checked={Array.isArray(field.value) && field.value.includes(membershipType.id)}
+                                onCheckedChange={(checked) => {
+                                  const currentValues = Array.isArray(field.value) ? field.value : [];
+                                  if (checked) {
+                                    field.onChange([...currentValues, membershipType.id]);
+                                  } else {
+                                    field.onChange(currentValues.filter((id: number) => id !== membershipType.id));
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`edit-plan-${membershipType.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {membershipType.nombrePlan}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            )}
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button

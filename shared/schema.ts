@@ -101,6 +101,7 @@ export const certificates = pgTable("certificates", {
   fechaVencimiento: text("fecha_vencimiento"),
   entidadEmisora: text("entidad_emisora"),
   estado: text("estado").notNull().default("activo"),
+  asignacionAutomatica: boolean("asignacion_automatica").notNull().default(false), // Si se asigna automáticamente a los planes seleccionados
   membershipPlanIds: jsonb("membership_plan_ids"), // Array of membership plan IDs that include this certificate by default
   creadoPorAdmin: boolean("creado_por_admin").notNull().default(false), // If true, only visible to admins
   createdAt: timestamp("created_at").defaultNow().notNull(),
