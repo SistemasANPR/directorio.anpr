@@ -981,9 +981,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 if (user.email) {
                                   form.setValue("email1", user.email);
                                 }
-                                if (user.name) {
-                                  form.setValue("nombreEmpresa", user.name);
-                                }
                                 // Auto-llenar el primer representante con la URL de PeepSo
                                 if (user.username) {
                                   const peepsoUrl = `https://anpr.org.mx/profile-2/?${user.username}/`;
@@ -1067,7 +1064,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                               </div>
                             )}
                             <div className="text-xs text-green-700 font-medium mt-1">
-                              ✨ Campos auto-llenados: Email, Nombre de empresa y Enlace a perfil profesional
+                              ✨ Campos auto-llenados: Email y Enlace a perfil profesional
                             </div>
                             <div className="pt-2">
                               <Button
