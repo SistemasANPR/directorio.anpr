@@ -140,7 +140,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
@@ -285,9 +285,10 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
             />
 
             {/* Campos de asignación automática - Solo para administradores */}
-            {true && (
-              <div className="space-y-4 border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900">Asignación Automática</h3>
+            {isAdmin && (
+              <div className="space-y-4 border-t pt-4 bg-blue-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900">🔧 Asignación Automática</h3>
+                <p className="text-sm text-gray-600">Esta sección es visible solo para administradores</p>
                 
                 <FormField
                   control={form.control}
