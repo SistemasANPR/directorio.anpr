@@ -53,12 +53,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
   const { toast } = useToast();
   const { isAdmin, user } = useAuth();
   
-  // Debug: Log para verificar el estado del usuario y admin
-  if (open) {
-    console.log("🚨 EditCertificateModal OPENED - User:", user);
-    console.log("🚨 EditCertificateModal OPENED - IsAdmin:", isAdmin);
-    console.log("🚨 EditCertificateModal OPENED - Certificate:", certificate);
-  }
+
 
   // Obtener tipos de membresía para la selección
   const { data: membershipTypes = [] } = useQuery<any[]>({
@@ -285,17 +280,10 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
               )}
             />
 
-            {/* DEBUG: Test section always visible */}
-            <div className="space-y-4 border-t pt-4 bg-red-100 p-4 rounded-lg border-red-500 border-2">
-              <h3 className="text-lg font-semibold text-red-900">⚠️ SECCIÓN DE PRUEBA - SIEMPRE VISIBLE</h3>
-              <p className="text-sm text-red-600">Esta sección roja debe ser siempre visible para depuración</p>
-            </div>
-
             {/* Campos de asignación automática - Solo para administradores */}
-            {isAdmin ? (
-              <div className="space-y-4 border-t pt-4 bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900">🔧 Asignación Automática (isAdmin: {String(isAdmin)})</h3>
-                <p className="text-sm text-gray-600">Esta sección es visible solo para administradores</p>
+            {isAdmin && (
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900">Asignación Automática</h3>
                 
                 <FormField
                   control={form.control}
@@ -356,11 +344,6 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                     )}
                   />
                 )}
-              </div>
-            ) : (
-              <div className="space-y-4 border-t pt-4 bg-gray-100 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900">❌ NO ADMIN</h3>
-                <p className="text-sm text-gray-600">isAdmin es: {String(isAdmin)}</p>
               </div>
             )}
 
