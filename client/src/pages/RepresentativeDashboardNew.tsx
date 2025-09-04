@@ -29,7 +29,8 @@ import { es } from "date-fns/locale";
 
 export default function RepresentativeDashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("overview");
+  // Establecer tab inicial basado en el rol del usuario
+  const [activeTab, setActiveTab] = useState("company"); // Por defecto 'company' para representantes/users
 
   // Redirigir representantes y users que intenten acceder a 'overview'
   useEffect(() => {
@@ -91,8 +92,8 @@ export default function RepresentativeDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className={`grid w-full ${(user?.role === 'representante' || user?.role === 'user') ? 'grid-cols-5' : 'grid-cols-6'} mb-8`}>
-            {/* Solo mostrar tab Resumen para administradores */}
-            {user?.role === 'admin' && (
+            {/* BLOQUEAR completamente tab Resumen para representante y user */}
+            {user?.role !== 'representante' && user?.role !== 'user' && (
               <TabsTrigger value="overview">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Resumen
@@ -120,8 +121,8 @@ export default function RepresentativeDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab - SOLO para administradores */}
-          {user?.role === 'admin' && (
+          {/* Overview Tab - BLOQUEADO para representante y user */}
+          {user?.role !== 'representante' && user?.role !== 'user' && (
             <TabsContent value="overview">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Quick Stats */}
