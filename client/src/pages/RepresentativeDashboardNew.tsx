@@ -31,10 +31,9 @@ export default function RepresentativeDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Cambiar tab por defecto para representantes
+  // Redirigir representantes y users que intenten acceder a 'overview'
   useEffect(() => {
-    const isRepresentativeUser = user?.role === 'representante' || user?.role === 'user';
-    if (isRepresentativeUser && activeTab === 'overview') {
+    if ((user?.role === 'representante' || user?.role === 'user') && activeTab === 'overview') {
       setActiveTab('company');
     }
   }, [user?.role, activeTab]);
@@ -43,15 +42,15 @@ export default function RepresentativeDashboard() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    const isRepresentativeUser = user?.role === 'representante' || user?.role === 'user';
-    const allowedTabs = isRepresentativeUser 
-      ? ['company', 'projects', 'certificates', 'membership', 'payments']
-      : ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'];
+    // Definir tabs permitidos según rol
+    const allowedTabs = (user?.role === 'representante' || user?.role === 'user')
+      ? ['company', 'projects', 'certificates', 'membership', 'payments'] // SIN overview para representantes y users
+      : ['overview', 'company', 'projects', 'certificates', 'membership', 'payments']; // CON overview solo para admins
     
     if (tabParam && allowedTabs.includes(tabParam)) {
       setActiveTab(tabParam);
-    } else if (isRepresentativeUser) {
-      // Si es representante y no hay tab válido, ir a 'company' por defecto
+    } else if (user?.role === 'representante' || user?.role === 'user') {
+      // Si es representante o user, ir a 'company' por defecto (NO a overview)
       setActiveTab('company');
     }
   }, [user?.role]);
@@ -92,7 +91,8 @@ export default function RepresentativeDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className={`grid w-full ${(user?.role === 'representante' || user?.role === 'user') ? 'grid-cols-5' : 'grid-cols-6'} mb-8`}>
-            {(user?.role !== 'representante' && user?.role !== 'user') && (
+            {/* Solo mostrar tab Resumen para administradores */}
+            {user?.role === 'admin' && (
               <TabsTrigger value="overview">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Resumen
@@ -120,8 +120,8 @@ export default function RepresentativeDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab - Solo para admins */}
-          {(user?.role !== 'representante' && user?.role !== 'user') && (
+          {/* Overview Tab - SOLO para administradores */}
+          {user?.role === 'admin' && (
             <TabsContent value="overview">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Quick Stats */}
