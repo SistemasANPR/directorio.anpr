@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Plus, DollarSign, TrendingUp, Activity, BarChart3, PieChart } from "lucide-react";
@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompanyWithDetails, Category, MembershipType } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import Swal from 'sweetalert2';
@@ -48,7 +49,15 @@ interface StatisticsData {
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  
+  // BLOQUEAR acceso para representantes y users
+  useEffect(() => {
+    if (user?.role === 'representante' || user?.role === 'user') {
+      window.location.href = '/representative-dashboard?tab=company';
+    }
+  }, [user?.role]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithDetails | null>(null);
   const [searchTerm, setSearchTerm] = useState("");

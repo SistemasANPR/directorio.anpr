@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Building, 
@@ -21,12 +21,8 @@ interface RepresentativeSidebarProps {
   className?: string;
 }
 
+// BLOQUEAR "Resumen" para representantes y users
 const representativeNavItems = [
-  {
-    name: "Resumen",
-    href: "/representative-dashboard?tab=overview",
-    icon: BarChart3,
-  },
   {
     name: "Mi Empresa",
     href: "/representative-dashboard?tab=company",
@@ -82,9 +78,16 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
     }
   };
 
+  // REDIRIGIR representantes/users del dashboard principal
+  useEffect(() => {
+    if ((user?.role === 'representante' || user?.role === 'user') && window.location.pathname === '/dashboard') {
+      window.location.href = '/representative-dashboard?tab=company';
+    }
+  }, [user?.role]);
+
   const getActiveTab = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('tab') || 'overview';
+    return urlParams.get('tab') || 'company'; // cambiar de 'overview' a 'company'
   };
 
   const isTabActive = (href: string) => {
