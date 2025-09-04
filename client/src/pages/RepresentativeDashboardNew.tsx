@@ -301,7 +301,13 @@ export default function RepresentativeDashboard() {
                     <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
                     <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
-                    <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
+                    <Button 
+                      className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                      onClick={() => {
+                        // Redirigir a la página de registro de empresa
+                        window.location.href = '/registro-y-pago';
+                      }}
+                    >
                       Registrar empresa
                     </Button>
                   </div>
