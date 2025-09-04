@@ -108,29 +108,6 @@ export default function CompanyDetails() {
     retry: false, // No reintentar si falla (es información adicional)
   });
 
-  // Query para verificar membresías de correos electrónicos
-  const { data: emailMemberships } = useQuery({
-    queryKey: ["/api/verify-email-membership", id],
-    queryFn: async () => {
-      if (!id || !company) return null;
-      const emails = [company.email1, company.email2].filter(Boolean);
-      if (emails.length === 0) return null;
-      
-      const response = await fetch("/api/verify-email-membership", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ emails }),
-      });
-      
-      if (!response.ok) return null;
-      return response.json();
-    },
-    enabled: !!id && !!company,
-    retry: false,
-  });
-
 
 
 
@@ -592,41 +569,9 @@ export default function CompanyDetails() {
                       <Mail className="h-4 w-4 mr-2" />
                       Correos Electrónicos
                     </h4>
-                    {emails.map((email, index) => {
-                      // Buscar si este email tiene membresía empresarial
-                      const emailMembership = emailMemberships?.email_memberships?.find(
-                        (em: any) => em.email === email
-                      );
-                      const hasEnterpriseMemmbership = emailMembership?.hasEnterpriseMemmbership;
-                      const peepsoUrl = emailMembership?.peepsoProfile?.peepso_url;
-
-                      // Si tiene membresía empresarial, hacer el email clickeable
-                      if (hasEnterpriseMemmbership && peepsoUrl) {
-                        return (
-                          <div key={index} className="flex items-center space-x-2">
-                            <a
-                              href={peepsoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 transition-colors font-medium flex items-center"
-                              title={`Ver perfil de ${emailMembership.peepsoProfile.display_name} en PeepSo`}
-                            >
-                              <Mail className="h-4 w-4 mr-1" />
-                              {email}
-                              <ExternalLink className="h-3 w-3 ml-1" />
-                            </a>
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                              Miembro ANPR
-                            </span>
-                          </div>
-                        );
-                      }
-
-                      // Email normal sin membresía empresarial
-                      return (
-                        <p key={index} className="text-gray-600">{email}</p>
-                      );
-                    })}
+                    {emails.map((email, index) => (
+                      <p key={index} className="text-gray-600">{email}</p>
+                    ))}
                   </div>
                 )}
 
