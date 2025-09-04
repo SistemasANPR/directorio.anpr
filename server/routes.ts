@@ -4480,6 +4480,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para verificar si un correo tiene membresía empresarial y obtener su perfil de PeepSo
+  app.post("/api/verify-email-membership", async (req, res) => {
+    try {
+      const { emails } = req.body;
+      
+      if (!Array.isArray(emails) || emails.length === 0) {
+        return res.status(400).json({ error: "Se requiere un array de emails" });
+      }
+
+      console.log(`[Email Membership] Verificando membresías para emails:`, emails);
+
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      const emailMemberships = [];
+
+      for (const email of emails) {
+        console.log(`[Email Membership] Verificando email: ${email}`);
+        
+        try {
+          // Buscar usuario por email en WordPress
+          const userSearchResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users?search=${encodeURIComponent(email)}`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!userSearchResponse.ok) {
+            console.log(`[Email Membership] No se pudo buscar usuario para email: ${email}`);
+            emailMemberships.push({
+              email,
+              hasEnterpriseMemmbership: false,
+              peepsoProfile: null,
+              error: "Usuario no encontrado en WordPress"
+            });
+            continue;
+          }
+
+          const users = await userSearchResponse.json();
+          const user = users.find(u => u.email === email);
+          
+          if (!user) {
+            console.log(`[Email Membership] Usuario no encontrado para email: ${email}`);
+            emailMemberships.push({
+              email,
+              hasEnterpriseMemmbership: false,
+              peepsoProfile: null,
+              error: "Email no encontrado"
+            });
+            continue;
+          }
+
+          console.log(`[Email Membership] Usuario encontrado: ${user.username} (ID: ${user.id})`);
+
+          // Verificar membresía empresarial en MemberPress
+          let hasEnterpriseMemmbership = false;
+          const memberPressEndpoints = [
+            `${baseUrl}/wp-json/mp/v1/members/${user.id}`,
+            `${baseUrl}/wp-json/memberpress/v1/members/${user.id}`,
+            `${baseUrl}/wp-json/mp/v1/subscriptions?member=${user.id}`,
+            `${baseUrl}/wp-json/memberpress/v1/subscriptions?member=${user.id}`,
+          ];
+
+          for (const endpoint of memberPressEndpoints) {
+            try {
+              console.log(`[Email Membership] Verificando membresía en: ${endpoint}`);
+              const membershipResponse = await fetch(endpoint, {
+                headers: {
+                  'Authorization': `Basic ${authString}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (membershipResponse.ok) {
+                const membershipData = await membershipResponse.json();
+                console.log(`[Email Membership] Datos de membresía para ${email}:`, JSON.stringify(membershipData, null, 2));
+
+                // Buscar membresía empresarial activa
+                if (Array.isArray(membershipData)) {
+                  hasEnterpriseMemmbership = membershipData.some(membership => {
+                    const membershipName = membership.name || membership.title || membership.membership_name || '';
+                    const status = membership.status || membership.subscription_status || 'inactive';
+                    const isActive = status.toLowerCase() === 'active' || status.toLowerCase() === 'confirmed';
+                    const isEnterprise = membershipName.toLowerCase().includes('empresarial') || 
+                                       membershipName.toLowerCase().includes('empresa') ||
+                                       membershipName.toLowerCase().includes('anpr');
+                    
+                    console.log(`[Email Membership] Evaluando membresía para ${email}: ${membershipName} (Status: ${status}) - Empresarial: ${isEnterprise}, Activa: ${isActive}`);
+                    return isEnterprise && isActive;
+                  });
+                } else if (membershipData.name || membershipData.title) {
+                  const membershipName = membershipData.name || membershipData.title || '';
+                  const status = membershipData.status || membershipData.subscription_status || 'inactive';
+                  const isActive = status.toLowerCase() === 'active' || status.toLowerCase() === 'confirmed';
+                  const isEnterprise = membershipName.toLowerCase().includes('empresarial') || 
+                                     membershipName.toLowerCase().includes('empresa') ||
+                                     membershipName.toLowerCase().includes('anpr');
+                  
+                  console.log(`[Email Membership] Evaluando membresía única para ${email}: ${membershipName} (Status: ${status}) - Empresarial: ${isEnterprise}, Activa: ${isActive}`);
+                  hasEnterpriseMemmbership = isEnterprise && isActive;
+                }
+
+                if (hasEnterpriseMemmbership) {
+                  console.log(`[Email Membership] ✓ Membresía empresarial activa encontrada para ${email}`);
+                  break;
+                }
+              }
+            } catch (error) {
+              console.log(`[Email Membership] Error consultando membresía en ${endpoint}:`, error.message);
+            }
+          }
+
+          // Si tiene membresía empresarial, obtener datos básicos para PeepSo
+          let peepsoProfile = null;
+          if (hasEnterpriseMemmbership) {
+            peepsoProfile = {
+              user_id: user.id,
+              username: user.username,
+              display_name: user.name,
+              email: user.email,
+              avatar_url: user.avatar_urls ? user.avatar_urls['96'] || user.avatar_urls['48'] : null,
+              profile_url: `${baseUrl}/profile/${user.username}`,
+              peepso_url: `https://anpr.org.mx/profile/${user.username}` // URL específica de PeepSo en anpr.org.mx
+            };
+          }
+
+          emailMemberships.push({
+            email,
+            hasEnterpriseMemmbership,
+            peepsoProfile,
+            wordpress_user: {
+              id: user.id,
+              username: user.username,
+              display_name: user.name
+            }
+          });
+
+        } catch (error) {
+          console.error(`[Email Membership] Error procesando email ${email}:`, error);
+          emailMemberships.push({
+            email,
+            hasEnterpriseMemmbership: false,
+            peepsoProfile: null,
+            error: error.message
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        email_memberships: emailMemberships,
+        total_verified: emailMemberships.length,
+        enterprise_members: emailMemberships.filter(em => em.hasEnterpriseMemmbership).length
+      });
+
+    } catch (error: any) {
+      console.error(`[Email Membership] Error general:`, error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
