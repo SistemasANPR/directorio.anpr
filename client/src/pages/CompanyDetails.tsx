@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
-import { ArrowLeft, MapPin, Phone, Mail, Globe, Video, FileText, Award, Star, MessageSquare, Calculator, Building, Grid3x3, Facebook, Linkedin, Twitter, Instagram, Heart, X, ChevronLeft, ChevronRight, FolderOpen, Plus, Calendar, User, Eye, Play, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, Globe, Video, FileText, Award, Star, MessageSquare, Calculator, Building, Grid3x3, Facebook, Linkedin, Twitter, Instagram, Heart, X, ChevronLeft, ChevronRight, FolderOpen, Plus, Calendar, User, Eye, Play, Edit, Trash2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +93,19 @@ export default function CompanyDetails() {
       return data.opinions || [];
     },
     enabled: !!id,
+  });
+
+  // Query para perfil de PeepSo del representante
+  const { data: representativePeepsoProfile } = useQuery({
+    queryKey: ["/api/companies", id, "representative-peepso-profile"],
+    queryFn: async () => {
+      if (!id) return null;
+      const response = await fetch(`/api/companies/${id}/representative-peepso-profile`);
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!id,
+    retry: false, // No reintentar si falla (es información adicional)
   });
 
 
@@ -609,6 +622,123 @@ export default function CompanyDetails() {
                       ))}
                     </div>
                   </div>
+                )}
+
+                {/* Perfil del Representante (PeepSo) */}
+                {representativePeepsoProfile?.success && representativePeepsoProfile?.profile && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center">
+                        <User className="h-4 w-4 mr-2" />
+                        Representante
+                      </h4>
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        {/* Información básica del representante */}
+                        <div className="flex items-center space-x-3">
+                          {representativePeepsoProfile.profile.wordpress_profile?.avatar_url && (
+                            <img
+                              src={representativePeepsoProfile.profile.wordpress_profile.avatar_url}
+                              alt={representativePeepsoProfile.profile.wordpress_profile.display_name || "Representante"}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">
+                              {representativePeepsoProfile.profile.wordpress_profile?.display_name || 
+                               representativePeepsoProfile.profile.representative?.local_display_name}
+                            </p>
+                            <p className="text-sm text-gray-600">Representante de {company.nombreEmpresa}</p>
+                          </div>
+                        </div>
+
+                        {/* Enlaces del perfil */}
+                        {representativePeepsoProfile.profile.wordpress_profile?.profile_url && (
+                          <div>
+                            <a
+                              href={representativePeepsoProfile.profile.wordpress_profile.profile_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Ver perfil completo
+                            </a>
+                          </div>
+                        )}
+
+                        {/* Bio si está disponible */}
+                        {representativePeepsoProfile.profile.wordpress_profile?.bio && (
+                          <div>
+                            <p className="text-sm text-gray-700 italic">
+                              "{representativePeepsoProfile.profile.wordpress_profile.bio}"
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Enlaces de redes sociales del representante */}
+                        {representativePeepsoProfile.profile.social_links && Object.keys(representativePeepsoProfile.profile.social_links).length > 0 && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">Redes sociales:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {representativePeepsoProfile.profile.social_links.facebook && (
+                                <a
+                                  href={representativePeepsoProfile.profile.social_links.facebook}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                                  title="Facebook"
+                                >
+                                  <Facebook className="h-4 w-4" />
+                                </a>
+                              )}
+                              {representativePeepsoProfile.profile.social_links.twitter && (
+                                <a
+                                  href={representativePeepsoProfile.profile.social_links.twitter}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-400 hover:bg-sky-500 text-white transition-colors"
+                                  title="Twitter"
+                                >
+                                  <Twitter className="h-4 w-4" />
+                                </a>
+                              )}
+                              {representativePeepsoProfile.profile.social_links.linkedin && (
+                                <a
+                                  href={representativePeepsoProfile.profile.social_links.linkedin}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-700 hover:bg-blue-800 text-white transition-colors"
+                                  title="LinkedIn"
+                                >
+                                  <Linkedin className="h-4 w-4" />
+                                </a>
+                              )}
+                              {representativePeepsoProfile.profile.social_links.instagram && (
+                                <a
+                                  href={representativePeepsoProfile.profile.social_links.instagram}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all"
+                                  title="Instagram"
+                                >
+                                  <Instagram className="h-4 w-4" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Ubicación si está disponible */}
+                        {representativePeepsoProfile.profile.wordpress_profile?.location && (
+                          <div className="flex items-center text-sm text-gray-600">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            <span>{representativePeepsoProfile.profile.wordpress_profile.location}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>

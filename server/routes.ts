@@ -4092,6 +4092,324 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obtener perfil de PeepSo de un usuario de WordPress
+  app.get("/api/peepso-profile/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      console.log(`[PeepSo Profile] Obteniendo perfil de PeepSo para usuario ${userId}`);
+
+      // Obtener información básica del usuario
+      const userResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users/${userId}?context=edit`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!userResponse.ok) {
+        return res.status(404).json({ error: `Usuario no encontrado: ${userResponse.status}` });
+      }
+
+      const userData = await userResponse.json();
+      console.log(`[PeepSo Profile] Usuario básico obtenido: ${userData.username}`);
+
+      // Intentar obtener datos de PeepSo a través de diferentes endpoints posibles
+      const peepsoEndpoints = [
+        // Endpoint directo de PeepSo (si existe)
+        `${baseUrl}/wp-json/peepso/v1/users/${userId}`,
+        `${baseUrl}/wp-json/peepso/v1/profile/${userId}`,
+        // Endpoints alternativos
+        `${baseUrl}/wp-json/peepso-api/v1/users/${userId}`,
+        `${baseUrl}/wp-json/peepso-api/v1/profile/${userId}`,
+      ];
+
+      let peepsoData = null;
+      let successfulEndpoint = null;
+
+      for (const endpoint of peepsoEndpoints) {
+        try {
+          console.log(`[PeepSo Profile] Intentando endpoint: ${endpoint}`);
+          const response = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            peepsoData = data;
+            successfulEndpoint = endpoint;
+            console.log(`[PeepSo Profile] Datos obtenidos exitosamente de: ${endpoint}`);
+            break;
+          }
+        } catch (error) {
+          console.log(`[PeepSo Profile] Error en endpoint ${endpoint}:`, error.message);
+        }
+      }
+
+      // Si no se pudieron obtener datos de PeepSo, buscar en los metadatos del usuario
+      const userMeta = userData.meta || {};
+      const peepsoFields = Object.keys(userMeta).filter(key => 
+        key.includes('peepso') || key.includes('ps_') || key.startsWith('_peepso')
+      );
+
+      // Campos comunes de perfil social que PeepSo podría usar
+      const socialFields = Object.keys(userMeta).filter(key => 
+        key.includes('facebook') || key.includes('twitter') || key.includes('instagram') || 
+        key.includes('linkedin') || key.includes('social') || key.includes('profile')
+      );
+
+      const peepsoProfile = {
+        user_id: userData.id,
+        username: userData.username,
+        display_name: userData.name,
+        email: userData.email,
+        avatar_url: userData.avatar_urls ? userData.avatar_urls['96'] || userData.avatar_urls['48'] : null,
+        profile_url: `${baseUrl}/profile/${userData.username}`, // URL típica de perfil en PeepSo
+        peepso_api_data: peepsoData,
+        successful_endpoint: successfulEndpoint,
+        // Metadatos de PeepSo encontrados
+        peepso_metadata: peepsoFields.reduce((acc, field) => {
+          acc[field] = userMeta[field];
+          return acc;
+        }, {} as any),
+        // Campos sociales generales
+        social_metadata: socialFields.reduce((acc, field) => {
+          acc[field] = userMeta[field];
+          return acc;
+        }, {} as any),
+        // Información adicional que podría ser útil
+        bio: userMeta['description'] || userMeta['bio'] || userMeta['user_description'] || null,
+        website: userData.link || userMeta['website'] || null,
+        location: userMeta['location'] || userMeta['user_location'] || null,
+        // URLs de redes sociales extraídos de metadatos
+        social_links: {
+          facebook: userMeta['facebook'] || userMeta['_facebook'] || userMeta['peepso_facebook'] || null,
+          twitter: userMeta['twitter'] || userMeta['_twitter'] || userMeta['peepso_twitter'] || null,
+          instagram: userMeta['instagram'] || userMeta['_instagram'] || userMeta['peepso_instagram'] || null,
+          linkedin: userMeta['linkedin'] || userMeta['_linkedin'] || userMeta['peepso_linkedin'] || null,
+        }
+      };
+
+      res.json({
+        success: true,
+        profile: peepsoProfile,
+        debug_info: {
+          peepso_fields_found: peepsoFields.length,
+          social_fields_found: socialFields.length,
+          api_data_available: !!peepsoData,
+          successful_api_endpoint: successfulEndpoint
+        }
+      });
+
+    } catch (error: any) {
+      console.error(`[PeepSo Profile] Error general:`, error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Endpoint para obtener el perfil de PeepSo del representante asociado a una empresa
+  app.get("/api/companies/:companyId/representative-peepso-profile", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId);
+      
+      console.log(`[Company PeepSo Profile] Obteniendo perfil del representante para empresa ${companyId}`);
+
+      // Obtener la empresa con detalles del representante
+      const company = await storage.getCompany(companyId);
+      if (!company) {
+        return res.status(404).json({ error: "Empresa no encontrada" });
+      }
+
+      if (!company.user || !company.userId) {
+        console.log(`[Company PeepSo Profile] La empresa ${companyId} no tiene representante asociado`);
+        return res.json({
+          success: true,
+          profile: null,
+          message: "La empresa no tiene un representante asociado"
+        });
+      }
+
+      console.log(`[Company PeepSo Profile] Representante encontrado: ${company.user.email} (ID: ${company.user.id})`);
+
+      // Verificar si el representante es de WordPress (tiene firebaseUid que empieza con 'wp_')
+      if (!company.user.firebaseUid?.startsWith('wp_')) {
+        console.log(`[Company PeepSo Profile] El representante no es de WordPress: ${company.user.firebaseUid}`);
+        return res.json({
+          success: true,
+          profile: null,
+          message: "El representante no está asociado con WordPress/MemberPress"
+        });
+      }
+
+      // Extraer el ID de WordPress del firebaseUid (formato: wp_{wordpressId}_{timestamp})
+      const wordpressIdMatch = company.user.firebaseUid.match(/^wp_(\d+)_/);
+      if (!wordpressIdMatch) {
+        console.log(`[Company PeepSo Profile] No se pudo extraer ID de WordPress de: ${company.user.firebaseUid}`);
+        return res.json({
+          success: true,
+          profile: null,
+          message: "No se pudo determinar el ID de WordPress del representante"
+        });
+      }
+
+      const wordpressUserId = wordpressIdMatch[1];
+      console.log(`[Company PeepSo Profile] ID de WordPress extraído: ${wordpressUserId}`);
+
+      // Intentar obtener el perfil de PeepSo usando nuestro endpoint interno
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.status(400).json({ error: "Configuración de WordPress incompleta" });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      // Obtener información básica del usuario de WordPress
+      const userResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users/${wordpressUserId}?context=edit`, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!userResponse.ok) {
+        console.log(`[Company PeepSo Profile] Usuario de WordPress no encontrado: ${wordpressUserId}`);
+        return res.json({
+          success: true,
+          profile: null,
+          message: "Usuario no encontrado en WordPress"
+        });
+      }
+
+      const userData = await userResponse.json();
+      console.log(`[Company PeepSo Profile] Usuario de WordPress obtenido: ${userData.username}`);
+
+      // Intentar obtener datos de PeepSo
+      const peepsoEndpoints = [
+        `${baseUrl}/wp-json/peepso/v1/users/${wordpressUserId}`,
+        `${baseUrl}/wp-json/peepso/v1/profile/${wordpressUserId}`,
+        `${baseUrl}/wp-json/peepso-api/v1/users/${wordpressUserId}`,
+        `${baseUrl}/wp-json/peepso-api/v1/profile/${wordpressUserId}`,
+      ];
+
+      let peepsoData = null;
+      let successfulEndpoint = null;
+
+      for (const endpoint of peepsoEndpoints) {
+        try {
+          console.log(`[Company PeepSo Profile] Intentando endpoint: ${endpoint}`);
+          const response = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            peepsoData = data;
+            successfulEndpoint = endpoint;
+            console.log(`[Company PeepSo Profile] Datos de PeepSo obtenidos de: ${endpoint}`);
+            break;
+          }
+        } catch (error) {
+          console.log(`[Company PeepSo Profile] Error en endpoint ${endpoint}:`, error.message);
+        }
+      }
+
+      // Procesar metadatos del usuario para campos sociales
+      const userMeta = userData.meta || {};
+      const peepsoFields = Object.keys(userMeta).filter(key => 
+        key.includes('peepso') || key.includes('ps_') || key.startsWith('_peepso')
+      );
+
+      const socialFields = Object.keys(userMeta).filter(key => 
+        key.includes('facebook') || key.includes('twitter') || key.includes('instagram') || 
+        key.includes('linkedin') || key.includes('social') || key.includes('profile')
+      );
+
+      const representativeProfile = {
+        // Información básica del representante del sistema local
+        company_id: companyId,
+        company_name: company.nombreEmpresa,
+        representative: {
+          local_id: company.user.id,
+          local_email: company.user.email,
+          local_display_name: company.user.displayName,
+          local_role: company.user.role,
+        },
+        // Información de WordPress/PeepSo
+        wordpress_profile: {
+          user_id: userData.id,
+          username: userData.username,
+          display_name: userData.name,
+          email: userData.email,
+          avatar_url: userData.avatar_urls ? userData.avatar_urls['96'] || userData.avatar_urls['48'] : null,
+          profile_url: `${baseUrl}/profile/${userData.username}`,
+          website: userData.link || userMeta['website'] || null,
+          bio: userMeta['description'] || userMeta['bio'] || userMeta['user_description'] || null,
+          location: userMeta['location'] || userMeta['user_location'] || null,
+        },
+        // Datos específicos de PeepSo (si están disponibles)
+        peepso_data: peepsoData,
+        // Enlaces de redes sociales extraídos de metadatos
+        social_links: {
+          facebook: userMeta['facebook'] || userMeta['_facebook'] || userMeta['peepso_facebook'] || null,
+          twitter: userMeta['twitter'] || userMeta['_twitter'] || userMeta['peepso_twitter'] || null,
+          instagram: userMeta['instagram'] || userMeta['_instagram'] || userMeta['peepso_instagram'] || null,
+          linkedin: userMeta['linkedin'] || userMeta['_linkedin'] || userMeta['peepso_linkedin'] || null,
+        },
+        // Metadatos de PeepSo encontrados
+        peepso_metadata: peepsoFields.reduce((acc, field) => {
+          acc[field] = userMeta[field];
+          return acc;
+        }, {} as any),
+        // Campos sociales adicionales
+        social_metadata: socialFields.reduce((acc, field) => {
+          acc[field] = userMeta[field];
+          return acc;
+        }, {} as any),
+      };
+
+      // Filtrar enlaces sociales vacíos
+      const filteredSocialLinks = Object.fromEntries(
+        Object.entries(representativeProfile.social_links).filter(([key, value]) => value)
+      );
+
+      res.json({
+        success: true,
+        profile: {
+          ...representativeProfile,
+          social_links: filteredSocialLinks
+        },
+        debug_info: {
+          wordpress_user_id: wordpressUserId,
+          peepso_fields_found: peepsoFields.length,
+          social_fields_found: socialFields.length,
+          peepso_api_available: !!peepsoData,
+          successful_endpoint: successfulEndpoint,
+          social_links_found: Object.keys(filteredSocialLinks).length
+        }
+      });
+
+    } catch (error: any) {
+      console.error(`[Company PeepSo Profile] Error general:`, error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
