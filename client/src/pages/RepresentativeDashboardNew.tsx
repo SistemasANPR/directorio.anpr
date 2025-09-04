@@ -33,7 +33,8 @@ export default function RepresentativeDashboard() {
 
   // Cambiar tab por defecto para representantes
   useEffect(() => {
-    if (user?.role === 'representante' && activeTab === 'overview') {
+    const isRepresentativeUser = user?.role === 'representante' || user?.role === 'user';
+    if (isRepresentativeUser && activeTab === 'overview') {
       setActiveTab('company');
     }
   }, [user?.role, activeTab]);
@@ -42,13 +43,14 @@ export default function RepresentativeDashboard() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    const allowedTabs = user?.role === 'representante' 
+    const isRepresentativeUser = user?.role === 'representante' || user?.role === 'user';
+    const allowedTabs = isRepresentativeUser 
       ? ['company', 'projects', 'certificates', 'membership', 'payments']
       : ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'];
     
     if (tabParam && allowedTabs.includes(tabParam)) {
       setActiveTab(tabParam);
-    } else if (user?.role === 'representante') {
+    } else if (isRepresentativeUser) {
       // Si es representante y no hay tab válido, ir a 'company' por defecto
       setActiveTab('company');
     }
@@ -89,8 +91,8 @@ export default function RepresentativeDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`grid w-full ${user?.role === 'representante' ? 'grid-cols-5' : 'grid-cols-6'} mb-8`}>
-            {user?.role !== 'representante' && (
+          <TabsList className={`grid w-full ${(user?.role === 'representante' || user?.role === 'user') ? 'grid-cols-5' : 'grid-cols-6'} mb-8`}>
+            {(user?.role !== 'representante' && user?.role !== 'user') && (
               <TabsTrigger value="overview">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Resumen
@@ -119,7 +121,7 @@ export default function RepresentativeDashboard() {
           </TabsList>
 
           {/* Overview Tab - Solo para admins */}
-          {user?.role !== 'representante' && (
+          {(user?.role !== 'representante' && user?.role !== 'user') && (
             <TabsContent value="overview">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Quick Stats */}
