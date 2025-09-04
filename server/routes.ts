@@ -4410,6 +4410,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para verificar URLs de PeepSo por emails
+  app.post("/api/emails/peepso-profiles", async (req, res) => {
+    try {
+      const { emails } = req.body;
+      
+      if (!emails || !Array.isArray(emails)) {
+        return res.status(400).json({ error: "Se requiere una lista de emails" });
+      }
+
+      console.log(`[Email PeepSo Profiles] Verificando URLs de PeepSo para emails:`, emails);
+
+      const settings = await storage.getIntegrationSettings();
+      
+      if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
+        return res.json({
+          success: true,
+          profiles: {},
+          message: "Configuración de WordPress incompleta"
+        });
+      }
+
+      const authString = Buffer.from(`${settings.apiKey}:${settings.apiSecret}`).toString('base64');
+      const baseUrl = settings.wordpressUrl.replace(/\/$/, '');
+
+      const emailProfiles = {};
+
+      // Verificar cada email
+      for (const email of emails) {
+        if (!email || email.trim() === '') continue;
+
+        try {
+          console.log(`[Email PeepSo Profiles] Buscando usuario de WordPress con email: ${email}`);
+
+          // Buscar usuario por email en WordPress
+          const userSearchResponse = await fetch(`${baseUrl}/wp-json/wp/v2/users?search=${encodeURIComponent(email)}&context=edit`, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!userSearchResponse.ok) {
+            console.log(`[Email PeepSo Profiles] No se pudo buscar usuario para email: ${email}`);
+            continue;
+          }
+
+          const users = await userSearchResponse.json();
+          const matchingUser = users.find((user: any) => user.email === email);
+
+          if (!matchingUser) {
+            console.log(`[Email PeepSo Profiles] No se encontró usuario de WordPress con email: ${email}`);
+            continue;
+          }
+
+          console.log(`[Email PeepSo Profiles] Usuario encontrado: ${matchingUser.username} (ID: ${matchingUser.id})`);
+
+          // Verificar si el usuario tiene URL en sus metadatos
+          const userMeta = matchingUser.meta || {};
+          
+          // Buscar URL en diferentes campos posibles
+          const profileUrl = userMeta['url'] || 
+                           userMeta['website'] || 
+                           userMeta['user_url'] || 
+                           userMeta['profile_url'] ||
+                           matchingUser.link ||
+                           null;
+
+          if (profileUrl && profileUrl.trim() !== '') {
+            console.log(`[Email PeepSo Profiles] URL de perfil encontrada para ${email}: ${profileUrl}`);
+            
+            emailProfiles[email] = {
+              wordpress_user_id: matchingUser.id,
+              username: matchingUser.username,
+              display_name: matchingUser.name,
+              avatar_url: matchingUser.avatar_urls ? matchingUser.avatar_urls['96'] || matchingUser.avatar_urls['48'] : null,
+              profile_url: profileUrl,
+              has_peepso_profile: true
+            };
+          } else {
+            console.log(`[Email PeepSo Profiles] No se encontró URL de perfil para ${email}`);
+            emailProfiles[email] = {
+              wordpress_user_id: matchingUser.id,
+              username: matchingUser.username,
+              display_name: matchingUser.name,
+              avatar_url: matchingUser.avatar_urls ? matchingUser.avatar_urls['96'] || matchingUser.avatar_urls['48'] : null,
+              profile_url: null,
+              has_peepso_profile: false
+            };
+          }
+
+        } catch (error) {
+          console.log(`[Email PeepSo Profiles] Error al procesar email ${email}:`, error.message);
+        }
+      }
+
+      res.json({
+        success: true,
+        profiles: emailProfiles,
+        debug_info: {
+          emails_checked: emails.length,
+          profiles_found: Object.keys(emailProfiles).length,
+          profiles_with_urls: Object.values(emailProfiles).filter((profile: any) => profile.has_peepso_profile).length
+        }
+      });
+
+    } catch (error: any) {
+      console.error(`[Email PeepSo Profiles] Error general:`, error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

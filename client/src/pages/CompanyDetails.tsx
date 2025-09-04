@@ -95,18 +95,28 @@ export default function CompanyDetails() {
     enabled: !!id,
   });
 
-  // Query para perfil de PeepSo del representante
-  const { data: representativePeepsoProfile } = useQuery({
-    queryKey: ["/api/companies", id, "representative-peepso-profile"],
+  // Query para verificar URLs de PeepSo por emails
+  const { data: emailPeepsoProfiles } = useQuery({
+    queryKey: ["/api/emails/peepso-profiles", company?.email1, company?.email2],
     queryFn: async () => {
-      if (!id) return null;
-      const response = await fetch(`/api/companies/${id}/representative-peepso-profile`);
+      if (!company) return null;
+      const emails = [company.email1, company.email2].filter(Boolean);
+      if (!emails.length) return null;
+      
+      const response = await fetch('/api/emails/peepso-profiles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ emails }),
+      });
       if (!response.ok) return null;
       return response.json();
     },
-    enabled: !!id,
-    retry: false, // No reintentar si falla (es información adicional)
+    enabled: !!company && !!(company.email1 || company.email2),
+    retry: false,
   });
+
 
 
 
@@ -135,6 +145,7 @@ export default function CompanyDetails() {
       </div>
     );
   }
+
 
 
 
@@ -569,9 +580,32 @@ export default function CompanyDetails() {
                       <Mail className="h-4 w-4 mr-2" />
                       Correos Electrónicos
                     </h4>
-                    {emails.map((email, index) => (
-                      <p key={index} className="text-gray-600">{email}</p>
-                    ))}
+                    <div className="space-y-3">
+                      {emails.map((email, index) => {
+                        const peepsoProfile = emailPeepsoProfiles?.success && emailPeepsoProfiles?.profiles?.[email];
+                        const hasProfileUrl = peepsoProfile?.has_peepso_profile && peepsoProfile?.profile_url;
+                        
+                        return (
+                          <div key={index} className="space-y-1">
+                            <p className="text-gray-600">{email}</p>
+                            {hasProfileUrl && (
+                              <div className="ml-0">
+                                <a
+                                  href={peepsoProfile.profile_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                  <User className="h-3 w-3 mr-1" />
+                                  Ver perfil PeepSo
+                                  <ExternalLink className="h-3 w-3 ml-1" />
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -624,122 +658,6 @@ export default function CompanyDetails() {
                   </div>
                 )}
 
-                {/* Perfil del Representante (PeepSo) */}
-                {representativePeepsoProfile?.success && representativePeepsoProfile?.profile && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center">
-                        <User className="h-4 w-4 mr-2" />
-                        Representante
-                      </h4>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                        {/* Información básica del representante */}
-                        <div className="flex items-center space-x-3">
-                          {representativePeepsoProfile.profile.wordpress_profile?.avatar_url && (
-                            <img
-                              src={representativePeepsoProfile.profile.wordpress_profile.avatar_url}
-                              alt={representativePeepsoProfile.profile.wordpress_profile.display_name || "Representante"}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">
-                              {representativePeepsoProfile.profile.wordpress_profile?.display_name || 
-                               representativePeepsoProfile.profile.representative?.local_display_name}
-                            </p>
-                            <p className="text-sm text-gray-600">Representante de {company.nombreEmpresa}</p>
-                          </div>
-                        </div>
-
-                        {/* Enlaces del perfil */}
-                        {representativePeepsoProfile.profile.wordpress_profile?.profile_url && (
-                          <div>
-                            <a
-                              href={representativePeepsoProfile.profile.wordpress_profile.profile_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors text-sm"
-                            >
-                              <ExternalLink className="h-4 w-4 mr-1" />
-                              Ver perfil completo
-                            </a>
-                          </div>
-                        )}
-
-                        {/* Bio si está disponible */}
-                        {representativePeepsoProfile.profile.wordpress_profile?.bio && (
-                          <div>
-                            <p className="text-sm text-gray-700 italic">
-                              "{representativePeepsoProfile.profile.wordpress_profile.bio}"
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Enlaces de redes sociales del representante */}
-                        {representativePeepsoProfile.profile.social_links && Object.keys(representativePeepsoProfile.profile.social_links).length > 0 && (
-                          <div>
-                            <p className="text-sm font-medium text-gray-700 mb-2">Redes sociales:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {representativePeepsoProfile.profile.social_links.facebook && (
-                                <a
-                                  href={representativePeepsoProfile.profile.social_links.facebook}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-                                  title="Facebook"
-                                >
-                                  <Facebook className="h-4 w-4" />
-                                </a>
-                              )}
-                              {representativePeepsoProfile.profile.social_links.twitter && (
-                                <a
-                                  href={representativePeepsoProfile.profile.social_links.twitter}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-400 hover:bg-sky-500 text-white transition-colors"
-                                  title="Twitter"
-                                >
-                                  <Twitter className="h-4 w-4" />
-                                </a>
-                              )}
-                              {representativePeepsoProfile.profile.social_links.linkedin && (
-                                <a
-                                  href={representativePeepsoProfile.profile.social_links.linkedin}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-700 hover:bg-blue-800 text-white transition-colors"
-                                  title="LinkedIn"
-                                >
-                                  <Linkedin className="h-4 w-4" />
-                                </a>
-                              )}
-                              {representativePeepsoProfile.profile.social_links.instagram && (
-                                <a
-                                  href={representativePeepsoProfile.profile.social_links.instagram}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all"
-                                  title="Instagram"
-                                >
-                                  <Instagram className="h-4 w-4" />
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Ubicación si está disponible */}
-                        {representativePeepsoProfile.profile.wordpress_profile?.location && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            <span>{representativePeepsoProfile.profile.wordpress_profile.location}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
               </CardContent>
             </Card>
 
