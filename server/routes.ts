@@ -4266,7 +4266,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wordpressUserId = wordpressIdMatch[1];
       console.log(`[Company PeepSo Profile] ID de WordPress extraído: ${wordpressUserId}`);
 
-      // Intentar obtener el perfil de PeepSo usando nuestro endpoint interno
       const settings = await storage.getIntegrationSettings();
       
       if (!settings || !settings.wordpressUrl || !settings.apiKey || !settings.apiSecret) {
@@ -4295,6 +4294,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userData = await userResponse.json();
       console.log(`[Company PeepSo Profile] Usuario de WordPress obtenido: ${userData.username}`);
+
+      // VERIFICAR MEMBRESÍA DE ANPR EN MEMBERPRESS
+      console.log(`[Company PeepSo Profile] Verificando membresía ANPR para usuario ${wordpressUserId}`);
+      
+      let hasANPRMembership = false;
+      const memberPressEndpoints = [
+        `${baseUrl}/wp-json/mp/v1/members/${wordpressUserId}`,
+        `${baseUrl}/wp-json/memberpress/v1/members/${wordpressUserId}`,
+        `${baseUrl}/wp-json/mp/v1/subscriptions?member=${wordpressUserId}`,
+        `${baseUrl}/wp-json/memberpress/v1/subscriptions?member=${wordpressUserId}`,
+      ];
+
+      for (const endpoint of memberPressEndpoints) {
+        try {
+          console.log(`[Company PeepSo Profile] Verificando membresía en: ${endpoint}`);
+          const membershipResponse = await fetch(endpoint, {
+            headers: {
+              'Authorization': `Basic ${authString}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (membershipResponse.ok) {
+            const membershipData = await membershipResponse.json();
+            console.log(`[Company PeepSo Profile] Datos de membresía obtenidos:`, JSON.stringify(membershipData, null, 2));
+
+            // Buscar membresía activa de ANPR
+            if (Array.isArray(membershipData)) {
+              hasANPRMembership = membershipData.some(membership => {
+                const membershipName = membership.name || membership.title || membership.membership_name || '';
+                const status = membership.status || membership.subscription_status || 'inactive';
+                const isActive = status.toLowerCase() === 'active' || status.toLowerCase() === 'confirmed';
+                const isANPR = membershipName.toLowerCase().includes('anpr') || membershipName.toLowerCase().includes('miembro');
+                
+                console.log(`[Company PeepSo Profile] Evaluando membresía: ${membershipName} (Status: ${status}) - ANPR: ${isANPR}, Activa: ${isActive}`);
+                return isANPR && isActive;
+              });
+            } else if (membershipData.name || membershipData.title) {
+              const membershipName = membershipData.name || membershipData.title || '';
+              const status = membershipData.status || membershipData.subscription_status || 'inactive';
+              const isActive = status.toLowerCase() === 'active' || status.toLowerCase() === 'confirmed';
+              const isANPR = membershipName.toLowerCase().includes('anpr') || membershipName.toLowerCase().includes('miembro');
+              
+              console.log(`[Company PeepSo Profile] Evaluando membresía única: ${membershipName} (Status: ${status}) - ANPR: ${isANPR}, Activa: ${isActive}`);
+              hasANPRMembership = isANPR && isActive;
+            }
+
+            if (hasANPRMembership) {
+              console.log(`[Company PeepSo Profile] ✓ Membresía ANPR activa encontrada`);
+              break;
+            }
+          } else {
+            console.log(`[Company PeepSo Profile] Error en endpoint ${endpoint}: ${membershipResponse.status}`);
+          }
+        } catch (error) {
+          console.log(`[Company PeepSo Profile] Error consultando ${endpoint}:`, error.message);
+        }
+      }
+
+      // Si no tiene membresía ANPR activa, no mostrar perfil de PeepSo
+      if (!hasANPRMembership) {
+        console.log(`[Company PeepSo Profile] ❌ Usuario no tiene membresía ANPR activa, no se mostrará perfil de PeepSo`);
+        return res.json({
+          success: true,
+          profile: null,
+          message: "El representante no tiene membresía ANPR activa"
+        });
+      }
+
+      console.log(`[Company PeepSo Profile] ✅ Usuario tiene membresía ANPR activa, procediendo con perfil de PeepSo`);
 
       // Intentar obtener datos de PeepSo
       const peepsoEndpoints = [
@@ -4396,6 +4465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         debug_info: {
           wordpress_user_id: wordpressUserId,
+          has_anpr_membership: hasANPRMembership,
           peepso_fields_found: peepsoFields.length,
           social_fields_found: socialFields.length,
           peepso_api_available: !!peepsoData,
