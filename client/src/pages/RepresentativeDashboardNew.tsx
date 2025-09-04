@@ -31,14 +31,28 @@ export default function RepresentativeDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Cambiar tab por defecto para representantes
+  useEffect(() => {
+    if (user?.role === 'representante' && activeTab === 'overview') {
+      setActiveTab('company');
+    }
+  }, [user?.role, activeTab]);
+
   // Handle URL parameters for direct tab navigation
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    if (tabParam && ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'].includes(tabParam)) {
+    const allowedTabs = user?.role === 'representante' 
+      ? ['company', 'projects', 'certificates', 'membership', 'payments']
+      : ['overview', 'company', 'projects', 'certificates', 'membership', 'payments'];
+    
+    if (tabParam && allowedTabs.includes(tabParam)) {
       setActiveTab(tabParam);
+    } else if (user?.role === 'representante') {
+      // Si es representante y no hay tab válido, ir a 'company' por defecto
+      setActiveTab('company');
     }
-  }, []);
+  }, [user?.role]);
 
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery({
@@ -75,11 +89,13 @@ export default function RepresentativeDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 mb-8">
-            <TabsTrigger value="overview">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Resumen
-            </TabsTrigger>
+          <TabsList className={`grid w-full ${user?.role === 'representante' ? 'grid-cols-5' : 'grid-cols-6'} mb-8`}>
+            {user?.role !== 'representante' && (
+              <TabsTrigger value="overview">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Resumen
+              </TabsTrigger>
+            )}
             <TabsTrigger value="company">
               <Building className="h-4 w-4 mr-2" />
               Mi Empresa
@@ -102,98 +118,100 @@ export default function RepresentativeDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Quick Stats */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Empresa Activa</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {primaryCompany ? '1' : '0'}
-                      </p>
+          {/* Overview Tab - Solo para admins */}
+          {user?.role !== 'representante' && (
+            <TabsContent value="overview">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {/* Quick Stats */}
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Empresa Activa</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {primaryCompany ? '1' : '0'}
+                        </p>
+                      </div>
+                      <Building className="h-8 w-8 text-[#bcce16]" />
                     </div>
-                    <Building className="h-8 w-8 text-[#bcce16]" />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Plan Actual</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {currentMembership?.nombrePlan || 'Sin plan'}
+                        </p>
+                      </div>
+                      <Crown className="h-8 w-8 text-[#bcce16]" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Estado</p>
+                        <Badge variant={primaryCompany?.estado === 'activo' ? 'default' : 'secondary'}>
+                          {primaryCompany?.estado === 'activo' ? 'Activa' : 'Inactiva'}
+                        </Badge>
+                      </div>
+                      <Target className="h-8 w-8 text-[#bcce16]" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Vencimiento</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {primaryCompany?.fechaFinMembresia 
+                            ? format(new Date(primaryCompany.fechaFinMembresia), 'dd/MM/yyyy', { locale: es })
+                            : 'N/A'
+                          }
+                        </p>
+                      </div>
+                      <Calendar className="h-8 w-8 text-[#bcce16]" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Welcome Card */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Bienvenido a tu Panel de Representante</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">
+                    Desde aquí puedes gestionar toda la información de tu empresa, proyectos, certificados y plan de membresía.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => setActiveTab('company')}
+                      className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                    >
+                      <Building className="h-4 w-4 mr-2" />
+                      Ver Mi Empresa
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setActiveTab('membership')}
+                    >
+                      <Crown className="h-4 w-4 mr-2" />
+                      Gestionar Plan
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Plan Actual</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {currentMembership?.nombrePlan || 'Sin plan'}
-                      </p>
-                    </div>
-                    <Crown className="h-8 w-8 text-[#bcce16]" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Estado</p>
-                      <Badge variant={primaryCompany?.estado === 'activo' ? 'default' : 'secondary'}>
-                        {primaryCompany?.estado === 'activo' ? 'Activa' : 'Inactiva'}
-                      </Badge>
-                    </div>
-                    <Target className="h-8 w-8 text-[#bcce16]" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Vencimiento</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {primaryCompany?.fechaFinMembresia 
-                          ? format(new Date(primaryCompany.fechaFinMembresia), 'dd/MM/yyyy', { locale: es })
-                          : 'N/A'
-                        }
-                      </p>
-                    </div>
-                    <Calendar className="h-8 w-8 text-[#bcce16]" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Welcome Card */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Bienvenido a tu Panel de Representante</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">
-                  Desde aquí puedes gestionar toda la información de tu empresa, proyectos, certificados y plan de membresía.
-                </p>
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={() => setActiveTab('company')}
-                    className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
-                  >
-                    <Building className="h-4 w-4 mr-2" />
-                    Ver Mi Empresa
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setActiveTab('membership')}
-                  >
-                    <Crown className="h-4 w-4 mr-2" />
-                    Gestionar Plan
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+            </TabsContent>
+          )}
 
           {/* Company Management Tab */}
           <TabsContent value="company">
