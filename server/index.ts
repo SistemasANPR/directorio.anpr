@@ -19,10 +19,13 @@ app.use((req, res, next) => {
 // Middleware to extract user info from headers for API requests
 app.use('/api', (req: any, res, next) => {
   const userHeader = req.headers['x-user-info'];
+  console.log("Middleware debug - userHeader:", userHeader);
   if (userHeader) {
     try {
       req.user = JSON.parse(userHeader as string);
+      console.log("Middleware debug - parsed user:", req.user);
     } catch (error) {
+      console.log("Middleware debug - parsing error:", error);
       // If parsing fails, continue without user info
     }
   }
