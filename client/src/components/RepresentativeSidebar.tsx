@@ -101,7 +101,7 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
   };
 
   const getActiveTab = () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.split('?')[1] || '');
     return urlParams.get('tab') || 'overview';
   };
 
