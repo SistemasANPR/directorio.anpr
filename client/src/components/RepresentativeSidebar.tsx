@@ -26,7 +26,7 @@ const representativeNavItems = [
     name: "Resumen",
     href: "/representative-dashboard?tab=overview",
     icon: BarChart3,
-    requireAdmin: true, // Solo para administradores
+    requireAdmin: false, // Disponible para todos los representantes
   },
   {
     name: "Mi Empresa",
