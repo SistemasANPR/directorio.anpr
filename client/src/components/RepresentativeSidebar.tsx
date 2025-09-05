@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Building, 
@@ -21,37 +21,48 @@ interface RepresentativeSidebarProps {
   className?: string;
 }
 
-// BLOQUEAR "Resumen" para representantes y users
 const representativeNavItems = [
+  {
+    name: "Resumen",
+    href: "/representative-dashboard?tab=overview",
+    icon: BarChart3,
+    requireAdmin: true, // Solo para administradores
+  },
   {
     name: "Mi Empresa",
     href: "/representative-dashboard?tab=company",
     icon: Building,
+    requireAdmin: false,
   },
   {
     name: "Proyectos",
     href: "/representative-dashboard?tab=projects",
     icon: Briefcase,
+    requireAdmin: false,
   },
   {
     name: "Certificados",
     href: "/representative-dashboard?tab=certificates",
     icon: Award,
+    requireAdmin: false,
   },
   {
     name: "Mi Reseña",
     href: "/representative-dashboard?tab=review",
     icon: MessageSquare,
+    requireAdmin: false,
   },
   {
     name: "Mi Plan",
     href: "/representative-dashboard?tab=membership",
     icon: Crown,
+    requireAdmin: false,
   },
   {
     name: "Pagos",
     href: "/representative-dashboard?tab=payments",
     icon: CreditCard,
+    requireAdmin: false,
   },
 ];
 
@@ -59,6 +70,17 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
   const { user } = useAuth();
+  
+  // Verificar si el usuario es administrador
+  const isAdmin = user?.role === 'admin' || user?.role === 'administrator';
+  
+  // Filtrar items de navegación basándose en el rol
+  const filteredNavItems = representativeNavItems.filter(item => {
+    if (item.requireAdmin) {
+      return isAdmin;
+    }
+    return true;
+  });
 
   const handleSignOut = async () => {
     try {
@@ -78,16 +100,9 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
     }
   };
 
-  // REDIRIGIR representantes/users del dashboard principal
-  useEffect(() => {
-    if ((user?.role === 'representante' || user?.role === 'user') && window.location.pathname === '/dashboard') {
-      window.location.href = '/representative-dashboard?tab=company';
-    }
-  }, [user?.role]);
-
   const getActiveTab = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('tab') || 'company'; // cambiar de 'overview' a 'company'
+    return urlParams.get('tab') || 'overview';
   };
 
   const isTabActive = (href: string) => {
@@ -114,7 +129,7 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
 
       {/* Navigation */}
       <nav className="p-4 space-y-2 flex-1">
-        {representativeNavItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = isTabActive(item.href);
           
