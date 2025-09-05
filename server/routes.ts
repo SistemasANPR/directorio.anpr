@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
-  // Nueva ruta POST para crear empresas con archivos
+  // Nueva ruta POST para crear empresas con archivos - Solo administradores
   app.post("/api/companies/with-files", uploadImage.fields([
     { name: 'logoFile', maxCount: 1 },
     { name: 'fotoPortadaFile', maxCount: 1 },
@@ -538,6 +538,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     { name: 'galeriaFiles', maxCount: 20 }
   ]), async (req, res) => {
     try {
+      // Verificar que el usuario es administrador
+      const isAdmin = req.user?.role === 'admin' || req.user?.roleId === 1;
+      if (!isAdmin) {
+        return res.status(403).json({ 
+          error: "Acceso denegado", 
+          message: "Solo los administradores pueden crear empresas" 
+        });
+      }
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       
       // Procesar los datos del formulario
@@ -648,6 +656,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/companies", async (req, res) => {
     try {
+      // Verificar que el usuario es administrador
+      const isAdmin = req.user?.role === 'admin' || req.user?.roleId === 1;
+      if (!isAdmin) {
+        return res.status(403).json({ 
+          error: "Acceso denegado", 
+          message: "Solo los administradores pueden crear empresas" 
+        });
+      }
       const { wordpressUser, ...companyData } = req.body;
       const parsedCompanyData = insertCompanySchema.parse(companyData);
       

@@ -558,17 +558,7 @@ export default function Companies() {
           <p className="text-gray-600 mt-1">Gestiona y visualiza todas las empresas registradas</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Botón Plantilla */}
-          <Button
-            onClick={handleDownloadTemplate}
-            variant="outline"
-            className="flex items-center space-x-2 text-green-600 border-green-600 hover:bg-green-50"
-          >
-            <FileDown className="w-4 h-4" />
-            <span>Plantilla</span>
-          </Button>
-
-          {/* Botón Exportar */}
+          {/* Botón Exportar - Disponible para todos */}
           <Button 
             onClick={handleExport}
             variant="outline" 
@@ -578,32 +568,47 @@ export default function Companies() {
             <span>Exportar</span>
           </Button>
           
-          {/* Botón Importar */}
-          <div className="relative">
-            <input
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              onChange={handleFileImport}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              id="import-file"
-            />
-            <Button 
-              variant="outline" 
-              className="flex items-center space-x-2"
-              asChild
-            >
-              <label htmlFor="import-file" className="cursor-pointer">
-                <Upload className="w-4 h-4" />
-                <span>Importar</span>
-              </label>
-            </Button>
-          </div>
-          
-          {/* Botón Nueva Empresa */}
-          <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center space-x-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            <Plus className="w-4 h-4" />
-            <span>Nueva Empresa</span>
-          </Button>
+          {/* Botones solo para administradores */}
+          {isAdmin && (
+            <>
+              {/* Botón Plantilla */}
+              <Button
+                onClick={handleDownloadTemplate}
+                variant="outline"
+                className="flex items-center space-x-2 text-green-600 border-green-600 hover:bg-green-50"
+              >
+                <FileDown className="w-4 h-4" />
+                <span>Plantilla</span>
+              </Button>
+              
+              {/* Botón Importar */}
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  onChange={handleFileImport}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  id="import-file"
+                />
+                <Button 
+                  variant="outline" 
+                  className="flex items-center space-x-2"
+                  asChild
+                >
+                  <label htmlFor="import-file" className="cursor-pointer">
+                    <Upload className="w-4 h-4" />
+                    <span>Importar</span>
+                  </label>
+                </Button>
+              </div>
+              
+              {/* Botón Nueva Empresa */}
+              <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center space-x-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+                <Plus className="w-4 h-4" />
+                <span>Nueva Empresa</span>
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
