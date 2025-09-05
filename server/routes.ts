@@ -539,7 +539,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   ]), async (req, res) => {
     try {
       // Verificar que el usuario es administrador
+      console.log("Debug - req.user:", JSON.stringify(req.user, null, 2));
       const isAdmin = req.user?.role === 'admin' || req.user?.roleId === 1;
+      console.log("Debug - isAdmin check:", isAdmin, "role:", req.user?.role, "roleId:", req.user?.roleId);
       if (!isAdmin) {
         return res.status(403).json({ 
           error: "Acceso denegado", 
@@ -657,7 +659,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/companies", async (req, res) => {
     try {
       // Verificar que el usuario es administrador
+      console.log("Debug - req.user:", JSON.stringify(req.user, null, 2));
       const isAdmin = req.user?.role === 'admin' || req.user?.roleId === 1;
+      console.log("Debug - isAdmin check:", isAdmin, "role:", req.user?.role, "roleId:", req.user?.roleId);
       if (!isAdmin) {
         return res.status(403).json({ 
           error: "Acceso denegado", 
