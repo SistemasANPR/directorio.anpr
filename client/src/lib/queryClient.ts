@@ -18,13 +18,18 @@ export async function apiRequest(
   const tempUserData = localStorage.getItem('tempUser');
   const headers: Record<string, string> = {};
   
+  // Always add user info header if available
+  if (tempUserData) {
+    headers["x-user-info"] = tempUserData;
+    console.log("Debug - Sending x-user-info header:", tempUserData);
+  }
+  
+  // Only set Content-Type for JSON data, let browser handle FormData Content-Type
   if (data && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
   
-  if (tempUserData) {
-    headers["x-user-info"] = tempUserData;
-  }
+  console.log("Debug - Headers being sent:", headers);
   
   const res = await fetch(url, {
     method,
