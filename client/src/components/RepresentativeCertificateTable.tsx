@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Edit, Trash2, MoreHorizontal, Award, Shield, Lock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Certificate } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -60,28 +61,135 @@ export default function RepresentativeCertificateTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
-              Nombre del Certificado
-            </TableHead>
-            <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
-              Descripción
-            </TableHead>
-            <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
-              Tipo
-            </TableHead>
-            <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
-              Estado
-            </TableHead>
-            <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
-              Acciones
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <>
+      {/* Vista móvil - Cards */}
+      <div className="block lg:hidden space-y-4">
+        {certificates.map((certificate) => {
+          const isAdminCertificate = isAdminAssignedCertificate(certificate);
+          const canEdit = !isAdminCertificate;
+          
+          return (
+            <Card key={certificate.id} className="p-4">
+              <CardContent className="p-0">
+                <div className="flex items-start space-x-4">
+                  {certificate.imagenUrl ? (
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={certificate.imagenUrl} 
+                        alt={certificate.nombreCertificado}
+                        className="h-16 w-16 rounded-lg object-cover border shadow-sm"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-shrink-0">
+                      <div className="h-16 w-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                        {isAdminCertificate ? (
+                          <Shield className="h-8 w-8 text-blue-600" />
+                        ) : (
+                          <Award className="h-8 w-8 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-medium text-gray-900 text-sm line-clamp-2">
+                            {certificate.nombreCertificado}
+                          </h3>
+                          {isAdminCertificate && (
+                            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 flex-shrink-0">
+                              <Shield className="h-3 w-3 mr-1" />
+                              ANPR
+                            </Badge>
+                          )}
+                        </div>
+                        {certificate.descripcion && (
+                          <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                            {certificate.descripcion}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <Badge className={isAdminCertificate ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>
+                            {isAdminCertificate ? "Oficial ANPR" : "Personal"}
+                          </Badge>
+                          <Badge className={getVisibilityBadgeColor(certificate.estado)}>
+                            {certificate.estado?.charAt(0).toUpperCase() + certificate.estado?.slice(1) || "Activo"}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-gray-500 space-y-1">
+                          {certificate.fechaEmision && (
+                            <p>Emitido: {new Date(certificate.fechaEmision).toLocaleDateString()}</p>
+                          )}
+                          {certificate.entidadEmisora && (
+                            <p className="truncate">{certificate.entidadEmisora}</p>
+                          )}
+                        </div>
+                      </div>
+                      {canEdit ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0 flex-shrink-0">
+                              <span className="sr-only">Abrir menú</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onEdit(certificate)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => onDelete(certificate.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <div className="flex items-center text-gray-400 flex-shrink-0">
+                          <Lock className="h-4 w-4 mr-1" />
+                          <span className="text-xs">Protegido</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Vista desktop - Tabla */}
+      <div className="hidden lg:block overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
+                Nombre del Certificado
+              </TableHead>
+              <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
+                Descripción
+              </TableHead>
+              <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
+                Tipo
+              </TableHead>
+              <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
+                Estado
+              </TableHead>
+              <TableHead className="text-left py-3 px-4 font-semibold text-gray-700">
+                Acciones
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {certificates.map((certificate) => {
             const isAdminCertificate = isAdminAssignedCertificate(certificate);
             const canEdit = !isAdminCertificate;
@@ -185,8 +293,9 @@ export default function RepresentativeCertificateTable({
               </TableRow>
             );
           })}
-        </TableBody>
-      </Table>
-    </div>
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }
