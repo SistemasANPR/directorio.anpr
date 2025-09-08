@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import EditCertificateModal from "@/components/EditCertificateModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,6 +32,8 @@ type CertificateFormData = z.infer<typeof certificateSchema>;
 
 export default function Certificates() {
   const [open, setOpen] = useState(false);
+  const [editingCertificate, setEditingCertificate] = useState<Certificate | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [dragActive, setDragActive] = useState(false);
@@ -110,6 +113,11 @@ export default function Certificates() {
     createMutation.mutate(data);
   };
 
+
+  const handleEdit = (certificate: Certificate) => {
+    setEditingCertificate(certificate);
+    setEditOpen(true);
+  };
 
   const handleDelete = (id: number) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este certificado?")) {
@@ -429,6 +437,13 @@ export default function Certificates() {
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 
+                    variant="outline"
+                    onClick={() => handleEdit(certificate)}
+                  >
+                    Editar
+                  </Button>
+                  <Button 
+                    size="sm" 
                     variant="destructive"
                     onClick={() => handleDelete(certificate.id)}
                   >
@@ -453,6 +468,12 @@ export default function Certificates() {
         </div>
       )}
 
+      {/* Modal de edición */}
+      <EditCertificateModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        certificate={editingCertificate}
+      />
     </div>
   );
 }

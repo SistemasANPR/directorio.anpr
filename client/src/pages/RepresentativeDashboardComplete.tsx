@@ -29,6 +29,7 @@ import { es } from "date-fns/locale";
 import EditCompanyModal from "@/components/EditCompanyModal";
 import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
 import RepresentativeReview from "@/components/RepresentativeReview";
+import EditCertificateModal from "@/components/EditCertificateModal";
 import MembershipLimitsDisplay from "@/components/MembershipLimitsDisplay";
 import AddCertificateModal from "@/components/AddCertificateModal";
 import AddProjectModal from "@/components/AddProjectModal";
@@ -47,6 +48,8 @@ export default function RepresentativeDashboard() {
   
   // Certificate management states
   const [isAddCertificateModalOpen, setIsAddCertificateModalOpen] = useState(false);
+  const [isEditCertificateModalOpen, setIsEditCertificateModalOpen] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
   
   // Project management states
   const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
@@ -188,6 +191,11 @@ export default function RepresentativeDashboard() {
     },
   });
 
+
+  const handleEditCertificate = (certificate: Certificate) => {
+    setSelectedCertificate(certificate);
+    setIsEditCertificateModalOpen(true);
+  };
 
   const handleDeleteCertificate = async (certificateId: number) => {
     // Check if this is an admin-assigned certificate
@@ -826,6 +834,7 @@ export default function RepresentativeDashboard() {
                 ) : (
                   <RepresentativeCertificateTable
                     certificates={typedCertificates}
+                    onEdit={handleEditCertificate}
                     onDelete={handleDeleteCertificate}
                     userCompanyId={primaryCompany?.id}
                   />
@@ -1096,6 +1105,12 @@ export default function RepresentativeDashboard() {
         <AddCertificateModal
           open={isAddCertificateModalOpen}
           onOpenChange={setIsAddCertificateModalOpen}
+        />
+
+        <EditCertificateModal
+          open={isEditCertificateModalOpen}
+          onOpenChange={setIsEditCertificateModalOpen}
+          certificate={selectedCertificate}
         />
 
 

@@ -10,6 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CompanyWithDetails, Certificate } from "@shared/schema";
 import EditCompanyModal from "@/components/EditCompanyModal";
 import AddCertificateModal from "@/components/AddCertificateModal";
+import EditCertificateModal from "@/components/EditCertificateModal";
 import CertificateTable from "@/components/CertificateTable";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +21,8 @@ export default function MyCompany() {
   const { toast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddCertificateModalOpen, setIsAddCertificateModalOpen] = useState(false);
+  const [isEditCertificateModalOpen, setIsEditCertificateModalOpen] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
 
   // Fetch the company data - use impersonated company if available, otherwise user's company
   const { data: company, isLoading: companyLoading } = useQuery({
@@ -57,6 +60,11 @@ export default function MyCompany() {
     setIsEditModalOpen(true);
   };
 
+
+  const handleEditCertificate = (certificate: Certificate) => {
+    setSelectedCertificate(certificate);
+    setIsEditCertificateModalOpen(true);
+  };
 
   const handleDeleteCertificate = async (certificateId: number) => {
     const result = await Swal.fire({
@@ -340,6 +348,12 @@ export default function MyCompany() {
       <AddCertificateModal
         open={isAddCertificateModalOpen}
         onOpenChange={setIsAddCertificateModalOpen}
+      />
+
+      <EditCertificateModal
+        open={isEditCertificateModalOpen}
+        onOpenChange={setIsEditCertificateModalOpen}
+        certificate={selectedCertificate}
       />
 
     </div>
