@@ -1187,12 +1187,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/certificates", async (req, res) => {
+  app.post("/api/certificates", uploadImage.single('imageFile'), async (req, res) => {
     try {
       console.log("Datos recibidos para certificado:", req.body);
-      const certificateData = insertCertificateSchema.parse(req.body);
-      console.log("Datos validados:", certificateData);
-      const certificate = await storage.createCertificate(certificateData);
+      console.log("Archivo recibido:", req.file);
+      
+      let certificateData: any = {};
+      
+      // Si hay archivo de imagen, procesarlo
+      if (req.file) {
+        certificateData.imagenUrl = `/uploads/images/${req.file.filename}`;
+      }
+      
+      // Procesar los demás campos del formulario
+      Object.entries(req.body).forEach(([key, value]) => {
+        if (key !== 'imageFile') {
+          if (key === 'membershipPlanIds') {
+            try {
+              certificateData[key] = JSON.parse(value as string);
+            } catch (e) {
+              certificateData[key] = value;
+            }
+          } else if (key === 'asignacionAutomatica') {
+            certificateData[key] = value === 'true';
+          } else {
+            certificateData[key] = value;
+          }
+        }
+      });
+      
+      // Validar los datos
+      const validatedData = insertCertificateSchema.parse(certificateData);
+      console.log("Datos validados:", validatedData);
+      
+      const certificate = await storage.createCertificate(validatedData);
       res.status(201).json(certificate);
     } catch (error) {
       console.error("Error al crear certificado:", error);
@@ -1211,10 +1239,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/certificates/:id", async (req, res) => {
+  // Ruta PUT para actualizar certificados con archivos de imagen
+  app.put("/api/certificates/:id", uploadImage.single('imageFile'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const certificateData = insertCertificateSchema.partial().parse(req.body);
+      let updateData: any = {};
+      
+      // Si hay archivo de imagen, procesarlo
+      if (req.file) {
+        updateData.imagenUrl = `/uploads/images/${req.file.filename}`;
+      }
+      
+      // Procesar los demás campos del formulario
+      Object.entries(req.body).forEach(([key, value]) => {
+        if (key !== 'imageFile') {
+          if (key === 'membershipPlanIds') {
+            try {
+              updateData[key] = JSON.parse(value as string);
+            } catch (e) {
+              updateData[key] = value;
+            }
+          } else if (key === 'asignacionAutomatica') {
+            updateData[key] = value === 'true';
+          } else {
+            updateData[key] = value;
+          }
+        }
+      });
+      
+      // Validar los datos
+      const certificateData = insertCertificateSchema.partial().parse(updateData);
+      
+      // Actualizar certificado
       const certificate = await storage.updateCertificate(id, certificateData);
       if (!certificate) {
         return res.status(404).json({ error: "Certificate not found" });
@@ -1224,6 +1280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Validation error", details: error.errors });
       }
+      console.error("Error updating certificate:", error);
       res.status(500).json({ error: "Failed to update certificate" });
     }
   });
