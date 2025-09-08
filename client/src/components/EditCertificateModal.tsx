@@ -57,6 +57,65 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
+  // Funciones para manejar archivos de imagen
+  const validateImage = (file: File): string | null => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      return 'Solo se permiten archivos de imagen (JPG, PNG, GIF)';
+    }
+
+    if (file.size > maxSize) {
+      return 'El archivo no puede ser mayor a 5MB';
+    }
+
+    return null;
+  };
+
+  const handleImageChange = (file: File | null) => {
+    if (!file) {
+      setImageFile(null);
+      setImagePreview("");
+      form.setValue("imagenUrl", "");
+      return;
+    }
+
+    const validationError = validateImage(file);
+    if (validationError) {
+      toast({
+        title: "Error en el archivo",
+        description: validationError,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setImageFile(file);
+    
+    // Crear preview de la imagen
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Limpiar el campo de URL ya que ahora usaremos el archivo
+    form.setValue("imagenUrl", "");
+  };
+
+  const handleImageDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleImageChange(file);
+    }
+  }, []);
+
+  const handleImageDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  }, []);
+
   // Obtener tipos de membresía para la selección
   const { data: membershipTypes = [] } = useQuery<any[]>({
     queryKey: ["/api/membership-types"],
@@ -98,6 +157,10 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         asignacionAutomatica: certificate.asignacionAutomatica || false,
         membershipPlanIds: Array.isArray(certificate.membershipPlanIds) ? certificate.membershipPlanIds : [],
       });
+
+      // Limpiar estados de archivo de imagen al cargar certificado existente
+      setImageFile(null);
+      setImagePreview("");
     }
   }, [certificate, open, form]);
 
@@ -105,13 +168,50 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
     mutationFn: async (data: FormData) => {
       if (!certificate) throw new Error("No certificate selected");
       
-      const certificateData = {
-        ...data,
-        fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString() : null,
-        fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento).toISOString() : null,
-        membershipPlanIds: data.membershipPlanIds || [],
-      };
-      return apiRequest("PUT", `/api/certificates/${certificate.id}`, certificateData);
+      // Si hay archivo de imagen, usar FormData, sino usar JSON
+      if (imageFile) {
+        const formData = new FormData();
+        
+        // Agregar todos los campos del formulario
+        Object.entries(data).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            formData.append(key, JSON.stringify(value));
+          } else if (value !== undefined && value !== null) {
+            formData.append(key, value.toString());
+          }
+        });
+        
+        // Agregar fechas procesadas
+        if (data.fechaEmision) {
+          formData.append("fechaEmision", new Date(data.fechaEmision).toISOString());
+        }
+        if (data.fechaVencimiento) {
+          formData.append("fechaVencimiento", new Date(data.fechaVencimiento).toISOString());
+        }
+        
+        // Agregar archivo de imagen
+        formData.append("imageFile", imageFile);
+
+        const response = await fetch(`/api/certificates/${certificate.id}`, {
+          method: 'PUT',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al actualizar el certificado');
+        }
+
+        return response.json();
+      } else {
+        // Sin archivo, usar apiRequest tradicional
+        const certificateData = {
+          ...data,
+          fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString() : null,
+          fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento).toISOString() : null,
+          membershipPlanIds: data.membershipPlanIds || [],
+        };
+        return apiRequest("PUT", `/api/certificates/${certificate.id}`, certificateData);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/certificates"] });
