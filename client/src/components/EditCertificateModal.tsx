@@ -11,6 +11,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -340,24 +341,120 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="imagenUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL de la Imagen del Certificado</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value || ""}
-                      type="url"
-                      placeholder="https://ejemplo.com/certificado.jpg"
+            {/* Campo de imagen - SOLUCIONADO: Drag and drop con preview */}
+            <div>
+              <FormLabel>Imagen del Certificado</FormLabel>
+              <FormDescription className="mb-2">
+                Sube una imagen del certificado o premio (JPG, PNG, GIF • Máximo 5MB)
+              </FormDescription>
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                onDrop={handleImageDrop}
+                onDragOver={handleImageDragOver}
+                onClick={() => document.getElementById('image-input')?.click()}
+              >
+                {imageFile ? (
+                  <div className="space-y-4">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="h-32 w-auto mx-auto rounded object-cover"
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <div className="flex items-center justify-center gap-3">
+                      <div>
+                        <p className="font-medium">{imageFile.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {(imageFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleImageChange(null);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : form.watch("imagenUrl") ? (
+                  <div className="space-y-4">
+                    <img
+                      src={form.watch("imagenUrl")}
+                      alt="Imagen actual"
+                      className="h-32 w-auto mx-auto rounded object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    <div>
+                      <p className="font-medium">Imagen actual</p>
+                      <p className="text-sm text-gray-500">{form.watch("imagenUrl")}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+                    <div>
+                      <p className="text-sm text-gray-600">
+                        Arrastra y suelta tu imagen aquí, o{" "}
+                        <span className="text-primary cursor-pointer hover:underline">
+                          selecciona archivo
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        JPG, PNG, GIF • Máximo 5MB
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <input
+                  id="image-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleImageChange(file);
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Campo de URL alternativo si prefiere ingresar URL manualmente */}
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="imagenUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">O ingresa la URL de la imagen:</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          type="url"
+                          placeholder="https://ejemplo.com/certificado.jpg"
+                          onChange={(e) => {
+                            field.onChange(e);
+                            // Si ingresa URL, limpiar archivo
+                            if (e.target.value) {
+                              setImageFile(null);
+                              setImagePreview("");
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <FormField
               control={form.control}
