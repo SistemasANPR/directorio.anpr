@@ -175,9 +175,11 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         
         // Agregar todos los campos del formulario
         Object.entries(data).forEach(([key, value]) => {
-          if (Array.isArray(value)) {
+          if (key === 'membershipPlanIds' && Array.isArray(value)) {
             formData.append(key, JSON.stringify(value));
-          } else if (value !== undefined && value !== null) {
+          } else if (key === 'asignacionAutomatica') {
+            formData.append(key, value ? 'true' : 'false');
+          } else if (value !== undefined && value !== null && value !== '') {
             formData.append(key, value.toString());
           }
         });
@@ -210,12 +212,18 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
           fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString() : null,
           fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento).toISOString() : null,
           membershipPlanIds: data.membershipPlanIds || [],
+          asignacionAutomatica: data.asignacionAutomatica || false,
         };
-        return apiRequest("PUT", `/api/certificates/${certificate.id}`, certificateData);
+        console.log('Enviando datos de actualización:', certificateData);
+        const response = await apiRequest("PUT", `/api/certificates/${certificate.id}`, certificateData);
+        return response.json();
       }
     },
-    onSuccess: () => {
+    onSuccess: (updatedCertificate) => {
+      console.log('Certificado actualizado exitosamente:', updatedCertificate);
+      // Invalidar todas las queries relacionadas con certificados
       queryClient.invalidateQueries({ queryKey: ["/api/certificates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/certificates", { userRole: 'admin' }] });
       toast({
         title: "Certificado actualizado",
         description: "El certificado ha sido actualizado exitosamente",
