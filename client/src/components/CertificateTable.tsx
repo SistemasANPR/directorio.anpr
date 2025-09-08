@@ -20,7 +20,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface CertificateTableProps {
   certificates: Certificate[];
-  onEdit: (certificate: Certificate) => void;
   onDelete: (certificateId: number) => void;
 }
 
@@ -35,7 +34,7 @@ const getVisibilityBadgeColor = (visibility?: string) => {
   }
 };
 
-export default function CertificateTable({ certificates, onEdit, onDelete }: CertificateTableProps) {
+export default function CertificateTable({ certificates, onDelete }: CertificateTableProps) {
   const { isAdmin } = useAuth();
   if (certificates.length === 0) {
     return (
@@ -127,10 +126,6 @@ export default function CertificateTable({ certificates, onEdit, onDelete }: Cer
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(certificate)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
-                    </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => onDelete(certificate.id)}
                       className="text-destructive"

@@ -31,8 +31,6 @@ type CertificateFormData = z.infer<typeof certificateSchema>;
 
 export default function Certificates() {
   const [open, setOpen] = useState(false);
-  const [editingCertificate, setEditingCertificate] = useState<Certificate | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [dragActive, setDragActive] = useState(false);
@@ -67,19 +65,6 @@ export default function Certificates() {
     },
   });
 
-  const editForm = useForm<CertificateFormData>({
-    resolver: zodResolver(certificateSchema),
-    defaultValues: {
-      nombreCertificado: "",
-      imagenUrl: "",
-      descripcion: "",
-      fechaEmision: "",
-      fechaVencimiento: "",
-      entidadEmisora: "",
-      membershipPlanIds: [],
-      creadoPorAdmin: true,
-    },
-  });
 
   const createMutation = useMutation({
     mutationFn: async (data: CertificateFormData) => {
@@ -106,22 +91,6 @@ export default function Certificates() {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async (data: CertificateFormData) => {
-      const response = await apiRequest("PUT", `/api/certificates/${editingCertificate?.id}`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/certificates"] });
-      toast({ title: "Certificado actualizado exitosamente" });
-      setEditOpen(false);
-      editForm.reset();
-      setEditingCertificate(null);
-    },
-    onError: () => {
-      toast({ title: "Error al actualizar certificado", variant: "destructive" });
-    },
-  });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -141,24 +110,6 @@ export default function Certificates() {
     createMutation.mutate(data);
   };
 
-  const onEditSubmit = (data: CertificateFormData) => {
-    updateMutation.mutate(data);
-  };
-
-  const handleEdit = (certificate: Certificate) => {
-    setEditingCertificate(certificate);
-    editForm.reset({
-      nombreCertificado: certificate.nombreCertificado,
-      imagenUrl: certificate.imagenUrl,
-      descripcion: certificate.descripcion || "",
-      fechaEmision: certificate.fechaEmision || "",
-      fechaVencimiento: certificate.fechaVencimiento || "",
-      entidadEmisora: certificate.entidadEmisora || "",
-      membershipPlanIds: (certificate as any).membershipPlanIds || [],
-      creadoPorAdmin: (certificate as any).creadoPorAdmin || true,
-    });
-    setEditOpen(true);
-  };
 
   const handleDelete = (id: number) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este certificado?")) {
@@ -478,13 +429,6 @@ export default function Certificates() {
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 
-                    variant="outline"
-                    onClick={() => handleEdit(certificate)}
-                  >
-                    Editar
-                  </Button>
-                  <Button 
-                    size="sm" 
                     variant="destructive"
                     onClick={() => handleDelete(certificate.id)}
                   >
@@ -509,71 +453,6 @@ export default function Certificates() {
         </div>
       )}
 
-      {/* Dialog de edición */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Certificado</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-            {/* Aquí iría el mismo formulario pero con editForm */}
-            <div>
-              <Label htmlFor="edit_nombreCertificado">Nombre del Certificado</Label>
-              <Input
-                id="edit_nombreCertificado"
-                {...editForm.register("nombreCertificado")}
-                placeholder="Ej: ISO 9001:2015"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit_descripcion">Descripción</Label>
-              <Textarea
-                id="edit_descripcion"
-                {...editForm.register("descripcion")}
-                placeholder="Descripción del certificado"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit_fechaEmision">Fecha de Emisión</Label>
-                <Input
-                  id="edit_fechaEmision"
-                  type="date"
-                  {...editForm.register("fechaEmision")}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit_fechaVencimiento">Fecha de Vencimiento</Label>
-                <Input
-                  id="edit_fechaVencimiento"
-                  type="date"
-                  {...editForm.register("fechaVencimiento")}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="edit_entidadEmisora">Entidad Emisora</Label>
-              <Input
-                id="edit_entidadEmisora"
-                {...editForm.register("entidadEmisora")}
-                placeholder="Ej: Bureau Veritas"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Actualizando..." : "Actualizar Certificado"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

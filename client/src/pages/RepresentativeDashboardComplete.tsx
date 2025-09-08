@@ -31,7 +31,6 @@ import RepresentativeCertificateTable from "@/components/RepresentativeCertifica
 import RepresentativeReview from "@/components/RepresentativeReview";
 import MembershipLimitsDisplay from "@/components/MembershipLimitsDisplay";
 import AddCertificateModal from "@/components/AddCertificateModal";
-import EditCertificateModal from "@/components/EditCertificateModal";
 import AddProjectModal from "@/components/AddProjectModal";
 import EditProjectModal from "@/components/EditProjectModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -48,8 +47,6 @@ export default function RepresentativeDashboard() {
   
   // Certificate management states
   const [isAddCertificateModalOpen, setIsAddCertificateModalOpen] = useState(false);
-  const [isEditCertificateModalOpen, setIsEditCertificateModalOpen] = useState(false);
-  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
   
   // Project management states
   const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
@@ -191,32 +188,6 @@ export default function RepresentativeDashboard() {
     },
   });
 
-  const handleEditCertificate = (certificate: Certificate) => {
-    // Check if this is an admin-assigned certificate
-    const adminCertificateNames = [
-      "Miembro Oficial ANPR México 2025",
-      "Certificación ANPR",
-      "Miembro Activo ANPR",
-      "Reconocimiento ANPR"
-    ];
-    
-    const isAdminCertificate = adminCertificateNames.some(name => 
-      certificate.nombreCertificado.toLowerCase().includes(name.toLowerCase())
-    );
-    
-    if (isAdminCertificate) {
-      Swal.fire({
-        title: 'Certificado protegido',
-        text: 'Este certificado fue asignado por ANPR y no puede ser editado',
-        icon: 'warning',
-        confirmButtonText: 'Entendido'
-      });
-      return;
-    }
-
-    setSelectedCertificate(certificate);
-    setIsEditCertificateModalOpen(true);
-  };
 
   const handleDeleteCertificate = async (certificateId: number) => {
     // Check if this is an admin-assigned certificate
@@ -855,7 +826,6 @@ export default function RepresentativeDashboard() {
                 ) : (
                   <RepresentativeCertificateTable
                     certificates={typedCertificates}
-                    onEdit={handleEditCertificate}
                     onDelete={handleDeleteCertificate}
                     userCompanyId={primaryCompany?.id}
                   />
@@ -1128,11 +1098,6 @@ export default function RepresentativeDashboard() {
           onOpenChange={setIsAddCertificateModalOpen}
         />
 
-        <EditCertificateModal
-          open={isEditCertificateModalOpen}
-          onOpenChange={setIsEditCertificateModalOpen}
-          certificate={selectedCertificate}
-        />
 
         {primaryCompany && (
           <>

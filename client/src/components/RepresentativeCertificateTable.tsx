@@ -20,7 +20,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface RepresentativeCertificateTableProps {
   certificates: Certificate[];
-  onEdit: (certificate: Certificate) => void;
   onDelete: (certificateId: number) => void;
   userCompanyId?: number;
 }
@@ -43,7 +42,6 @@ const isAdminAssignedCertificate = (certificate: Certificate) => {
 
 export default function RepresentativeCertificateTable({ 
   certificates, 
-  onEdit, 
   onDelete, 
   userCompanyId 
 }: RepresentativeCertificateTableProps) {
@@ -140,10 +138,6 @@ export default function RepresentativeCertificateTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(certificate)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => onDelete(certificate.id)}
                           className="text-destructive"
