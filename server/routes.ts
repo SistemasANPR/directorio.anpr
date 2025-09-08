@@ -1245,11 +1245,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       let updateData: any = {};
       
-      console.log('=== PUT Certificate Debug ===');
-      console.log('Request body:', req.body);
-      console.log('Has file:', !!req.file);
-      console.log('Content-Type:', req.get('content-type'));
-      
       // Si hay archivo de imagen, procesarlo
       if (req.file) {
         updateData.imagenUrl = `/uploads/images/${req.file.filename}`;
@@ -1291,23 +1286,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      console.log('Processed updateData:', updateData);
-      
       // Validar los datos
       const certificateData = insertCertificateSchema.partial().parse(updateData);
-      console.log('Validated certificateData:', certificateData);
       
       // Actualizar certificado
       const certificate = await storage.updateCertificate(id, certificateData);
       if (!certificate) {
         return res.status(404).json({ error: "Certificate not found" });
       }
-      
-      console.log('Updated certificate:', certificate);
       res.json(certificate);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Validation errors:", error.errors);
         return res.status(400).json({ error: "Validation error", details: error.errors });
       }
       console.error("Error updating certificate:", error);
