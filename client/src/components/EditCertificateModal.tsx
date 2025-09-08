@@ -52,7 +52,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function EditCertificateModal({ open, onOpenChange, certificate }: EditCertificateModalProps) {
   const { toast } = useToast();
-  const { isAdmin, user } = useAuth();
+  const { isAdmin } = useAuth();
   
   // Estados para manejar archivos de imagen
   const [imageFile, setImageFile] = useState<File | null>(null);
