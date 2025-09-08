@@ -1245,39 +1245,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       let updateData: any = {};
       
+      console.log('=== PUT Certificate Debug ===');
+      console.log('Request body:', req.body);
+      console.log('Has file:', !!req.file);
+      console.log('Content-Type:', req.get('content-type'));
+      
       // Si hay archivo de imagen, procesarlo
       if (req.file) {
         updateData.imagenUrl = `/uploads/images/${req.file.filename}`;
       }
       
-      // Procesar los demás campos del formulario
-      Object.entries(req.body).forEach(([key, value]) => {
-        if (key !== 'imageFile') {
-          if (key === 'membershipPlanIds') {
-            try {
-              updateData[key] = JSON.parse(value as string);
-            } catch (e) {
+      // Detectar si la request es FormData o JSON
+      const isFormData = req.get('content-type')?.includes('multipart/form-data');
+      
+      if (isFormData) {
+        // Procesar campos de FormData (cuando hay archivo)
+        Object.entries(req.body).forEach(([key, value]) => {
+          if (key !== 'imageFile') {
+            if (key === 'membershipPlanIds') {
+              try {
+                updateData[key] = JSON.parse(value as string);
+              } catch (e) {
+                updateData[key] = value;
+              }
+            } else if (key === 'asignacionAutomatica') {
+              updateData[key] = value === 'true';
+            } else {
               updateData[key] = value;
             }
-          } else if (key === 'asignacionAutomatica') {
-            updateData[key] = value === 'true';
-          } else {
-            updateData[key] = value;
           }
-        }
-      });
+        });
+      } else {
+        // Procesar datos JSON (cuando no hay archivo)
+        Object.entries(req.body).forEach(([key, value]) => {
+          if (key !== 'imageFile') {
+            if (key === 'asignacionAutomatica') {
+              // Convertir a boolean si viene como string o ya es boolean
+              updateData[key] = typeof value === 'string' ? value === 'true' : Boolean(value);
+            } else if (key === 'membershipPlanIds') {
+              updateData[key] = Array.isArray(value) ? value : [];
+            } else {
+              updateData[key] = value;
+            }
+          }
+        });
+      }
+      
+      console.log('Processed updateData:', updateData);
       
       // Validar los datos
       const certificateData = insertCertificateSchema.partial().parse(updateData);
+      console.log('Validated certificateData:', certificateData);
       
       // Actualizar certificado
       const certificate = await storage.updateCertificate(id, certificateData);
       if (!certificate) {
         return res.status(404).json({ error: "Certificate not found" });
       }
+      
+      console.log('Updated certificate:', certificate);
       res.json(certificate);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ error: "Validation error", details: error.errors });
       }
       console.error("Error updating certificate:", error);
