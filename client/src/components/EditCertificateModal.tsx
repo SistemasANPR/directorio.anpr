@@ -348,7 +348,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                 Sube una imagen del certificado o premio (JPG, PNG, GIF • Máximo 5MB)
               </FormDescription>
               <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100"
                 onDrop={handleImageDrop}
                 onDragOver={handleImageDragOver}
                 onClick={() => document.getElementById('image-input')?.click()}
@@ -358,7 +358,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="h-32 w-auto mx-auto rounded object-cover"
+                      className="h-40 w-auto mx-auto rounded-lg object-cover shadow-md"
                     />
                     <div className="flex items-center justify-center gap-3">
                       <div>
@@ -385,14 +385,27 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                     <img
                       src={form.watch("imagenUrl")}
                       alt="Imagen actual"
-                      className="h-32 w-auto mx-auto rounded object-cover"
+                      className="h-40 w-auto mx-auto rounded-lg object-cover shadow-md"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
-                    <div>
-                      <p className="font-medium">Imagen actual</p>
-                      <p className="text-sm text-gray-500">{form.watch("imagenUrl")}</p>
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="text-center">
+                        <p className="font-medium text-green-700">Imagen actual del certificado</p>
+                        <p className="text-xs text-gray-500">Haz clic para cambiar la imagen</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          form.setValue("imagenUrl", "");
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -425,35 +438,42 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                 />
               </div>
 
-              {/* Campo de URL alternativo si prefiere ingresar URL manualmente */}
-              <div className="mt-4">
-                <FormField
-                  control={form.control}
-                  name="imagenUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm">O ingresa la URL de la imagen:</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ""}
-                          type="url"
-                          placeholder="https://ejemplo.com/certificado.jpg"
-                          onChange={(e) => {
-                            field.onChange(e);
-                            // Si ingresa URL, limpiar archivo
-                            if (e.target.value) {
-                              setImageFile(null);
-                              setImagePreview("");
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              {/* Campo de URL alternativo - oculto por defecto, más cómodo */}
+              {!imageFile && !form.watch("imagenUrl") && (
+                <details className="mt-4">
+                  <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                    ¿Prefieres ingresar una URL? (Opcional)
+                  </summary>
+                  <div className="mt-2 p-3 bg-gray-50 rounded">
+                    <FormField
+                      control={form.control}
+                      name="imagenUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">URL de la imagen:</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value || ""}
+                              type="url"
+                              placeholder="https://ejemplo.com/certificado.jpg"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                // Si ingresa URL, limpiar archivo
+                                if (e.target.value) {
+                                  setImageFile(null);
+                                  setImagePreview("");
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </details>
+              )}
             </div>
 
             <FormField

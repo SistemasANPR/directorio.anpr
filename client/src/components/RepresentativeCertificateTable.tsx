@@ -89,17 +89,34 @@ export default function RepresentativeCertificateTable({
             return (
               <TableRow key={certificate.id} className="hover:bg-gray-50">
                 <TableCell className="py-4 px-4">
-                  <div className="flex items-center space-x-3">
-                    {isAdminCertificate ? (
-                      <Shield className="h-5 w-5 text-blue-600" />
+                  <div className="flex items-center space-x-4">
+                    {certificate.imagenUrl ? (
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={certificate.imagenUrl} 
+                          alt={certificate.nombreCertificado}
+                          className="h-12 w-12 rounded-lg object-cover border shadow-sm"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
                     ) : (
-                      <Award className="h-5 w-5 text-yellow-600" />
+                      <div className="flex-shrink-0">
+                        <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                          {isAdminCertificate ? (
+                            <Shield className="h-6 w-6 text-blue-600" />
+                          ) : (
+                            <Award className="h-6 w-6 text-gray-400" />
+                          )}
+                        </div>
+                      </div>
                     )}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900">{certificate.nombreCertificado}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-gray-900 truncate">{certificate.nombreCertificado}</p>
                         {isAdminCertificate && (
-                          <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                          <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 flex-shrink-0">
                             <Shield className="h-3 w-3 mr-1" />
                             ANPR
                           </Badge>
@@ -108,6 +125,11 @@ export default function RepresentativeCertificateTable({
                       {certificate.fechaEmision && (
                         <p className="text-sm text-gray-500">
                           Emitido: {new Date(certificate.fechaEmision).toLocaleDateString()}
+                        </p>
+                      )}
+                      {certificate.entidadEmisora && (
+                        <p className="text-xs text-gray-400 truncate">
+                          {certificate.entidadEmisora}
                         </p>
                       )}
                     </div>
