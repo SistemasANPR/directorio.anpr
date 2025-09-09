@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Building, 
@@ -69,10 +69,41 @@ const representativeNavItems = [
 export default function RepresentativeSidebar({ className }: RepresentativeSidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
+  const [currentTab, setCurrentTab] = useState('overview');
   const { user } = useAuth();
   
   // Verificar si el usuario es administrador
   const isAdmin = user?.role === 'admin' || user?.role === 'administrator';
+
+  // Update current tab when URL changes
+  useEffect(() => {
+    const updateCurrentTab = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab') || 'overview';
+      setCurrentTab(tabParam);
+    };
+
+    updateCurrentTab();
+    
+    const handlePopState = () => {
+      updateCurrentTab();
+    };
+    
+    const handleTabNavigation = (event: CustomEvent) => {
+      const tabName = event.detail?.tab;
+      if (tabName) {
+        setCurrentTab(tabName);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('navigateTab', handleTabNavigation as EventListener);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('navigateTab', handleTabNavigation as EventListener);
+    };
+  }, []);
   
   // Filtrar items de navegación basándose en el rol
   const filteredNavItems = representativeNavItems.filter(item => {
@@ -100,15 +131,10 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
     }
   };
 
-  const getActiveTab = () => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
-    return urlParams.get('tab') || 'overview';
-  };
-
   const isTabActive = (href: string) => {
     if (href.includes('?tab=')) {
       const tabFromHref = href.split('?tab=')[1];
-      return getActiveTab() === tabFromHref;
+      return currentTab === tabFromHref;
     }
     return location === href;
   };
@@ -148,11 +174,11 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
                   } else {
                     // Handle dashboard tab navigation
                     const tabName = item.href.split('?tab=')[1];
+                    setCurrentTab(tabName);
                     window.history.pushState({}, '', item.href);
                     
                     // Force re-render by dispatching a custom event
                     window.dispatchEvent(new CustomEvent('navigateTab', { detail: { tab: tabName } }));
-                    window.dispatchEvent(new PopStateEvent('popstate'));
                   }
                   setIsMobileMenuOpen(false);
                 }}
