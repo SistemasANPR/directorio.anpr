@@ -53,8 +53,8 @@ const companySchema = insertCompanySchema.extend({
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   videosUrls: z.array(z.string()).optional(),
-  paisesPresencia: z.array(z.string()).min(1, "Selecciona al menos un país"),
-  estadosPresencia: z.array(z.string()).min(1, "Selecciona al menos un estado"),
+  paisesPresencia: z.array(z.string()).min(1, "Selecciona al menos un país donde tiene presencia"),
+  estadosPresencia: z.array(z.string()).optional(),
   ciudadesPresencia: z.array(z.string()).optional(),
   ubicacionPrincipal: z.string().optional().nullable(),
   categoriesIds: z.array(z.number()).min(1, "Selecciona al menos una categoría"),
@@ -73,6 +73,15 @@ const companySchema = insertCompanySchema.extend({
   fechaInicioMembresia: z.string().optional(),
   fechaFinMembresia: z.string().optional(),
   notasMembresia: z.string().optional(),
+}).refine((data) => {
+  // Si México está seleccionado, entonces debe haber al menos un estado
+  if (data.paisesPresencia?.includes("México")) {
+    return data.estadosPresencia && data.estadosPresencia.length > 0;
+  }
+  return true;
+}, {
+  message: "Selecciona al menos un estado de México",
+  path: ["estadosPresencia"],
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
@@ -1566,7 +1575,13 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   name="paisesPresencia"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Países con Presencia</FormLabel>
+                      <FormLabel className="flex items-center gap-1">
+                        Países con Presencia
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormDescription>
+                        Selecciona al menos un país donde la empresa tiene presencia
+                      </FormDescription>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
                         {paisesAmericaLatina.map((pais) => (
                           <div key={pais} className="flex items-center space-x-2">
@@ -1600,7 +1615,13 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   name="estadosPresencia"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Estados de México</FormLabel>
+                      <FormLabel className="flex items-center gap-1">
+                        Estados de México
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormDescription>
+                        Selecciona al menos un estado de México donde tiene presencia
+                      </FormDescription>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
                         {estadosMexico.map((estado) => (
                           <div key={estado} className="flex items-center space-x-2">
