@@ -214,11 +214,13 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
           membershipPlanIds: data.membershipPlanIds || [],
           asignacionAutomatica: data.asignacionAutomatica || false,
         };
+        console.log('Enviando datos de actualización:', certificateData);
         const response = await apiRequest("PUT", `/api/certificates/${certificate.id}`, certificateData);
         return response.json();
       }
     },
     onSuccess: (updatedCertificate) => {
+      console.log('Certificado actualizado exitosamente:', updatedCertificate);
       // Invalidar todas las queries relacionadas con certificados
       queryClient.invalidateQueries({ queryKey: ["/api/certificates"] });
       queryClient.invalidateQueries({ queryKey: ["/api/certificates", { userRole: 'admin' }] });
