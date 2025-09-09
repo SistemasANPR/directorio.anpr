@@ -245,7 +245,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:w-[90vw] sm:max-w-[700px] max-h-[95vh] overflow-y-auto mx-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
@@ -309,7 +309,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
               )}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="fechaEmision"
@@ -354,7 +354,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                 Sube una imagen del certificado o premio (JPG, PNG, GIF • Máximo 5MB)
               </FormDescription>
               <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center hover:border-gray-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100"
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100"
                 onDrop={handleImageDrop}
                 onDragOver={handleImageDragOver}
                 onClick={() => document.getElementById('image-input')?.click()}
@@ -540,7 +540,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Planes de Membresía</FormLabel>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {membershipTypes.map((membershipType: any) => (
                             <div key={membershipType.id} className="flex items-center space-x-2">
                               <Checkbox

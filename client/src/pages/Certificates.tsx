@@ -200,19 +200,19 @@ export default function Certificates() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#4a4a49]">Certificados</h1>
+          <h1 className="text-3xl font-bold text-[#4a4a49]">Certificados</h1>
           <p className="text-gray-600">Gestiona los certificados de la plataforma</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-[#0f2161] hover:bg-[#0f2161]/90 w-full sm:w-auto">
+            <Button className="bg-[#0f2161] hover:bg-[#0f2161]/90">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Certificado
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[95vw] sm:w-[90vw] max-w-2xl mx-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Crear Nuevo Certificado</DialogTitle>
             </DialogHeader>
@@ -232,7 +232,7 @@ export default function Certificates() {
               <div>
                 <Label>Imagen del Certificado</Label>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                     dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
                   }`}
                   onDrop={handleDrop}
@@ -287,7 +287,7 @@ export default function Certificates() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="fechaEmision">Fecha de Emisión</Label>
                   <Input
@@ -353,11 +353,11 @@ export default function Certificates() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
+              <div className="flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={createMutation.isPending} className="w-full sm:w-auto">
+                <Button type="submit" disabled={createMutation.isPending}>
                   {createMutation.isPending ? "Creando..." : "Crear Certificado"}
                 </Button>
               </div>
@@ -366,7 +366,7 @@ export default function Certificates() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {certificates.map((certificate) => (
           <Card key={certificate.id} className="overflow-hidden">
             <CardHeader className="p-0">

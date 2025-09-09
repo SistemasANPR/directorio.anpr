@@ -93,11 +93,6 @@ const navigationItems: NavigationItem[] = [
         href: "/admin/reviews",
         requireAdmin: true,
       },
-      {
-        name: "Registro Manual",
-        href: "/admin/company-registration",
-        requireAdmin: true,
-      },
     ],
   },
   {
@@ -239,8 +234,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+      <nav className="p-4 space-y-2 flex-1">
         {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -310,8 +304,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
             </div>
           );
         })}
-        </nav>
-      </div>
+      </nav>
 
       {/* Impersonation Status */}
       {isImpersonating && (
@@ -338,28 +331,9 @@ export default function Sidebar({ className = "" }: SidebarProps) {
         </div>
       )}
 
-      {/* Logout Button - Always visible */}
-      <div className="p-4 border-t border-gray-100 bg-white">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSignOut}
-          className="w-full flex items-center justify-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Cerrar Sesión</span>
-        </Button>
-      </div>
-
       {/* User Profile */}
-      <div className="p-4 border-t border-gray-100 bg-white">
+      <div className="p-4 border-t border-gray-100">
         <div className="flex items-center space-x-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.photoURL || ""} />
-            <AvatarFallback>
-              {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-700 truncate">
               {user?.displayName || "Usuario"}
@@ -368,6 +342,14 @@ export default function Sidebar({ className = "" }: SidebarProps) {
               {user?.email}
             </p>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="p-1 text-gray-400 hover:text-gray-600"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </>
@@ -390,14 +372,14 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-sm border-r border-gray-100 flex flex-col overflow-hidden">
+          <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-sm border-r border-gray-100 flex flex-col">
             <SidebarContent />
           </aside>
         </div>
       )}
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-full flex-col ${className}`}>
+      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-full overflow-y-auto flex-col ${className}`}>
         <SidebarContent />
       </aside>
     </>
