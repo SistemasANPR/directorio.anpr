@@ -1632,6 +1632,88 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 />
                 )}
 
+                {/* Ciudades de presencia - Solo mostrar si hay estados seleccionados */}
+                {selectedEstados.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="ciudadesPresencia"
+                  render={({ field }) => {
+                    const availableCiudades = getAvailableCiudades();
+                    
+                    return (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Ciudades de Presencia</FormLabel>
+                        <FormDescription>
+                          Selecciona las ciudades específicas donde tiene presencia la empresa
+                        </FormDescription>
+                        {availableCiudades.length > 0 ? (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
+                            {availableCiudades.map((ciudad) => (
+                              <div key={ciudad} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`ciudad-${ciudad}`}
+                                  checked={field.value?.includes(ciudad) || false}
+                                  onCheckedChange={(checked) => {
+                                    const currentValues = field.value || [];
+                                    let newValues;
+                                    if (checked) {
+                                      newValues = [...currentValues, ciudad];
+                                      setSelectedCiudades(prev => [...prev, ciudad]);
+                                    } else {
+                                      newValues = currentValues.filter(c => c !== ciudad);
+                                      setSelectedCiudades(prev => prev.filter(c => c !== ciudad));
+                                    }
+                                    field.onChange(newValues);
+                                  }}
+                                />
+                                <label htmlFor={`ciudad-${ciudad}`} className="text-sm cursor-pointer">
+                                  {ciudad}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-gray-500">
+                            <MapPin className="mx-auto h-8 w-8 text-gray-400" />
+                            <p className="text-sm">Selecciona primero uno o más estados</p>
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+                )}
+
+                {/* Ubicación Principal */}
+                <FormField
+                  control={form.control}
+                  name="ubicacionPrincipal"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Ubicación Principal (Opcional)</FormLabel>
+                      <FormDescription>
+                        Si tienes presencia en múltiples ciudades, selecciona cuál es la principal
+                      </FormDescription>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona la ciudad principal" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(form.watch("ciudadesPresencia") || []).map((ciudad) => (
+                            <SelectItem key={ciudad} value={ciudad}>
+                              {ciudad}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* Dirección Física */}
                 <FormField
                   control={form.control}
@@ -1650,6 +1732,48 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           value={field.value || ""}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Ubicación Geográfica */}
+                <FormField
+                  control={form.control}
+                  name="ubicacionGeografica"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Ubicación en el Mapa (Opcional)
+                      </FormLabel>
+                      <FormDescription>
+                        Haz clic en el mapa para marcar la ubicación exacta de tu empresa. Esto ayudará a que los usuarios te encuentren más fácilmente.
+                      </FormDescription>
+                      <FormControl>
+                        <div className="border rounded-lg overflow-hidden">
+                          <MapLocationPicker
+                            onLocationChange={(location) => {
+                              field.onChange(location);
+                              // Si hay una dirección física, actualizarla también
+                              const currentAddress = form.getValues("direccionFisica");
+                              if (!currentAddress && location?.address) {
+                                form.setValue("direccionFisica", location.address);
+                              }
+                            }}
+                            initialLocation={field.value}
+                            className="h-64 w-full"
+                          />
+                        </div>
+                      </FormControl>
+                      {field.value && (
+                        <div className="text-xs text-gray-600 mt-2">
+                          📍 Ubicación seleccionada: {field.value.lat?.toFixed(6)}, {field.value.lng?.toFixed(6)}
+                          {field.value.address && (
+                            <span className="block mt-1">📍 {field.value.address}</span>
+                          )}
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
