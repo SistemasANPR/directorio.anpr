@@ -40,6 +40,7 @@ import FrontendConfiguration from "@/pages/FrontendConfiguration";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import WordPressMembershipTest from "@/pages/WordPressMembershipTest";
+import CompanyRegistration from "@/pages/CompanyRegistration";
 import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
@@ -328,6 +329,12 @@ function Router() {
       <Route path="/planes">
         <PublicLayout>
           <PublicMemberships />
+        </PublicLayout>
+      </Route>
+      
+      <Route path="/company-registration">
+        <PublicLayout>
+          <CompanyRegistration />
         </PublicLayout>
       </Route>
       
