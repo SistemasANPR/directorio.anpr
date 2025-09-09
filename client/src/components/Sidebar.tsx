@@ -233,8 +233,8 @@ export default function Sidebar({ className = "" }: SidebarProps) {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="p-4 space-y-2 flex-1">
+      {/* Navigation - with scroll */}
+      <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
         {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -372,14 +372,14 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-sm border-r border-gray-100 flex flex-col">
+          <aside className="fixed left-0 top-0 h-screen w-64 bg-white shadow-sm border-r border-gray-100 flex flex-col overflow-hidden">
             <SidebarContent />
           </aside>
         </div>
       )}
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-full overflow-y-auto flex-col ${className}`}>
+      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-screen flex-col overflow-hidden ${className}`}>
         <SidebarContent />
       </aside>
     </>
