@@ -26,6 +26,7 @@ import { CompanyWithDetails, Category, MembershipType } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import Swal from 'sweetalert2';
 
 ChartJS.register(
@@ -55,6 +56,7 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   // Queries
   const { data: statistics, isLoading: statisticsLoading } = useQuery<StatisticsData>({
@@ -237,10 +239,13 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-primary">Dashboard</h1>
           <p className="text-gray-600 mt-1">Resumen general de la plataforma</p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center space-x-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-          <Plus className="w-4 h-4" />
-          <span>Nueva Empresa</span>
-        </Button>
+        {/* Botón Nueva Empresa - Solo para administradores */}
+        {isAdmin && (
+          <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center space-x-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+            <Plus className="w-4 h-4" />
+            <span>Nueva Empresa</span>
+          </Button>
+        )}
       </div>
 
       {/* Statistics Cards */}
