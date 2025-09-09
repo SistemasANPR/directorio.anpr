@@ -93,6 +93,11 @@ const navigationItems: NavigationItem[] = [
         href: "/admin/reviews",
         requireAdmin: true,
       },
+      {
+        name: "Registro Manual",
+        href: "/admin/company-registration",
+        requireAdmin: true,
+      },
     ],
   },
   {

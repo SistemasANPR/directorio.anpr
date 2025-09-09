@@ -41,6 +41,7 @@ import FrontendConfiguration from "@/pages/FrontendConfiguration";
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import WordPressMembershipTest from "@/pages/WordPressMembershipTest";
 import CompanyRegistration from "@/pages/CompanyRegistration";
+import AdminCompanyRegistration from "@/pages/AdminCompanyRegistration";
 import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
@@ -258,6 +259,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <FrontendConfiguration />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin/company-registration">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <AdminCompanyRegistration />
           </AppLayout>
         </ProtectedRoute>
       </Route>
