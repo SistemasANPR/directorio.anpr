@@ -75,9 +75,21 @@ export default function RepresentativeDashboard() {
       }
     };
     
+    const handleTabNavigation = (event: CustomEvent) => {
+      const tabName = event.detail?.tab;
+      if (tabName && ['overview', 'company', 'projects', 'certificates', 'membership', 'payments', 'review'].includes(tabName)) {
+        setActiveTab(tabName);
+      }
+    };
+    
     updateTab();
     window.addEventListener('popstate', updateTab);
-    return () => window.removeEventListener('popstate', updateTab);
+    window.addEventListener('navigateTab', handleTabNavigation as EventListener);
+    
+    return () => {
+      window.removeEventListener('popstate', updateTab);
+      window.removeEventListener('navigateTab', handleTabNavigation as EventListener);
+    };
   }, []);
 
   // Fetch dashboard data
@@ -672,10 +684,17 @@ export default function RepresentativeDashboard() {
                   <CardContent className="text-center py-12">
                     <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
-                    <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
-                    <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
-                      Registrar empresa
-                    </Button>
+                    <p className="text-gray-600 mb-4">Tu empresa debe ser registrada por un administrador del sistema</p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto">
+                      <div className="flex items-center justify-center mb-2">
+                        <AlertTriangle className="h-5 w-5 text-amber-600 mr-2" />
+                        <span className="text-sm font-medium text-amber-800">Información importante</span>
+                      </div>
+                      <p className="text-sm text-amber-700 text-center">
+                        Los representantes no pueden crear empresas directamente. 
+                        Contacta al administrador para que registre tu empresa en el sistema.
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               )}

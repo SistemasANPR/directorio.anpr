@@ -149,6 +149,9 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
                     // Handle dashboard tab navigation
                     const tabName = item.href.split('?tab=')[1];
                     window.history.pushState({}, '', item.href);
+                    
+                    // Force re-render by dispatching a custom event
+                    window.dispatchEvent(new CustomEvent('navigateTab', { detail: { tab: tabName } }));
                     window.dispatchEvent(new PopStateEvent('popstate'));
                   }
                   setIsMobileMenuOpen(false);
