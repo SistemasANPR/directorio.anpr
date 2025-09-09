@@ -409,17 +409,71 @@ export default function Users() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Fecha de Registro</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
+            <div className="overflow-x-auto rounded-lg border">
+              <div className="min-w-full">
+                {/* Mobile Cards - visible on small screens */}
+                <div className="block lg:hidden space-y-4">
+                  {users.map((user) => (
+                    <div key={user.id} className="bg-white border rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
+                            <AvatarFallback className="bg-blue-100 text-blue-600">
+                              <User className="h-5 w-5" />
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {user.displayName || "Sin nombre"}
+                            </p>
+                            <p className="text-sm text-gray-500">{user.email}</p>
+                          </div>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(user)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(user.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <Badge className={getRoleBadgeColor(user.role)}>
+                          {getRoleDisplayName(user.role)}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          {new Date(user.createdAt).toLocaleDateString('es-ES')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table - hidden on mobile */}
+                <Table className="hidden lg:table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Usuario</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Rol</TableHead>
+                      <TableHead>Fecha de Registro</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
@@ -473,9 +527,10 @@ export default function Users() {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </CardContent>
@@ -521,8 +576,77 @@ export default function Users() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="overflow-x-auto rounded-lg border">
+              {/* Mobile Cards for WordPress Users - visible on small screens */}
+              <div className="block lg:hidden space-y-4 p-4">
+                {(wordpressData?.paginatedUsers || wordpressData?.users || []).map((wpUser: any) => (
+                  <div key={wpUser.id} className="bg-white border rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-blue-100 text-blue-600 rounded-full p-2 flex-shrink-0">
+                          <ExternalLink className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 truncate">
+                            {wpUser.name || wpUser.first_name && wpUser.last_name 
+                              ? `${wpUser.first_name || ''} ${wpUser.last_name || ''}`.trim()
+                              : wpUser.username || wpUser.slug || 'Usuario sin nombre'
+                            }
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {wpUser.username ? `@${wpUser.username}` : `Slug: ${wpUser.slug}`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-xs text-gray-500 font-medium">Email:</span>
+                        <p className={`text-sm ${wpUser.email === 'No disponible' ? 'text-gray-400 italic' : ''}`}>
+                          {wpUser.email}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500 font-medium">Roles:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {wpUser.roles && wpUser.roles.length > 0 ? (
+                            wpUser.roles.map((role: string) => (
+                              <Badge key={role} variant="outline" className="text-xs">
+                                {role}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 text-sm">Sin roles</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <span className="text-xs text-gray-500">
+                          {wpUser.registered_date ? (
+                            new Date(wpUser.registered_date).toLocaleDateString('es-ES')
+                          ) : (
+                            "Fecha no disponible"
+                          )}
+                        </span>
+                        {wpUser.username && (
+                          <a 
+                            href={`https://anpr.org.mx/profile-2/?${wpUser.username}/`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
+                          >
+                            Ver perfil
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table - hidden on mobile */}
+              <Table className="hidden lg:table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Usuario</TableHead>
@@ -602,11 +726,11 @@ export default function Users() {
           
           {/* Pagination Controls for WordPress Users */}
           {!isLoadingWordPress && wordpressData && wordpressData.totalPages > 1 && (
-            <div className="border-t px-6 py-4 flex items-center justify-between bg-gray-50">
-              <div className="text-sm text-gray-600">
+            <div className="border-t px-4 lg:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50">
+              <div className="text-sm text-gray-600 text-center sm:text-left">
                 Mostrando {((currentPage - 1) * usersPerPage) + 1} a {Math.min(currentPage * usersPerPage, wordpressData.totalFiltered)} de {wordpressData.totalFiltered} usuarios
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center sm:justify-end space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
