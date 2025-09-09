@@ -318,14 +318,14 @@ export default function Users() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 lg:p-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Gestión de Usuarios</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-primary">Gestión de Usuarios</h1>
           <p className="text-gray-600 mt-1">Administra los usuarios del sistema y sus permisos</p>
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 lg:text-right">
           Los usuarios se crean automáticamente mediante Firebase Authentication
         </div>
       </div>
@@ -339,7 +339,7 @@ export default function Users() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
@@ -365,7 +365,7 @@ export default function Users() {
             <Button 
               variant="outline" 
               onClick={clearFilters}
-              className={searchTerm || selectedRole ? "border-orange-200 bg-orange-50" : ""}
+              className={`w-full lg:w-auto ${searchTerm || selectedRole ? "border-orange-200 bg-orange-50" : ""}`}
             >
               Limpiar filtros
             </Button>
