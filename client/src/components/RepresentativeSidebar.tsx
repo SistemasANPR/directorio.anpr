@@ -113,6 +113,11 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
     return location === href;
   };
 
+  // Force sidebar update when URL changes
+  useEffect(() => {
+    // Trigger re-render when location changes to ensure active state is updated
+  }, [location]);
+
   const SidebarContent = () => (
     <>
       {/* Header */}

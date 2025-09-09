@@ -27,6 +27,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import EditCompanyModal from "@/components/EditCompanyModal";
+import AddCompanyModal from "@/components/AddCompanyModal";
 import RepresentativeCertificateTable from "@/components/RepresentativeCertificateTable";
 import RepresentativeReview from "@/components/RepresentativeReview";
 import EditCertificateModal from "@/components/EditCertificateModal";
@@ -62,6 +63,7 @@ export default function RepresentativeDashboard() {
   
   // Company edit modal state
   const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
+  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -673,7 +675,10 @@ export default function RepresentativeDashboard() {
                     <Building className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No hay empresa registrada</h3>
                     <p className="text-gray-600 mb-6">Registra tu empresa para completar tu perfil</p>
-                    <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
+                    <Button 
+                      onClick={() => setIsAddCompanyModalOpen(true)}
+                      className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                    >
                       Registrar empresa
                     </Button>
                   </CardContent>
@@ -1200,6 +1205,12 @@ export default function RepresentativeDashboard() {
           onOpenChange={setIsEditCompanyModalOpen}
           company={primaryCompany}
           userRole="representante"
+        />
+        
+        {/* Add Company Modal */}
+        <AddCompanyModal
+          open={isAddCompanyModalOpen}
+          onOpenChange={setIsAddCompanyModalOpen}
         />
       </div>
     </div>
