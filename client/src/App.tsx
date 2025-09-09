@@ -1,8 +1,9 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Sidebar from "@/components/Sidebar";
@@ -43,6 +44,7 @@ import WordPressMembershipTest from "@/pages/WordPressMembershipTest";
 import CompanyRegistration from "@/pages/CompanyRegistration";
 import AdminCompanyRegistration from "@/pages/AdminCompanyRegistration";
 import MainNavigation from "@/components/MainNavigation";
+import DashboardHeader from "@/components/DashboardHeader";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
 import NotFound from "@/pages/not-found";
@@ -54,7 +56,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex bg-background">
       {isAdmin ? <Sidebar /> : <RepresentativeSidebar />}
       <main className="flex-1 ml-0 lg:ml-64">
-        <div className="p-6 pt-20 lg:pt-6">
+        <DashboardHeader />
+        <div className="p-6 pt-6">
           {children}
         </div>
       </main>
@@ -344,6 +347,20 @@ function Router() {
       <Route path="/company-registration">
         <PublicLayout>
           <CompanyRegistration />
+        </PublicLayout>
+      </Route>
+      
+      <Route path="/logout">
+        <PublicLayout>
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Sesión Cerrada</h1>
+              <p className="text-gray-600 mb-6">Has cerrado sesión exitosamente</p>
+              <Link href="/">
+                <Button>Volver al Inicio</Button>
+              </Link>
+            </div>
+          </div>
         </PublicLayout>
       </Route>
       

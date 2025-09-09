@@ -239,7 +239,8 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
         {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -309,7 +310,8 @@ export default function Sidebar({ className = "" }: SidebarProps) {
             </div>
           );
         })}
-      </nav>
+        </nav>
+      </div>
 
       {/* Impersonation Status */}
       {isImpersonating && (
@@ -337,23 +339,33 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       )}
 
       {/* User Profile */}
-      <div className="p-4 border-t border-gray-100">
-        <div className="flex items-center space-x-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-700 truncate">
-              {user?.displayName || "Usuario"}
-            </p>
-            <p className="text-xs text-gray-500 truncate">
-              {user?.email}
-            </p>
+      <div className="p-4 border-t border-gray-100 mt-auto bg-white">
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.photoURL || ""} />
+              <AvatarFallback>
+                {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-700 truncate">
+                {user?.displayName || "Usuario"}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email}
+              </p>
+            </div>
           </div>
+          {/* Logout Button - More prominent */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleSignOut}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className="w-full flex items-center justify-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
           >
             <LogOut className="w-4 h-4" />
+            <span>Cerrar Sesión</span>
           </Button>
         </div>
       </div>

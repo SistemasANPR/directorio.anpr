@@ -163,13 +163,13 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
       </nav>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-gray-100">
-        <div className="flex items-center justify-between">
+      <div className="p-4 border-t border-gray-100 mt-auto bg-white">
+        <div className="flex flex-col space-y-3">
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">
               <AvatarImage src={user?.photoURL || ""} />
               <AvatarFallback>
-                {user?.displayName?.[0] || user?.email?.[0] || "U"}
+                {user?.displayName?.[0] || user?.email?.[0] || "R"}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -181,13 +181,15 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
               </p>
             </div>
           </div>
+          {/* Logout Button - More prominent */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleSignOut}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className="w-full flex items-center justify-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
           >
             <LogOut className="w-4 h-4" />
+            <span>Cerrar Sesión</span>
           </Button>
         </div>
       </div>
