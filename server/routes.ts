@@ -559,9 +559,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             // Intentar parsear como JSON para arrays y objetos
             companyData[key] = JSON.parse(value as string);
+            // DEBUG: Log ubicacionGeografica parsing specifically
+            if (key === 'ubicacionGeografica') {
+              console.log('[DEBUG] Server - ubicacionGeografica received:', {
+                rawValue: value,
+                parsedValue: companyData[key],
+                type: typeof companyData[key]
+              });
+            }
           } catch {
             // Si no es JSON válido, usar como string
             companyData[key] = value;
+            // DEBUG: Log failed JSON parsing for ubicacionGeografica
+            if (key === 'ubicacionGeografica') {
+              console.log('[DEBUG] Server - ubicacionGeografica JSON parse failed:', {
+                rawValue: value,
+                fallbackValue: companyData[key],
+                type: typeof companyData[key]
+              });
+            }
           }
         }
       }

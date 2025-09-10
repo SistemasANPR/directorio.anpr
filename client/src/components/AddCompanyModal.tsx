@@ -220,6 +220,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       fechaInicioMembresia: new Date().toISOString().split('T')[0], // Fecha actual
       fechaFinMembresia: "",
       notasMembresia: "",
+      // CRITICAL FIX: Add ubicacionGeografica to default values
+      ubicacionGeografica: null,
+      ubicacionPrincipal: null,
     },
   });
 
@@ -248,6 +251,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         fechaInicioMembresia: currentDate,
         fechaFinMembresia: "",
         notasMembresia: "",
+        // CRITICAL FIX: Add ubicacionGeografica to reset values
+        ubicacionGeografica: null,
+        ubicacionPrincipal: null,
       });
       
       // Reset all state variables
@@ -436,6 +442,13 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
   const createCompanyMutation = useMutation({
     mutationFn: async (data: CompanyFormData) => {
+      // DEBUG: Log ubicacionGeografica to check if it's being captured
+      console.log("[DEBUG] FormData before processing:", {
+        ubicacionGeografica: data.ubicacionGeografica,
+        ubicacionGeograficaType: typeof data.ubicacionGeografica,
+        allFormData: data
+      });
+      
       // Crear FormData para enviar archivos
       const formData = new FormData();
       
@@ -445,7 +458,15 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
           formData.append(key, JSON.stringify(value));
         } else if (typeof value === 'object' && value !== null) {
           // CRITICAL FIX: Serialize objects as JSON instead of "[object Object]"
-          formData.append(key, JSON.stringify(value));
+          const jsonValue = JSON.stringify(value);
+          formData.append(key, jsonValue);
+          // DEBUG: Log ubicacionGeografica serialization specifically
+          if (key === 'ubicacionGeografica') {
+            console.log("[DEBUG] ubicacionGeografica serialized:", {
+              originalValue: value,
+              serializedValue: jsonValue
+            });
+          }
         } else if (value !== undefined && value !== null) {
           formData.append(key, value.toString());
         }
@@ -533,12 +554,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
           }
         });
 
-      // Determinar la ubicación principal
-      // Si hay ubicaciones por ciudad, usar la primera como ubicación principal
-      const ubicacionPrincipal = Object.keys(ubicacionesPorCiudad).length > 0 
-        ? Object.values(ubicacionesPorCiudad)[0] 
-        : data.ubicacionGeografica;
-
       // Combinar direcciones adicionales si existen
       let direccionCompleta = data.direccionFisica || "";
       const direccionesAdicionales = Object.entries(direccionesPorCiudad)
@@ -552,13 +567,21 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
           : direccionesAdicionales;
       }
 
+      // DEBUG: Log raw form data before processing
+      console.log("[DEBUG] Raw form data in onSubmit:", {
+        ubicacionGeografica: data.ubicacionGeografica,
+        ubicacionGeograficaExists: !!data.ubicacionGeografica,
+        ubicacionGeograficaType: typeof data.ubicacionGeografica
+      });
+      
       const companyData = {
         ...data,
         // Convertir membershipTypeId a null si es undefined o string vacío
         membershipTypeId: data.membershipTypeId && typeof data.membershipTypeId === 'number' ? data.membershipTypeId : null,
         videosUrls: videosValidos,
         ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
-        ubicacionGeografica: ubicacionPrincipal,
+        // FIXED: Use the actual ubicacionGeografica from the form field, not computed value
+        ubicacionGeografica: data.ubicacionGeografica,
         direccionFisica: direccionCompleta,
         
         // CORREGIR: Sincronizar datos geográficos de los estados locales
