@@ -396,14 +396,55 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     }
   }, [watchedMembershipTypeId, certificates, form, toast]);
 
+  // CRITICAL FIX: Watch form fields to synchronize with local states for proper Zod validation
+  const watchedPaisesPresencia = form.watch("paisesPresencia");
+  const watchedEstadosPresencia = form.watch("estadosPresencia");
+  const watchedCiudadesPresencia = form.watch("ciudadesPresencia");
+
+  // CRITICAL FIX: Synchronize local estados state with form field
+  useEffect(() => {
+    if (watchedEstadosPresencia && Array.isArray(watchedEstadosPresencia)) {
+      setSelectedEstados(watchedEstadosPresencia);
+    }
+  }, [watchedEstadosPresencia]);
+
+  // CRITICAL FIX: Synchronize local ciudades state with form field
+  useEffect(() => {
+    if (watchedCiudadesPresencia && Array.isArray(watchedCiudadesPresencia)) {
+      setSelectedCiudades(watchedCiudadesPresencia);
+    }
+  }, [watchedCiudadesPresencia]);
+
+  // CRITICAL FIX: Ensure form fields are updated when local states change
+  useEffect(() => {
+    form.setValue("estadosPresencia", selectedEstados);
+  }, [selectedEstados, form]);
+
+  useEffect(() => {
+    form.setValue("ciudadesPresencia", selectedCiudades);
+  }, [selectedCiudades, form]);
+
+  // CRITICAL FIX: Reset states when México is not selected
+  useEffect(() => {
+    if (watchedPaisesPresencia && !watchedPaisesPresencia.includes("México")) {
+      setSelectedEstados([]);
+      setSelectedCiudades([]);
+      form.setValue("estadosPresencia", []);
+      form.setValue("ciudadesPresencia", []);
+    }
+  }, [watchedPaisesPresencia, form]);
+
   const createCompanyMutation = useMutation({
     mutationFn: async (data: CompanyFormData) => {
       // Crear FormData para enviar archivos
       const formData = new FormData();
       
-      // Agregar todos los campos del formulario
+      // CRITICAL FIX: Proper FormData serialization for objects and arrays
       Object.entries(data).forEach(([key, value]) => {
         if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (typeof value === 'object' && value !== null) {
+          // CRITICAL FIX: Serialize objects as JSON instead of "[object Object]"
           formData.append(key, JSON.stringify(value));
         } else if (value !== undefined && value !== null) {
           formData.append(key, value.toString());
