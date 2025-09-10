@@ -451,6 +451,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setFotoPortadaFile(null);
       setFotoPortadaPreview("");
       setSelectedEstados([]);
+      setSelectedCiudades([]);
       setVideosUrls([]);
       setGaleriaFiles([]);
       setGaleriaPreviews([]);
@@ -518,6 +519,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
         ubicacionGeografica: ubicacionPrincipal,
         direccionFisica: direccionCompleta,
+        
+        // CORREGIR: Sincronizar datos geográficos de los estados locales
+        paisesPresencia: data.paisesPresencia, // Este viene del formulario correctamente
+        estadosPresencia: selectedEstados, // Usar el estado local actual
+        ciudadesPresencia: selectedCiudades, // Usar el estado local actual
 
         // Agregar galería de productos
         galeriaProductosUrls: galeriaPreviews,
