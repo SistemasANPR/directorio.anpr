@@ -4644,6 +4644,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para geocodificación usando Google Maps API
+  app.post("/api/geocode", async (req, res) => {
+    try {
+      const { address } = req.body;
+      
+      if (!address || typeof address !== 'string' || address.trim().length < 5) {
+        return res.status(400).json({ error: 'Dirección inválida' });
+      }
+
+      const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
+      if (!googleMapsApiKey) {
+        return res.status(500).json({ error: 'Google Maps API key no configurado' });
+      }
+
+      // Usar Google Maps Geocoding API
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address.trim())}&key=${googleMapsApiKey}`;
+      
+      const response = await fetch(geocodeUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Error en Google Maps API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        res.json({
+          success: true,
+          results: data.results
+        });
+      } else {
+        res.json({
+          success: false,
+          results: [],
+          error: `No se encontraron resultados para: ${address}`
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Error en geocodificación:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error.message || 'Error interno del servidor' 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

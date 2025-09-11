@@ -1841,19 +1841,15 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         Ubicación en el Mapa (Opcional)
                       </FormLabel>
                       <FormDescription>
-                        Haz clic en el mapa para marcar la ubicación exacta de tu empresa. Esto ayudará a que los usuarios te encuentren más fácilmente.
+                        La ubicación se actualizará automáticamente cuando escribas la dirección física arriba. También puedes hacer clic en el mapa para ajustar manualmente la ubicación exacta.
                       </FormDescription>
                       <FormControl>
                         <div className="border rounded-lg overflow-hidden h-64">
                           <MapLocationPicker
                             ciudad={form.watch("ubicacionPrincipal") || form.watch("ciudadesPresencia")?.[0] || "México"}
+                            direccionFisica={form.watch("direccionFisica")}
                             onLocationSelect={(location: { lat: number; lng: number; address: string }) => {
                               field.onChange(location);
-                              // Si hay una dirección física, actualizarla también
-                              const currentAddress = form.getValues("direccionFisica");
-                              if (!currentAddress && location?.address) {
-                                form.setValue("direccionFisica", location.address);
-                              }
                             }}
                             initialLocation={field.value}
                           />

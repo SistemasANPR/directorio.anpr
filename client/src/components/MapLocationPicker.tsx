@@ -19,9 +19,10 @@ interface MapLocationPickerProps {
   ciudad: string;
   onLocationSelect: (location: { lat: number; lng: number; address: string }) => void;
   initialLocation?: { lat: number; lng: number; address: string } | null;
+  direccionFisica?: string; // Nueva prop para geocodificación automática
 }
 
-export default function MapLocationPicker({ ciudad, onLocationSelect, initialLocation }: MapLocationPickerProps) {
+export default function MapLocationPicker({ ciudad, onLocationSelect, initialLocation, direccionFisica }: MapLocationPickerProps) {
   const [searchValue, setSearchValue] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number; address: string } | null>(
     initialLocation || null
@@ -32,6 +33,8 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     address: initialLocation?.address || ""
   });
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [lastGeocodedAddress, setLastGeocodedAddress] = useState("");
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -57,6 +60,47 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   const getCityReference = () => {
     const cityName = ciudad.split(',')[0];
     return cityReferences[cityName as keyof typeof cityReferences] || cityReferences["México"];
+  };
+
+  // Función para geocodificar dirección usando Google Maps API
+  const geocodeAddress = async (address: string) => {
+    if (!address || address.trim().length < 5) return null;
+    
+    setIsGeocoding(true);
+    try {
+      // Usar Google Maps Geocoding API a través del endpoint del backend
+      const response = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address: address.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error en geocodificación');
+      }
+
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const location = {
+          lat: result.geometry.location.lat,
+          lng: result.geometry.location.lng,
+          address: result.formatted_address
+        };
+        
+        return location;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error geocoding address:', error);
+      return null;
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   useEffect(() => {
@@ -155,6 +199,59 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       });
     }
   }, [initialLocation, mapLoaded]);
+
+  // Geocodificar automáticamente cuando cambie la dirección física
+  useEffect(() => {
+    const handleAddressGeocoding = async () => {
+      // Solo geocodificar si:
+      // 1. Hay una dirección física
+      // 2. Es diferente a la última geocodificada
+      // 3. Tiene más de 10 caracteres (para evitar geocodificar fragmentos)
+      if (direccionFisica && 
+          direccionFisica.trim().length > 10 && 
+          direccionFisica !== lastGeocodedAddress &&
+          !isGeocoding) {
+        
+        const location = await geocodeAddress(direccionFisica);
+        
+        if (location) {
+          setLastGeocodedAddress(direccionFisica);
+          
+          // Actualizar estado
+          setSelectedLocation(location);
+          setManualCoords({
+            lat: location.lat.toString(),
+            lng: location.lng.toString(),
+            address: location.address
+          });
+
+          // Actualizar mapa si está disponible
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.setView([location.lat, location.lng], 15);
+            
+            // Remover marcador anterior
+            if (markerRef.current) {
+              mapInstanceRef.current.removeLayer(markerRef.current);
+            }
+
+            // Crear nuevo marcador
+            const marker = L.marker([location.lat, location.lng])
+              .addTo(mapInstanceRef.current)
+              .bindPopup(`📍 ${location.address}`);
+            
+            markerRef.current = marker;
+          }
+
+          // Notificar al componente padre
+          onLocationSelect(location);
+        }
+      }
+    };
+
+    // Agregar un pequeño delay para evitar llamadas excesivas
+    const timer = setTimeout(handleAddressGeocoding, 1000);
+    return () => clearTimeout(timer);
+  }, [direccionFisica, lastGeocodedAddress, isGeocoding, onLocationSelect]);
 
   const handleManualLocationSubmit = () => {
     const lat = parseFloat(manualCoords.lat);
