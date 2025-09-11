@@ -1323,6 +1323,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         <Textarea 
                           placeholder="Dirección completa de la empresa"
                           className="min-h-[80px]"
+                          autoComplete="street-address"
                           {...field} 
                           value={field.value || ""}
                         />
@@ -1819,6 +1820,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         <Textarea
                           placeholder="Dirección completa de la empresa (calle, número, colonia, ciudad, estado, código postal...)"
                           rows={3}
+                          autoComplete="street-address"
                           {...field}
                           value={field.value || ""}
                         />
