@@ -21,14 +21,46 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapInstanceRef = useRef<L.Map | null>(null);
 
   // Filtrar empresas que tienen ubicación geográfica válida
-  const companiesWithLocation = companies.filter(company => 
-    company.ubicacionGeografica && 
-    typeof company.ubicacionGeografica === 'object' &&
-    'lat' in company.ubicacionGeografica &&
-    'lng' in company.ubicacionGeografica &&
-    company.ubicacionGeografica.lat &&
-    company.ubicacionGeografica.lng
-  );
+  const companiesWithLocation = companies.filter(company => {
+    try {
+      // Verificar que ubicacionGeografica existe y no es null/undefined
+      if (!company.ubicacionGeografica) return false;
+      
+      let ubicacion;
+      
+      // Si es string, intentar parsearlo como JSON
+      if (typeof company.ubicacionGeografica === 'string') {
+        // Ignorar strings vacíos o que solo contengan comillas
+        if (company.ubicacionGeografica.trim() === '' || 
+            company.ubicacionGeografica.trim() === '""' || 
+            company.ubicacionGeografica.trim() === "''") {
+          return false;
+        }
+        
+        try {
+          ubicacion = JSON.parse(company.ubicacionGeografica);
+        } catch {
+          return false;
+        }
+      } else if (typeof company.ubicacionGeografica === 'object') {
+        ubicacion = company.ubicacionGeografica;
+      } else {
+        return false;
+      }
+      
+      // Verificar que tiene propiedades lat y lng válidas
+      return ubicacion && 
+             typeof ubicacion.lat === 'number' && 
+             typeof ubicacion.lng === 'number' && 
+             !isNaN(ubicacion.lat) && 
+             !isNaN(ubicacion.lng) &&
+             ubicacion.lat !== 0 && 
+             ubicacion.lng !== 0;
+    } catch (error) {
+      console.warn(`Error filtering company ${company.id} (${company.nombreEmpresa}):`, error);
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (!mapRef.current || companiesWithLocation.length === 0) {
@@ -63,7 +95,18 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
 
         // Agregar marcadores para cada empresa
         companiesWithLocation.forEach(company => {
-          const ubicacion = company.ubicacionGeografica as { lat: number; lng: number; address?: string };
+          // Parsear ubicación (puede ser string o objeto)
+          let ubicacion: { lat: number; lng: number; address?: string };
+          
+          if (typeof company.ubicacionGeografica === 'string') {
+            try {
+              ubicacion = JSON.parse(company.ubicacionGeografica);
+            } catch {
+              return; // Skip this company if parsing fails
+            }
+          } else {
+            ubicacion = company.ubicacionGeografica as { lat: number; lng: number; address?: string };
+          }
           
           // Crear el contenido del popup
           const popupContent = `
