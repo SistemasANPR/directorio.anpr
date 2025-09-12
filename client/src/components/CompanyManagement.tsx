@@ -129,17 +129,6 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
     },
   });
 
-  // Fetch membership types for WordPress user selection
-  const { data: membershipTypes = [] } = useQuery({
-    queryKey: ["/api/membership-types"],
-    queryFn: async () => {
-      const response = await fetch("/api/membership-types", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch membership types");
-      return response.json();
-    },
-  });
 
   const form = useForm<CompanyUpdateData>({
     resolver: zodResolver(companyUpdateSchema),
@@ -528,8 +517,8 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
                                     setSelectedWordPressUser(user);
                                     setWordPressUserSearch("");
                                     
-                                    // Auto-llenar campos disponibles en formulario de edición
-                                    if (user.email) {
+                                    // Auto-llenar campos disponibles en formulario de edición (proteger sobrescritura)
+                                    if (user.email && !form.getValues("email1")) {
                                       form.setValue("email1", user.email);
                                     }
                                     
@@ -581,13 +570,6 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
                                     >
                                       <ExternalLink className="h-3 w-3 mr-1" />
                                       Ver Perfil
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      className="bg-blue-600 hover:bg-blue-700"
-                                    >
-                                      Seleccionar
                                     </Button>
                                   </div>
                                 </div>
