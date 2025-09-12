@@ -42,6 +42,7 @@ import {
   Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Crown, Search, User, Check, ExternalLink
 } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
+import MultiLocationManager from "./MultiLocationManager";
 import RichTextEditor from "./RichTextEditor";
 
 const companySchema = insertCompanySchema.extend({
@@ -1656,6 +1657,20 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 />
 
+                {/* Ubicaciones Adicionales */}
+                <FormField
+                  control={form.control}
+                  name="ubicacionesAdicionales"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <MultiLocationManager
+                        value={Array.isArray(field.value) ? field.value : []}
+                        onChange={field.onChange}
+                        disabled={createCompanyMutation.isPending}
+                      />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Sección: Información de Membresía */}
                 <div className="md:col-span-2 space-y-6 p-6 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
