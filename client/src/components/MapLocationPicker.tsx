@@ -165,31 +165,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         markerRef.current = marker;
       }
 
-      // Habilitar click en mapa SOLO para ajustar posición después de geocodificación automática
-      map.on('click', (e: L.LeafletMouseEvent) => {
-        const { lat, lng } = e.latlng;
-        
-        const location: LocationInfo = {
-          lat,
-          lng,
-          address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
-        };
-
-        // Actualizar marcador
-        if (markerRef.current) {
-          map.removeLayer(markerRef.current);
-        }
-        
-        const marker = L.marker([lat, lng])
-          .addTo(map)
-          .bindPopup(`📍 ${location.address}`);
-        
-        markerRef.current = marker;
-        setSelectedLocation(location);
-        
-        // Notificar al componente padre
-        onLocationSelect(location);
-      });
+      // Clic en el mapa DESACTIVADO - Solo selección por dirección física
 
       setMapLoaded(true);
     }
@@ -226,24 +202,18 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   // Geocodificar automáticamente cuando cambie la dirección física
   useEffect(() => {
     const handleAddressGeocoding = async () => {
-      console.log(`[MapLocationPicker] Dirección recibida: "${direccionFisica}"`);
-      console.log(`[MapLocationPicker] Última geocodificada: "${lastGeocodedAddress}"`);
-      
       // Solo geocodificar si:
       // 1. Hay una dirección física
       // 2. Es diferente a la última geocodificada
-      // 3. Tiene más de 5 caracteres (para evitar geocodificar fragmentos)
+      // 3. Tiene más de 10 caracteres (para evitar geocodificar fragmentos)
       if (direccionFisica && 
-          direccionFisica.trim().length > 5 && 
+          direccionFisica.trim().length > 10 && 
           direccionFisica !== lastGeocodedAddress &&
           !isGeocoding) {
-        
-        console.log(`[MapLocationPicker] Iniciando geocodificación para: "${direccionFisica}"`);
         
         const location = await geocodeAddress(direccionFisica);
         
         if (location) {
-          console.log(`[MapLocationPicker] Geocodificación exitosa:`, location);
           setLastGeocodedAddress(direccionFisica);
           
           // Actualizar estado
@@ -251,7 +221,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
           // Actualizar mapa si está disponible
           if (mapInstanceRef.current) {
-            console.log(`[MapLocationPicker] Actualizando mapa con coordenadas: ${location.lat}, ${location.lng}`);
             mapInstanceRef.current.setView([location.lat, location.lng], 15);
             
             // Remover marcador anterior
@@ -269,14 +238,12 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
           // Notificar al componente padre
           onLocationSelect(location);
-        } else {
-          console.log(`[MapLocationPicker] Geocodificación falló para: "${direccionFisica}"`);
         }
       }
     };
 
-    // Reducir delay para respuesta más rápida
-    const timer = setTimeout(handleAddressGeocoding, 300);
+    // Agregar un pequeño delay para evitar llamadas excesivas
+    const timer = setTimeout(handleAddressGeocoding, 1000);
     return () => clearTimeout(timer);
   }, [direccionFisica, lastGeocodedAddress, isGeocoding, onLocationSelect]);
 

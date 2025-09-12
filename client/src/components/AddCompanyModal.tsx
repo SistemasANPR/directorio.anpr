@@ -42,7 +42,6 @@ import {
   Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Crown, Search, User, Check, ExternalLink
 } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
-import MultiLocationManager from "./MultiLocationManager";
 import RichTextEditor from "./RichTextEditor";
 
 const companySchema = insertCompanySchema.extend({
@@ -54,7 +53,7 @@ const companySchema = insertCompanySchema.extend({
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   videosUrls: z.array(z.string()).optional(),
-  paisesPresencia: z.array(z.string()).optional(),
+  paisesPresencia: z.array(z.string()).min(1, "Selecciona al menos un país donde tiene presencia"),
   estadosPresencia: z.array(z.string()).optional(),
   ciudadesPresencia: z.array(z.string()).optional(),
   ubicacionPrincipal: z.string().optional().nullable(),
@@ -74,6 +73,15 @@ const companySchema = insertCompanySchema.extend({
   fechaInicioMembresia: z.string().optional(),
   fechaFinMembresia: z.string().optional(),
   notasMembresia: z.string().optional(),
+}).refine((data) => {
+  // Si México está seleccionado, entonces debe haber al menos un estado
+  if (data.paisesPresencia?.includes("México")) {
+    return data.estadosPresencia && data.estadosPresencia.length > 0;
+  }
+  return true;
+}, {
+  message: "Selecciona al menos un estado de México",
+  path: ["estadosPresencia"],
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
@@ -935,7 +943,28 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     setVideosUrls(newVideos);
   };
 
+  // Función para direcciones por ciudad
+  const updateDireccionCiudad = (ciudad: string, direccion: string) => {
+    setDireccionesPorCiudad(prev => ({
+      ...prev,
+      [ciudad]: direccion
+    }));
+  };
 
+  // Función para ubicaciones del mapa
+  const updateUbicacionCiudad = (ciudad: string, ubicacion: { lat: number; lng: number; address: string }) => {
+    setUbicacionesPorCiudad(prev => ({
+      ...prev,
+      [ciudad]: ubicacion
+    }));
+  };
+
+  // Obtener ciudades disponibles basadas en estados seleccionados
+  const getAvailableCiudades = () => {
+    return selectedEstados.flatMap(estado => 
+      ciudadesPorEstado[estado]?.map(ciudad => `${ciudad}, ${estado}`) || []
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1611,9 +1640,171 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   }}
                 />
 
+                {/* Países con presencia */}
+                <FormField
+                  control={form.control}
+                  name="paisesPresencia"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel className="flex items-center gap-1">
+                        Países con Presencia
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormDescription>
+                        Selecciona al menos un país donde la empresa tiene presencia
+                      </FormDescription>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
+                        {paisesAmericaLatina.map((pais) => (
+                          <div key={pais} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`pais-${pais}`}
+                              checked={field.value?.includes(pais) || false}
+                              onCheckedChange={(checked) => {
+                                const currentValues = field.value || [];
+                                if (checked) {
+                                  field.onChange([...currentValues, pais]);
+                                } else {
+                                  field.onChange(currentValues.filter(p => p !== pais));
+                                }
+                              }}
+                            />
+                            <label htmlFor={`pais-${pais}`} className="text-sm cursor-pointer">
+                              {pais}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                {/* Estados de México - Solo mostrar si México está seleccionado */}
+                {form.watch("paisesPresencia")?.includes("México") && (
+                <FormField
+                  control={form.control}
+                  name="estadosPresencia"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel className="flex items-center gap-1">
+                        Estados de México
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormDescription>
+                        Selecciona al menos un estado de México donde tiene presencia
+                      </FormDescription>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
+                        {estadosMexico.map((estado) => (
+                          <div key={estado} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`estado-${estado}`}
+                              checked={field.value?.includes(estado) || false}
+                              onCheckedChange={(checked) => {
+                                const currentValues = field.value || [];
+                                let newValues;
+                                if (checked) {
+                                  newValues = [...currentValues, estado];
+                                  setSelectedEstados(prev => [...prev, estado]);
+                                } else {
+                                  newValues = currentValues.filter(e => e !== estado);
+                                  setSelectedEstados(prev => prev.filter(e => e !== estado));
+                                }
+                                field.onChange(newValues);
+                              }}
+                            />
+                            <label htmlFor={`estado-${estado}`} className="text-sm cursor-pointer">
+                              {estado}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                )}
 
+                {/* Ciudades de presencia - Solo mostrar si hay estados seleccionados */}
+                {selectedEstados.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="ciudadesPresencia"
+                  render={({ field }) => {
+                    const availableCiudades = getAvailableCiudades();
+                    
+                    return (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Ciudades de Presencia</FormLabel>
+                        <FormDescription>
+                          Selecciona las ciudades específicas donde tiene presencia la empresa
+                        </FormDescription>
+                        {availableCiudades.length > 0 ? (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
+                            {availableCiudades.map((ciudad) => (
+                              <div key={ciudad} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`ciudad-${ciudad}`}
+                                  checked={field.value?.includes(ciudad) || false}
+                                  onCheckedChange={(checked) => {
+                                    const currentValues = field.value || [];
+                                    let newValues;
+                                    if (checked) {
+                                      newValues = [...currentValues, ciudad];
+                                      setSelectedCiudades(prev => [...prev, ciudad]);
+                                    } else {
+                                      newValues = currentValues.filter(c => c !== ciudad);
+                                      setSelectedCiudades(prev => prev.filter(c => c !== ciudad));
+                                    }
+                                    field.onChange(newValues);
+                                  }}
+                                />
+                                <label htmlFor={`ciudad-${ciudad}`} className="text-sm cursor-pointer">
+                                  {ciudad}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-gray-500">
+                            <MapPin className="mx-auto h-8 w-8 text-gray-400" />
+                            <p className="text-sm">Selecciona primero uno o más estados</p>
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+                )}
 
+                {/* Ubicación Principal */}
+                <FormField
+                  control={form.control}
+                  name="ubicacionPrincipal"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Ubicación Principal (Opcional)</FormLabel>
+                      <FormDescription>
+                        Si tienes presencia en múltiples ciudades, selecciona cuál es la principal
+                      </FormDescription>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona la ciudad principal" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(form.watch("ciudadesPresencia") || []).map((ciudad) => (
+                            <SelectItem key={ciudad} value={ciudad}>
+                              {ciudad}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {/* Dirección Física */}
                 <FormField
@@ -1632,24 +1823,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           autoComplete="street-address"
                           {...field}
                           value={field.value || ""}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              // Forzar actualización del watch para activar geocodificación inmediata
-                              const currentValue = field.value || "";
-                              console.log(`[AddCompanyModal] Enter presionado con dirección: "${currentValue}"`);
-                              
-                              // Trigger manual update para forzar re-geocodificación
-                              if (currentValue && currentValue.trim().length > 5) {
-                                // Force a re-render of MapLocationPicker by temporarily changing the value
-                                const tempValue = currentValue + " ";
-                                field.onChange(tempValue);
-                                setTimeout(() => {
-                                  field.onChange(currentValue);
-                                }, 10);
-                              }
-                            }
-                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1657,17 +1830,84 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 />
 
-                {/* Ubicaciones Adicionales */}
+                {/* Ubicación Geográfica */}
                 <FormField
                   control={form.control}
-                  name="ubicacionesAdicionales"
+                  name="ubicacionGeografica"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <MultiLocationManager
-                        value={Array.isArray(field.value) ? field.value : []}
-                        onChange={field.onChange}
-                        disabled={createCompanyMutation.isPending}
-                      />
+                      <FormLabel className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Ubicación en el Mapa (Opcional)
+                      </FormLabel>
+                      <FormDescription>
+                        La ubicación se actualizará automáticamente cuando escribas la dirección física arriba. También puedes hacer clic en el mapa para ajustar manualmente la ubicación exacta.
+                      </FormDescription>
+                      <FormControl>
+                        <div className="border rounded-lg overflow-hidden h-64">
+                          <MapLocationPicker
+                            ciudad={form.watch("ubicacionPrincipal") || form.watch("ciudadesPresencia")?.[0] || "México"}
+                            direccionFisica={form.watch("direccionFisica")}
+                            onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
+                              field.onChange(location);
+                              
+                              // Auto-completar campos de ubicación basados en la geocodificación
+                              if (location.country && location.state && location.city) {
+                                console.log('Ubicación geocodificada:', location);
+                                
+                                // Auto-seleccionar país si es uno de los disponibles
+                                if (location.country === 'Mexico' || location.country === 'México') {
+                                  const currentPaises = form.getValues("paisesPresencia") || [];
+                                  if (!currentPaises.includes("México")) {
+                                    form.setValue("paisesPresencia", [...currentPaises, "México"]);
+                                  }
+                                  
+                                  // Auto-seleccionar estado si está disponible en estadosMexico
+                                  const estadosMexico = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas', 'Ciudad de México'];
+                                  
+                                  const matchingEstado = estadosMexico.find(estado => 
+                                    estado.toLowerCase().includes(location.state?.toLowerCase() || '') ||
+                                    (location.state?.toLowerCase() || '').includes(estado.toLowerCase())
+                                  );
+                                  
+                                  if (matchingEstado) {
+                                    const currentEstados = form.getValues("estadosPresencia") || [];
+                                    if (!currentEstados.includes(matchingEstado)) {
+                                      form.setValue("estadosPresencia", [...currentEstados, matchingEstado]);
+                                      setSelectedEstados(prev => [...prev, matchingEstado]);
+                                    }
+                                  }
+                                  
+                                  // Auto-seleccionar ciudad
+                                  if (location.city) {
+                                    const currentCiudades = form.getValues("ciudadesPresencia") || [];
+                                    if (!currentCiudades.includes(location.city)) {
+                                      form.setValue("ciudadesPresencia", [...currentCiudades, location.city]);
+                                      setSelectedCiudades(prev => [...prev, location.city as string]);
+                                    }
+                                    
+                                    // Auto-seleccionar como ubicación principal si no hay ninguna
+                                    const currentUbicacionPrincipal = form.getValues("ubicacionPrincipal");
+                                    if (!currentUbicacionPrincipal) {
+                                      form.setValue("ubicacionPrincipal", location.city);
+                                    }
+                                  }
+                                }
+                              }
+                            }}
+                            initialLocation={field.value}
+                          />
+                        </div>
+                      </FormControl>
+                      {field.value && (
+                        <div className="text-xs text-gray-600 mt-2">
+                          📍 Ubicación seleccionada: {field.value.lat?.toFixed(6)}, {field.value.lng?.toFixed(6)}
+                          {field.value.address && (
+                            <span className="block mt-1">📍 {field.value.address}</span>
+                          )}
+                        </div>
+                      )}
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
