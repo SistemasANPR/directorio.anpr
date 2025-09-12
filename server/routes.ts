@@ -4669,16 +4669,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await response.json();
       
+      // Log de debugging para entender qué está devolviendo Google Maps
+      console.log(`[Geocode Debug] Address: ${address}`);
+      console.log(`[Geocode Debug] Google Maps response status: ${data.status}`);
+      console.log(`[Geocode Debug] Google Maps response:`, JSON.stringify(data, null, 2));
+      
       if (data.status === 'OK' && data.results && data.results.length > 0) {
         res.json({
           success: true,
           results: data.results
         });
       } else {
+        const errorMsg = data.error_message || `Status: ${data.status}`;
+        console.error(`[Geocode Error] ${errorMsg} para dirección: ${address}`);
         res.json({
           success: false,
           results: [],
-          error: `No se encontraron resultados para: ${address}`
+          error: `Error de geocodificación: ${errorMsg}`,
+          debug_status: data.status
         });
       }
 

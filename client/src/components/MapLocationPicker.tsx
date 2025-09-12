@@ -205,9 +205,9 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       // Solo geocodificar si:
       // 1. Hay una dirección física
       // 2. Es diferente a la última geocodificada
-      // 3. Tiene más de 10 caracteres (para evitar geocodificar fragmentos)
+      // 3. Tiene más de 5 caracteres (para evitar geocodificar fragmentos)
       if (direccionFisica && 
-          direccionFisica.trim().length > 10 && 
+          direccionFisica.trim().length > 5 && 
           direccionFisica !== lastGeocodedAddress &&
           !isGeocoding) {
         
@@ -243,7 +243,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     };
 
     // Agregar un pequeño delay para evitar llamadas excesivas
-    const timer = setTimeout(handleAddressGeocoding, 1000);
+    const timer = setTimeout(handleAddressGeocoding, 500);
     return () => clearTimeout(timer);
   }, [direccionFisica, lastGeocodedAddress, isGeocoding, onLocationSelect]);
 
