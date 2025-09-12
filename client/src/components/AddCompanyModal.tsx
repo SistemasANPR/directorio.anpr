@@ -1823,6 +1823,24 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           autoComplete="street-address"
                           {...field}
                           value={field.value || ""}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              // Forzar actualización del watch para activar geocodificación inmediata
+                              const currentValue = field.value || "";
+                              console.log(`[AddCompanyModal] Enter presionado con dirección: "${currentValue}"`);
+                              
+                              // Trigger manual update para forzar re-geocodificación
+                              if (currentValue && currentValue.trim().length > 5) {
+                                // Force a re-render of MapLocationPicker by temporarily changing the value
+                                const tempValue = currentValue + " ";
+                                field.onChange(tempValue);
+                                setTimeout(() => {
+                                  field.onChange(currentValue);
+                                }, 10);
+                              }
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
