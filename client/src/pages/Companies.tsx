@@ -444,7 +444,7 @@ export default function Companies() {
         console.log('Excel data:', { headers, dataRows });
 
         // Mapear los datos del Excel a la estructura de empresa
-        const companiesToCreate = (dataRows as any[]).map((row: any[]) => {
+        const companiesToCreate = dataRows.map((row: any[]) => {
           // Parse social networks from individual fields
           const redesSociales = JSON.stringify({
             facebook: row[17] || '',

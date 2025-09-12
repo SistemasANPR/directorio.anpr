@@ -32,9 +32,15 @@ interface MapLocationPickerProps {
 }
 
 export default function MapLocationPicker({ ciudad, onLocationSelect, initialLocation, direccionFisica }: MapLocationPickerProps) {
+  const [searchValue, setSearchValue] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(
     initialLocation || null
   );
+  const [manualCoords, setManualCoords] = useState({
+    lat: initialLocation?.lat?.toString() || "",
+    lng: initialLocation?.lng?.toString() || "",
+    address: initialLocation?.address || ""
+  });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [lastGeocodedAddress, setLastGeocodedAddress] = useState("");
@@ -165,7 +171,39 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         markerRef.current = marker;
       }
 
-      // Clic en el mapa DESACTIVADO - Solo selección por dirección física
+      // Evento de clic en el mapa
+      map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        
+        // Remover marcador anterior
+        if (markerRef.current) {
+          map.removeLayer(markerRef.current);
+        }
+
+        // Crear nuevo marcador
+        const marker = L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        
+        markerRef.current = marker;
+
+        // Actualizar estado
+        const location: LocationInfo = {
+          lat: parseFloat(lat.toFixed(6)),
+          lng: parseFloat(lng.toFixed(6)),
+          address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
+        };
+
+        setSelectedLocation(location);
+        setManualCoords({
+          lat: location.lat.toString(),
+          lng: location.lng.toString(),
+          address: location.address
+        });
+
+        // Notificar al componente padre
+        onLocationSelect(location);
+      });
 
       setMapLoaded(true);
     }
@@ -196,6 +234,11 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       mapInstanceRef.current.setView([initialLocation.lat, initialLocation.lng], 15);
 
       setSelectedLocation(initialLocation);
+      setManualCoords({
+        lat: initialLocation.lat.toString(),
+        lng: initialLocation.lng.toString(),
+        address: initialLocation.address
+      });
     }
   }, [initialLocation, mapLoaded]);
 
@@ -218,6 +261,11 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
           
           // Actualizar estado
           setSelectedLocation(location);
+          setManualCoords({
+            lat: location.lat.toString(),
+            lng: location.lng.toString(),
+            address: location.address
+          });
 
           // Actualizar mapa si está disponible
           if (mapInstanceRef.current) {
@@ -247,27 +295,162 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     return () => clearTimeout(timer);
   }, [direccionFisica, lastGeocodedAddress, isGeocoding, onLocationSelect]);
 
+  const handleManualLocationSubmit = () => {
+    const lat = parseFloat(manualCoords.lat);
+    const lng = parseFloat(manualCoords.lng);
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      alert("Por favor ingrese coordenadas válidas");
+      return;
+    }
+
+    if (lat < -90 || lat > 90) {
+      alert("La latitud debe estar entre -90 y 90");
+      return;
+    }
+
+    if (lng < -180 || lng > 180) {
+      alert("La longitud debe estar entre -180 y 180");
+      return;
+    }
+
+    const location: LocationInfo = {
+      lat,
+      lng,
+      address: manualCoords.address || `${lat}, ${lng} - ${ciudad}`
+    };
+
+    // Actualizar mapa si está disponible
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([lat, lng], 15);
+      
+      // Remover marcador anterior
+      if (markerRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
+      }
+
+      // Crear nuevo marcador
+      const marker = L.marker([lat, lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(location.address);
+      
+      markerRef.current = marker;
+    }
+
+    setSelectedLocation(location);
+    onLocationSelect(location);
+  };
+
+  const useCityReference = () => {
+    const ref = getCityReference();
+    setManualCoords({
+      lat: ref.lat.toString(),
+      lng: ref.lng.toString(),
+      address: ciudad
+    });
+
+    // Actualizar mapa si está disponible
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([ref.lat, ref.lng], 12);
+      
+      // Remover marcador anterior
+      if (markerRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
+      }
+
+      // Crear nuevo marcador
+      const marker = L.marker([ref.lat, ref.lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(`Centro de ${ciudad}`);
+      
+      markerRef.current = marker;
+    }
+  };
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5" />
-          Ubicación en el Mapa (Opcional)
+          Seleccionar Ubicación - {ciudad}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Botón de referencia de ciudad */}
+        <div>
+          <Button 
+            onClick={useCityReference}
+            variant="outline" 
+            className="w-full"
+            type="button"
+          >
+            <Globe className="h-4 w-4 mr-2" />
+            Centrar en {ciudad.split(',')[0]}
+          </Button>
+        </div>
+
         {/* Mapa */}
         <div className="space-y-2">
-          <Label>Vista del Mapa</Label>
+          <Label>Mapa Interactivo</Label>
           <div 
             ref={mapRef} 
             className="w-full h-64 border rounded-lg"
             style={{ minHeight: '256px' }}
           />
           <p className="text-xs text-gray-500">
-            La ubicación se actualiza automáticamente cuando escribas la dirección física arriba.
+            Haz clic en el mapa para seleccionar una ubicación
           </p>
+        </div>
+
+        {/* Coordenadas manuales */}
+        <div className="space-y-4">
+          <Label>Coordenadas Manuales</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="latitude">Latitud</Label>
+              <Input
+                id="latitude"
+                type="number"
+                step="any"
+                placeholder="19.4326"
+                value={manualCoords.lat}
+                onChange={(e) => setManualCoords(prev => ({ ...prev, lat: e.target.value }))}
+              />
+              <p className="text-xs text-gray-500">Rango: -90 a 90</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="longitude">Longitud</Label>
+              <Input
+                id="longitude"
+                type="number"
+                step="any"
+                placeholder="-99.1332"
+                value={manualCoords.lng}
+                onChange={(e) => setManualCoords(prev => ({ ...prev, lng: e.target.value }))}
+              />
+              <p className="text-xs text-gray-500">Rango: -180 a 180</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Dirección o Descripción</Label>
+            <Input
+              id="address"
+              placeholder="Descripción de la ubicación"
+              value={manualCoords.address}
+              onChange={(e) => setManualCoords(prev => ({ ...prev, address: e.target.value }))}
+            />
+          </div>
+
+          <Button 
+            onClick={handleManualLocationSubmit}
+            className="w-full"
+            type="button"
+            disabled={!manualCoords.lat || !manualCoords.lng}
+          >
+            <Navigation className="h-4 w-4 mr-2" />
+            Confirmar Ubicación
+          </Button>
         </div>
 
         {/* Estado de geocodificación */}
