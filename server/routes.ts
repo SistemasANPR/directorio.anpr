@@ -4644,7 +4644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para geocodificación usando Google Maps API
+  // Endpoint para geocodificación usando OpenStreetMap Nominatim API (gratuito, sin API key)
   app.post("/api/geocode", async (req, res) => {
     try {
       const { address } = req.body;
@@ -4653,40 +4653,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Dirección inválida' });
       }
 
-      const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
-      if (!googleMapsApiKey) {
-        return res.status(500).json({ error: 'Google Maps API key no configurado' });
-      }
-
-      // Usar Google Maps Geocoding API
-      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address.trim())}&key=${googleMapsApiKey}`;
+      // Usar OpenStreetMap Nominatim API (alternativa gratuita)
+      const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(address.trim())}`;
       
-      const response = await fetch(geocodeUrl);
+      const response = await fetch(nominatimUrl, {
+        headers: {
+          'User-Agent': 'ANPR-Directory-App/1.0 (contact@anpr.org.mx)'
+        }
+      });
       
       if (!response.ok) {
-        throw new Error(`Error en Google Maps API: ${response.status}`);
+        throw new Error(`Error en Nominatim API: ${response.status}`);
       }
 
       const data = await response.json();
       
-      if (data.status === 'OK' && data.results && data.results.length > 0) {
+      if (data && data.length > 0) {
+        const result = data[0];
+        
+        // Transformar respuesta de Nominatim a formato compatible con Google Maps API
+        const transformedResult = {
+          formatted_address: result.display_name,
+          geometry: {
+            location: {
+              lat: parseFloat(result.lat),
+              lng: parseFloat(result.lon)
+            }
+          },
+          address_components: [] as any[]
+        };
+
+        // Agregar componentes de dirección si están disponibles
+        if (result.address) {
+          const addr = result.address;
+          if (addr.country) {
+            transformedResult.address_components.push({
+              long_name: addr.country,
+              short_name: addr.country_code?.toUpperCase() || addr.country,
+              types: ['country', 'political']
+            });
+          }
+          if (addr.state) {
+            transformedResult.address_components.push({
+              long_name: addr.state,
+              short_name: addr.state,
+              types: ['administrative_area_level_1', 'political']
+            });
+          }
+          if (addr.city || addr.town || addr.municipality) {
+            const cityName = addr.city || addr.town || addr.municipality;
+            transformedResult.address_components.push({
+              long_name: cityName,
+              short_name: cityName,
+              types: ['locality', 'political']
+            });
+          }
+        }
+
         res.json({
-          success: true,
-          results: data.results
+          results: [transformedResult],
+          status: 'OK'
         });
       } else {
         res.json({
-          success: false,
           results: [],
-          error: `No se encontraron resultados para: ${address}`
+          status: 'ZERO_RESULTS',
+          error_message: `No se encontraron resultados para: ${address}`
         });
       }
 
     } catch (error: any) {
       console.error('Error en geocodificación:', error);
       res.status(500).json({ 
-        success: false,
-        error: error.message || 'Error interno del servidor' 
+        status: 'ERROR',
+        error_message: error.message || 'Error interno del servidor' 
       });
     }
   });
