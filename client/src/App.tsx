@@ -109,6 +109,14 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/admin/companies">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <Companies />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/mi-empresa">
         <ProtectedRoute>
           <AppLayout>

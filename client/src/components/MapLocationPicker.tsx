@@ -171,39 +171,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         markerRef.current = marker;
       }
 
-      // Evento de clic en el mapa
-      map.on('click', (e) => {
-        const { lat, lng } = e.latlng;
-        
-        // Remover marcador anterior
-        if (markerRef.current) {
-          map.removeLayer(markerRef.current);
-        }
-
-        // Crear nuevo marcador
-        const marker = L.marker([lat, lng])
-          .addTo(map)
-          .bindPopup(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-        
-        markerRef.current = marker;
-
-        // Actualizar estado
-        const location: LocationInfo = {
-          lat: parseFloat(lat.toFixed(6)),
-          lng: parseFloat(lng.toFixed(6)),
-          address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
-        };
-
-        setSelectedLocation(location);
-        setManualCoords({
-          lat: location.lat.toString(),
-          lng: location.lng.toString(),
-          address: location.address
-        });
-
-        // Notificar al componente padre
-        onLocationSelect(location);
-      });
+      // Clic en el mapa DESACTIVADO - Solo selección por dirección física
 
       setMapLoaded(true);
     }
