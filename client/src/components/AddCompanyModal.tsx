@@ -1848,8 +1848,52 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                           <MapLocationPicker
                             ciudad={form.watch("ubicacionPrincipal") || form.watch("ciudadesPresencia")?.[0] || "México"}
                             direccionFisica={form.watch("direccionFisica")}
-                            onLocationSelect={(location: { lat: number; lng: number; address: string }) => {
+                            onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
                               field.onChange(location);
+                              
+                              // Auto-completar campos de ubicación basados en la geocodificación
+                              if (location.country && location.state && location.city) {
+                                console.log('Ubicación geocodificada:', location);
+                                
+                                // Auto-seleccionar país si es uno de los disponibles
+                                if (location.country === 'Mexico' || location.country === 'México') {
+                                  const currentPaises = form.getValues("paisesPresencia") || [];
+                                  if (!currentPaises.includes("México")) {
+                                    form.setValue("paisesPresencia", [...currentPaises, "México"]);
+                                  }
+                                  
+                                  // Auto-seleccionar estado si está disponible en estadosMexico
+                                  const estadosMexico = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas', 'Ciudad de México'];
+                                  
+                                  const matchingEstado = estadosMexico.find(estado => 
+                                    estado.toLowerCase().includes(location.state?.toLowerCase() || '') ||
+                                    (location.state?.toLowerCase() || '').includes(estado.toLowerCase())
+                                  );
+                                  
+                                  if (matchingEstado) {
+                                    const currentEstados = form.getValues("estadosPresencia") || [];
+                                    if (!currentEstados.includes(matchingEstado)) {
+                                      form.setValue("estadosPresencia", [...currentEstados, matchingEstado]);
+                                      setSelectedEstados(prev => [...prev, matchingEstado]);
+                                    }
+                                  }
+                                  
+                                  // Auto-seleccionar ciudad
+                                  if (location.city) {
+                                    const currentCiudades = form.getValues("ciudadesPresencia") || [];
+                                    if (!currentCiudades.includes(location.city)) {
+                                      form.setValue("ciudadesPresencia", [...currentCiudades, location.city]);
+                                      setSelectedCiudades(prev => [...prev, location.city as string]);
+                                    }
+                                    
+                                    // Auto-seleccionar como ubicación principal si no hay ninguna
+                                    const currentUbicacionPrincipal = form.getValues("ubicacionPrincipal");
+                                    if (!currentUbicacionPrincipal) {
+                                      form.setValue("ubicacionPrincipal", location.city);
+                                    }
+                                  }
+                                }
+                              }
                             }}
                             initialLocation={field.value}
                           />

@@ -15,16 +15,25 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+interface LocationInfo {
+  lat: number;
+  lng: number;
+  address: string;
+  country?: string;
+  state?: string;
+  city?: string;
+}
+
 interface MapLocationPickerProps {
   ciudad: string;
-  onLocationSelect: (location: { lat: number; lng: number; address: string }) => void;
-  initialLocation?: { lat: number; lng: number; address: string } | null;
+  onLocationSelect: (location: LocationInfo) => void;
+  initialLocation?: LocationInfo | null;
   direccionFisica?: string; // Nueva prop para geocodificación automática
 }
 
 export default function MapLocationPicker({ ciudad, onLocationSelect, initialLocation, direccionFisica }: MapLocationPickerProps) {
   const [searchValue, setSearchValue] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number; address: string } | null>(
+  const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(
     initialLocation || null
   );
   const [manualCoords, setManualCoords] = useState({
@@ -62,8 +71,34 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     return cityReferences[cityName as keyof typeof cityReferences] || cityReferences["México"];
   };
 
+  // Función para extraer información de ubicación de los componentes de Google Maps
+  const extractLocationInfo = (addressComponents: any[]) => {
+    let country = '';
+    let state = '';
+    let city = '';
+
+    for (const component of addressComponents) {
+      const types = component.types;
+      
+      if (types.includes('country')) {
+        country = component.long_name;
+      }
+      else if (types.includes('administrative_area_level_1')) {
+        state = component.long_name;
+      }
+      else if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+        if (!city) city = component.long_name;
+      }
+      else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
+        if (!city) city = component.long_name;
+      }
+    }
+
+    return { country, state, city };
+  };
+
   // Función para geocodificar dirección usando Google Maps API
-  const geocodeAddress = async (address: string) => {
+  const geocodeAddress = async (address: string): Promise<LocationInfo | null> => {
     if (!address || address.trim().length < 5) return null;
     
     setIsGeocoding(true);
@@ -85,10 +120,17 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       
       if (data.results && data.results.length > 0) {
         const result = data.results[0];
-        const location = {
+        
+        // Extraer información detallada de ubicación
+        const locationInfo = extractLocationInfo(result.address_components || []);
+        
+        const location: LocationInfo = {
           lat: result.geometry.location.lat,
           lng: result.geometry.location.lng,
-          address: result.formatted_address
+          address: result.formatted_address,
+          country: locationInfo.country,
+          state: locationInfo.state,
+          city: locationInfo.city
         };
         
         return location;
@@ -146,7 +188,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         markerRef.current = marker;
 
         // Actualizar estado
-        const location = {
+        const location: LocationInfo = {
           lat: parseFloat(lat.toFixed(6)),
           lng: parseFloat(lng.toFixed(6)),
           address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
@@ -272,7 +314,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       return;
     }
 
-    const location = {
+    const location: LocationInfo = {
       lat,
       lng,
       address: manualCoords.address || `${lat}, ${lng} - ${ciudad}`
@@ -411,15 +453,34 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
           </Button>
         </div>
 
+        {/* Estado de geocodificación */}
+        {isGeocoding && (
+          <div className="bg-yellow-50 p-3 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>🔍 Geocodificando dirección...</strong><br />
+              Buscando coordenadas y datos de ubicación automáticamente...
+            </p>
+          </div>
+        )}
+
         {/* Información actual */}
-        {selectedLocation && (
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Ubicación seleccionada:</strong><br />
+        {selectedLocation && !isGeocoding && (
+          <div className="bg-green-50 p-3 rounded-lg">
+            <p className="text-sm text-green-800">
+              <strong>✅ Ubicación encontrada automáticamente:</strong><br />
               Latitud: {selectedLocation.lat}<br />
               Longitud: {selectedLocation.lng}<br />
               {selectedLocation.address && (
-                <>Descripción: {selectedLocation.address}</>
+                <>📍 Dirección: {selectedLocation.address}<br /></>
+              )}
+              {selectedLocation.country && (
+                <>🌍 País: {selectedLocation.country}<br /></>
+              )}
+              {selectedLocation.state && (
+                <>🏛️ Estado: {selectedLocation.state}<br /></>
+              )}
+              {selectedLocation.city && (
+                <>🏙️ Ciudad: {selectedLocation.city}</>
               )}
             </p>
           </div>
