@@ -4644,57 +4644,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para geocodificación usando Google Maps API
+  // Endpoint para geocodificación usando OpenStreetMap Nominatim (gratuito)
   app.post("/api/geocode", async (req, res) => {
     try {
       const { address } = req.body;
       
       if (!address || typeof address !== 'string' || address.trim().length < 5) {
-        return res.status(400).json({ error: 'Dirección inválida' });
+        return res.status(400).json({ 
+          success: false,
+          error: 'Dirección inválida - debe tener al menos 5 caracteres' 
+        });
       }
 
-      const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
-      if (!googleMapsApiKey) {
-        return res.status(500).json({ error: 'Google Maps API key no configurado' });
-      }
-
-      // Usar Google Maps Geocoding API
-      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address.trim())}&key=${googleMapsApiKey}`;
+      // Usar Nominatim (OpenStreetMap) - completamente gratuito
+      const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address.trim())}&format=json&addressdetails=1&limit=1&countrycodes=mx&accept-language=es`;
       
-      const response = await fetch(geocodeUrl);
+      console.log(`[Geocode Debug] Geocodificando dirección: ${address}`);
+      
+      const response = await fetch(nominatimUrl, {
+        headers: {
+          'User-Agent': 'ANPR-Mexico-Directory/1.0 (contact@anpr.org.mx)'
+        }
+      });
       
       if (!response.ok) {
-        throw new Error(`Error en Google Maps API: ${response.status}`);
+        throw new Error(`Error en Nominatim API: ${response.status}`);
       }
 
       const data = await response.json();
       
-      // Log de debugging para entender qué está devolviendo Google Maps
-      console.log(`[Geocode Debug] Address: ${address}`);
-      console.log(`[Geocode Debug] Google Maps response status: ${data.status}`);
-      console.log(`[Geocode Debug] Google Maps response:`, JSON.stringify(data, null, 2));
+      console.log(`[Geocode Debug] Nominatim response:`, JSON.stringify(data, null, 2));
       
-      if (data.status === 'OK' && data.results && data.results.length > 0) {
+      if (data && data.length > 0) {
+        const result = data[0];
+        
+        // Transformar respuesta de Nominatim al formato compatible con Google Maps
+        const transformedResult = {
+          formatted_address: result.display_name,
+          geometry: {
+            location: {
+              lat: parseFloat(result.lat),
+              lng: parseFloat(result.lon)
+            }
+          },
+          address_components: []
+        };
+
+        // Procesar componentes de dirección si están disponibles
+        if (result.address) {
+          const addr = result.address;
+          
+          if (addr.country) {
+            transformedResult.address_components.push({
+              long_name: addr.country,
+              short_name: addr.country_code?.toUpperCase() || '',
+              types: ['country', 'political']
+            });
+          }
+          
+          if (addr.state) {
+            transformedResult.address_components.push({
+              long_name: addr.state,
+              short_name: addr.state,
+              types: ['administrative_area_level_1', 'political']
+            });
+          }
+          
+          const city = addr.city || addr.town || addr.village || addr.municipality;
+          if (city) {
+            transformedResult.address_components.push({
+              long_name: city,
+              short_name: city,
+              types: ['locality', 'political']
+            });
+          }
+        }
+
+        console.log(`[Geocode Success] Geocodificación exitosa para: ${address}`);
+        console.log(`[Geocode Success] Coordenadas: ${result.lat}, ${result.lon}`);
+        
         res.json({
           success: true,
-          results: data.results
+          results: [transformedResult],
+          status: 'OK'
         });
       } else {
-        const errorMsg = data.error_message || `Status: ${data.status}`;
-        console.error(`[Geocode Error] ${errorMsg} para dirección: ${address}`);
+        console.error(`[Geocode Error] No se encontraron resultados para dirección: ${address}`);
         res.json({
           success: false,
           results: [],
-          error: `Error de geocodificación: ${errorMsg}`,
-          debug_status: data.status
+          error: `No se pudo encontrar la dirección: ${address}. Intenta ser más específico (incluye ciudad, estado).`,
+          debug_status: 'ZERO_RESULTS'
         });
       }
 
     } catch (error: any) {
-      console.error('Error en geocodificación:', error);
+      console.error('[Geocode Error] Error en geocodificación:', error);
       res.status(500).json({ 
         success: false,
-        error: error.message || 'Error interno del servidor' 
+        error: `Error de geocodificación: ${error.message}`,
+        debug_status: 'FETCH_ERROR'
       });
     }
   });
