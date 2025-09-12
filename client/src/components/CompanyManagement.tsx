@@ -45,7 +45,11 @@ import {
   FileText,
   Tag,
   Award,
-  Briefcase
+  Briefcase,
+  Search,
+  User,
+  Check,
+  ExternalLink
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -67,6 +71,8 @@ const companyUpdateSchema = z.object({
   representantesVentas: z.array(z.string()).optional(),
   catalogoDigitalUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   redesSociales: z.record(z.string()).optional(),
+  // Campo para vincular usuario de WordPress
+  userId: z.number().optional().nullable(),
 });
 
 type CompanyUpdateData = z.infer<typeof companyUpdateSchema>;
@@ -78,6 +84,13 @@ interface CompanyManagementProps {
 export default function CompanyManagement({ companyId }: CompanyManagementProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  // Estados para buscador de WordPress
+  const [wordPressUserSearch, setWordPressUserSearch] = useState("");
+  const [selectedWordPressUser, setSelectedWordPressUser] = useState<any>(null);
+  const [isLoadingWordPressUsers, setIsLoadingWordPressUsers] = useState(false);
+  const [wordPressUsers, setWordPressUsers] = useState<any[]>([]);
+  const [userTransactions, setUserTransactions] = useState<any[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const { toast } = useToast();
 
   // Fetch company data
@@ -116,6 +129,18 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
     },
   });
 
+  // Fetch membership types for WordPress user selection
+  const { data: membershipTypes = [] } = useQuery({
+    queryKey: ["/api/membership-types"],
+    queryFn: async () => {
+      const response = await fetch("/api/membership-types", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch membership types");
+      return response.json();
+    },
+  });
+
   const form = useForm<CompanyUpdateData>({
     resolver: zodResolver(companyUpdateSchema),
     defaultValues: {
@@ -136,6 +161,7 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
         youtube: "",
         whatsapp: "",
       },
+      userId: null,
     },
   });
 
@@ -160,9 +186,69 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
           youtube: "",
           whatsapp: "",
         },
+        userId: company.userId || null,
       });
+      
+      // Si la empresa ya tiene un usuario vinculado, establecer el selectedWordPressUser
+      if (company.user) {
+        setSelectedWordPressUser(company.user);
+      }
     }
   }, [company, form]);
+
+  // Función para cargar transacciones de un usuario
+  const loadUserTransactions = async (userId: string) => {
+    setIsLoadingTransactions(true);
+    try {
+      const response = await fetch(`/api/wordpress-user-transactions/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserTransactions(data.transactions || []);
+        
+        toast({
+          title: "Transacciones cargadas",
+          description: `Se encontraron ${data.transactions.length} transacciones del usuario`,
+        });
+      } else {
+        setUserTransactions([]);
+      }
+    } catch (error) {
+      console.error('Error loading user transactions:', error);
+      setUserTransactions([]);
+    } finally {
+      setIsLoadingTransactions(false);
+    }
+  };
+
+  // Función para buscar usuarios de WordPress
+  useEffect(() => {
+    if (wordPressUserSearch.length >= 3) {
+      setIsLoadingWordPressUsers(true);
+      
+      fetch('/api/wordpress-users')
+        .then(response => response.json())
+        .then(data => {
+          const searchLower = wordPressUserSearch.toLowerCase();
+          const filteredUsers = data.users.filter((user: any) => 
+            (user.name && user.name.toLowerCase().includes(searchLower)) ||
+            (user.email && user.email.toLowerCase().includes(searchLower)) ||
+            (user.username && user.username.toLowerCase().includes(searchLower)) ||
+            (user.first_name && user.first_name.toLowerCase().includes(searchLower)) ||
+            (user.last_name && user.last_name.toLowerCase().includes(searchLower))
+          );
+          setWordPressUsers(filteredUsers);
+          setIsLoadingWordPressUsers(false);
+        })
+        .catch(error => {
+          console.error('Error fetching WordPress users:', error);
+          setWordPressUsers([]);
+          setIsLoadingWordPressUsers(false);
+        });
+    } else {
+      setWordPressUsers([]);
+      setIsLoadingWordPressUsers(false);
+    }
+  }, [wordPressUserSearch]);
 
   // Update company mutation
   const updateCompanyMutation = useMutation({
@@ -393,6 +479,222 @@ export default function CompanyManagement({ companyId }: CompanyManagementProps)
             /* Edit Mode */
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Sección: Información de Contacto */}
+                <div className="space-y-6">
+                  <div className="border-b pb-4">
+                    <h3 className="text-lg font-semibold text-primary">Información de Contacto</h3>
+                    <p className="text-sm text-gray-600">Datos de contacto y representantes</p>
+                  </div>
+
+                  {/* BUSCADOR DE WORDPRESS - UBICADO EN INFORMACIÓN DE CONTACTO */}
+                  <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ExternalLink className="h-5 w-5 text-blue-600" />
+                      <h4 className="font-bold text-blue-800">🔗 Vincular Usuario de WordPress</h4>
+                    </div>
+                    <p className="text-blue-700 mb-4 text-sm">
+                      Busca y selecciona un usuario existente de WordPress para asociar con esta empresa. Los datos se llenarán automáticamente.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      {/* Campo de búsqueda */}
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                        <Input
+                          placeholder="Buscar usuario por nombre, email o usuario... (mín. 3 caracteres)"
+                          value={wordPressUserSearch}
+                          onChange={(e) => setWordPressUserSearch(e.target.value)}
+                          className="pl-10 border-2 border-blue-200 focus:border-blue-500 bg-white"
+                        />
+                      </div>
+
+                      {/* Resultados de búsqueda */}
+                      {wordPressUserSearch.length >= 3 && (
+                        <div className="border-2 border-blue-200 rounded-lg bg-white max-h-48 overflow-y-auto shadow-lg">
+                          {isLoadingWordPressUsers ? (
+                            <div className="p-3 text-center text-gray-600">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                                <span>Buscando usuarios...</span>
+                              </div>
+                            </div>
+                          ) : wordPressUsers.length > 0 ? (
+                            <div className="space-y-0">
+                              {wordPressUsers.map((user: any) => (
+                                <div
+                                  key={user.id}
+                                  className="p-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3 transition-colors"
+                                  onClick={() => {
+                                    setSelectedWordPressUser(user);
+                                    setWordPressUserSearch("");
+                                    
+                                    // Auto-llenar campos disponibles en formulario de edición
+                                    if (user.email) {
+                                      form.setValue("email1", user.email);
+                                    }
+                                    
+                                    // Auto-llenar otros campos si el usuario tiene datos
+                                    if (user.first_name || user.last_name) {
+                                      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+                                      if (fullName && !form.getValues("descripcionEmpresa")) {
+                                        form.setValue("descripcionEmpresa", `Representante: ${fullName}`);
+                                      }
+                                    }
+                                    
+                                    // Establecer la vinculación del usuario
+                                    form.setValue("userId", user.id);
+                                    
+                                    // Cargar transacciones del usuario seleccionado
+                                    if (user.id) {
+                                      loadUserTransactions(user.id.toString());
+                                    }
+                                    
+                                    toast({
+                                      title: "Usuario vinculado exitosamente",
+                                      description: `Se vinculó el usuario ${user.name || user.username} y se auto-llenaron los campos disponibles`,
+                                    });
+                                  }}
+                                >
+                                  <User className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-gray-900 truncate">
+                                      {user.name || user.username}
+                                    </div>
+                                    <div className="text-sm text-gray-600 truncate">
+                                      📧 {user.email}
+                                      {user.roles && user.roles.length > 0 && (
+                                        <span className="ml-2 text-blue-600">• {user.roles.join(", ")}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // URL del perfil de PeepSo: /profile-2/?username/
+                                        window.open(`https://anpr.org.mx/profile-2/?${user.username}/`, '_blank');
+                                      }}
+                                      className="text-blue-600 hover:text-blue-700 border-blue-300"
+                                    >
+                                      <ExternalLink className="h-3 w-3 mr-1" />
+                                      Ver Perfil
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                      Seleccionar
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="p-3 text-center text-gray-600">
+                              <User className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                              <p>No se encontraron usuarios</p>
+                              <p className="text-xs text-gray-500">Intenta con otros términos de búsqueda</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Usuario seleccionado */}
+                      {selectedWordPressUser && (
+                        <div className="bg-green-100 border-2 border-green-300 p-3 rounded-lg shadow-md">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Check className="h-4 w-4 text-green-700" />
+                                <span className="font-bold text-green-800">✅ Usuario vinculado exitosamente</span>
+                              </div>
+                              <div className="text-sm space-y-1">
+                                <div className="font-medium text-gray-900">{selectedWordPressUser.name || selectedWordPressUser.username}</div>
+                                <div className="text-gray-700">📧 {selectedWordPressUser.email}</div>
+                                {selectedWordPressUser.roles && (
+                                  <div className="text-xs text-gray-600">
+                                    👤 Roles: {selectedWordPressUser.roles.join(", ")}
+                                  </div>
+                                )}
+                                <div className="text-xs text-green-700 font-medium mt-1">
+                                  ✨ Campo auto-llenado: Email principal
+                                </div>
+                                <div className="pt-2">
+                                  <Button
+                                    type="button"
+                                    variant="link"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(`https://anpr.org.mx/profile-2/?${selectedWordPressUser.username}/`, '_blank');
+                                    }}
+                                    className="p-0 h-auto text-blue-600 hover:text-blue-700"
+                                  >
+                                    <ExternalLink className="h-3 w-3 mr-1" />
+                                    Ver Perfil en PeepSo
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedWordPressUser(null);
+                                setUserTransactions([]);
+                                // Limpiar la vinculación del formulario
+                                form.setValue("userId", null);
+                                toast({
+                                  title: "Usuario desvinculado",
+                                  description: "Se eliminó la vinculación del usuario de WordPress",
+                                });
+                              }}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Transacciones de MemberPress */}
+                      {selectedWordPressUser && (
+                        <div className="space-y-4">
+                          <div className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                                💳 Transacciones de MemberPress
+                              </h4>
+                              {isLoadingTransactions && (
+                                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                              )}
+                            </div>
+                            {userTransactions.length > 0 ? (
+                              <div className="space-y-2">
+                                {userTransactions.map((transaction: any) => (
+                                  <div key={transaction.id} className="text-sm p-2 bg-gray-50 rounded">
+                                    <div className="font-medium">{transaction.membership_title}</div>
+                                    <div className="text-gray-600">
+                                      Expira: {new Date(transaction.expires_at).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-600">No se encontraron transacciones activas.</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <FormField
