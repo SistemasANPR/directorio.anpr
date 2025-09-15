@@ -239,6 +239,7 @@ const locationSchema = z.object({
   state: z.string().optional(),
   city: z.string().optional(),
   nombre: z.string().optional(),
+  direccionFisica: z.string().optional(), // Dirección física específica de esta ubicación
 });
 
 export const insertCompanySchema = createInsertSchema(companies).omit({

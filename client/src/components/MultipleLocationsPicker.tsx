@@ -14,6 +14,7 @@ interface LocationInfo {
   state?: string;
   city?: string;
   nombre?: string; // Nombre opcional para identificar la ubicación
+  direccionFisica?: string; // Dirección física específica de esta ubicación
 }
 
 interface MultipleLocationsPickerProps {
@@ -57,7 +58,11 @@ export default function MultipleLocationsPicker({
     updateLocation(index, { nombre });
   };
 
-  const handleLocationSelect = (index: number, location: Omit<LocationInfo, 'nombre'>) => {
+  const updateLocationAddress = (index: number, direccionFisica: string) => {
+    updateLocation(index, { direccionFisica });
+  };
+
+  const handleLocationSelect = (index: number, location: Omit<LocationInfo, 'nombre' | 'direccionFisica'>) => {
     updateLocation(index, location);
   };
 
@@ -139,28 +144,45 @@ export default function MultipleLocationsPicker({
 
             {expandedLocation === index && (
               <CardContent className="pt-0">
-                <div className="border rounded-lg overflow-hidden h-64">
-                  <MapLocationPicker
-                    ciudad={"México"}
-                    // Solo usar direccionFisica para la primera ubicación
-                    direccionFisica={index === 0 ? direccionFisica : undefined}
-                    onLocationSelect={(locationData) => handleLocationSelect(index, locationData)}
-                    initialLocation={location.lat && location.lng ? {
-                      lat: location.lat,
-                      lng: location.lng,
-                      address: location.address || "",
-                      country: location.country,
-                      state: location.state,
-                      city: location.city
-                    } : null}
-                  />
-                </div>
-                <div className="mt-3 text-xs text-gray-500">
-                  {index === 0 && direccionFisica ? (
-                    "💡 Esta ubicación se geocodificará automáticamente usando la dirección física"
-                  ) : (
-                    "💡 Escribe una dirección o haz clic en el mapa para seleccionar la ubicación"
-                  )}
+                <div className="space-y-4">
+                  {/* Campo de dirección física para esta ubicación */}
+                  <div>
+                    <Label htmlFor={`direccion-${index}`} className="text-sm font-medium">
+                      Dirección Física de esta Ubicación
+                    </Label>
+                    <Input
+                      id={`direccion-${index}`}
+                      value={location.direccionFisica || ""}
+                      onChange={(e) => updateLocationAddress(index, e.target.value)}
+                      placeholder="Ej: Calle Principal 123, Ciudad, Estado"
+                      className="mt-1"
+                      data-testid={`input-location-address-${index}`}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Esta dirección se usará para geocodificar automáticamente la ubicación
+                    </p>
+                  </div>
+
+                  {/* Mapa de confirmación */}
+                  <div className="border rounded-lg overflow-hidden h-64">
+                    <MapLocationPicker
+                      ciudad={"México"}
+                      direccionFisica={location.direccionFisica || (index === 0 ? direccionFisica : undefined)}
+                      onLocationSelect={(locationData) => handleLocationSelect(index, locationData)}
+                      initialLocation={location.lat && location.lng ? {
+                        lat: location.lat,
+                        lng: location.lng,
+                        address: location.address || "",
+                        country: location.country,
+                        state: location.state,
+                        city: location.city
+                      } : null}
+                    />
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    💡 El mapa se actualizará automáticamente cuando escribas la dirección o puedes hacer clic para seleccionar manualmente
+                  </div>
                 </div>
               </CardContent>
             )}

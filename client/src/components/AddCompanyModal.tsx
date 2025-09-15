@@ -1656,7 +1656,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         Ubicaciones de la Empresa (Opcional)
                       </FormLabel>
                       <FormDescription>
-                        Puedes agregar múltiples ubicaciones si tu empresa tiene oficinas, sucursales o puntos de venta en diferentes lugares. La primera ubicación se geocodificará automáticamente usando la dirección física.
+                        Puedes agregar múltiples ubicaciones si tu empresa tiene oficinas, sucursales o puntos de venta en diferentes lugares. Cada ubicación puede tener su propia dirección física específica para geocodificación automática.
                       </FormDescription>
                       <FormControl>
                         <MultipleLocationsPicker
