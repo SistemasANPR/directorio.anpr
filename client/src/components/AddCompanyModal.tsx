@@ -69,6 +69,7 @@ const companySchema = insertCompanySchema.extend({
     state: z.string().optional(),
     city: z.string().optional(),
     nombre: z.string().optional(),
+    direccionFisica: z.string().optional(),
   })).optional(),
   // Campos de membresía
   membershipTypeId: z.number().optional().nullable(),
