@@ -230,12 +230,34 @@ export const insertMembershipTypeSchema = createInsertSchema(membershipTypes).om
   })).optional(),
 });
 
+// Schema para ubicación individual
+const locationSchema = z.object({
+  lat: z.number(),
+  lng: z.number(),
+  address: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
+  nombre: z.string().optional(),
+});
+
 export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   direccionFisica: z.string().min(10, "La dirección física debe tener al menos 10 caracteres"),
+  // Ubicación geográfica: acepta tanto array de ubicaciones como objeto único (compatibilidad hacia atrás)
+  ubicacionGeografica: z.union([
+    z.array(locationSchema), // Formato nuevo: array de ubicaciones
+    locationSchema, // Formato anterior: objeto único
+  ]).optional().transform((val) => {
+    // Normalizar a array: si es objeto único, convertir a array de un elemento
+    if (val && !Array.isArray(val)) {
+      return [val];
+    }
+    return val;
+  }),
 });
 
 export const insertCertificateSchema = createInsertSchema(certificates).omit({
