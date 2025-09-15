@@ -53,10 +53,6 @@ const companySchema = insertCompanySchema.extend({
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   videosUrls: z.array(z.string()).optional(),
-  paisesPresencia: z.array(z.string()).min(1, "Selecciona al menos un país donde tiene presencia"),
-  estadosPresencia: z.array(z.string()).optional(),
-  ciudadesPresencia: z.array(z.string()).optional(),
-  ubicacionPrincipal: z.string().optional().nullable(),
   categoriesIds: z.array(z.number()).min(1, "Selecciona al menos una categoría"),
   tagIds: z.array(z.number()).optional(),
   certificateIds: z.array(z.number()).optional(),
@@ -73,15 +69,6 @@ const companySchema = insertCompanySchema.extend({
   fechaInicioMembresia: z.string().optional(),
   fechaFinMembresia: z.string().optional(),
   notasMembresia: z.string().optional(),
-}).refine((data) => {
-  // Si México está seleccionado, entonces debe haber al menos un estado
-  if (data.paisesPresencia?.includes("México")) {
-    return data.estadosPresencia && data.estadosPresencia.length > 0;
-  }
-  return true;
-}, {
-  message: "Selecciona al menos un estado de México",
-  path: ["estadosPresencia"],
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
@@ -207,9 +194,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       videosUrls: [],
       descripcionEmpresa: "",
       direccionFisica: "",
-      paisesPresencia: [],
-      estadosPresencia: [],
-      ciudadesPresencia: [],
       categoriesIds: [],
       tagIds: [],
       certificateIds: [],
@@ -222,7 +206,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       notasMembresia: "",
       // CRITICAL FIX: Add ubicacionGeografica to default values
       ubicacionGeografica: null,
-      ubicacionPrincipal: null,
     },
   });
 
@@ -238,9 +221,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         videosUrls: [],
         descripcionEmpresa: "",
         direccionFisica: "",
-        paisesPresencia: [],
-        estadosPresencia: [],
-        ciudadesPresencia: [],
         categoriesIds: [],
         tagIds: [],
         certificateIds: [],
@@ -253,7 +233,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         notasMembresia: "",
         // CRITICAL FIX: Add ubicacionGeografica to reset values
         ubicacionGeografica: null,
-        ubicacionPrincipal: null,
       });
       
       // Reset all state variables
@@ -402,43 +381,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     }
   }, [watchedMembershipTypeId, certificates, form, toast]);
 
-  // CRITICAL FIX: Watch form fields to synchronize with local states for proper Zod validation
-  const watchedPaisesPresencia = form.watch("paisesPresencia");
-  const watchedEstadosPresencia = form.watch("estadosPresencia");
-  const watchedCiudadesPresencia = form.watch("ciudadesPresencia");
+  // Note: Location fields removed from schema, keeping only direccionFisica and ubicacionGeografica
 
-  // CRITICAL FIX: Synchronize local estados state with form field
-  useEffect(() => {
-    if (watchedEstadosPresencia && Array.isArray(watchedEstadosPresencia)) {
-      setSelectedEstados(watchedEstadosPresencia);
-    }
-  }, [watchedEstadosPresencia]);
-
-  // CRITICAL FIX: Synchronize local ciudades state with form field
-  useEffect(() => {
-    if (watchedCiudadesPresencia && Array.isArray(watchedCiudadesPresencia)) {
-      setSelectedCiudades(watchedCiudadesPresencia);
-    }
-  }, [watchedCiudadesPresencia]);
-
-  // CRITICAL FIX: Ensure form fields are updated when local states change
-  useEffect(() => {
-    form.setValue("estadosPresencia", selectedEstados);
-  }, [selectedEstados, form]);
-
-  useEffect(() => {
-    form.setValue("ciudadesPresencia", selectedCiudades);
-  }, [selectedCiudades, form]);
-
-  // CRITICAL FIX: Reset states when México is not selected
-  useEffect(() => {
-    if (watchedPaisesPresencia && !watchedPaisesPresencia.includes("México")) {
-      setSelectedEstados([]);
-      setSelectedCiudades([]);
-      form.setValue("estadosPresencia", []);
-      form.setValue("ciudadesPresencia", []);
-    }
-  }, [watchedPaisesPresencia, form]);
+  // Location sync effects removed - only using direccionFisica and ubicacionGeografica now
 
   const createCompanyMutation = useMutation({
     mutationFn: async (data: CompanyFormData) => {
@@ -579,15 +524,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         // Convertir membershipTypeId a null si es undefined o string vacío
         membershipTypeId: data.membershipTypeId && typeof data.membershipTypeId === 'number' ? data.membershipTypeId : null,
         videosUrls: videosValidos,
-        ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
         // FIXED: Use the actual ubicacionGeografica from the form field, not computed value
         ubicacionGeografica: data.ubicacionGeografica,
         direccionFisica: direccionCompleta,
-        
-        // CORREGIR: Sincronizar datos geográficos de los estados locales
-        paisesPresencia: data.paisesPresencia, // Este viene del formulario correctamente
-        estadosPresencia: selectedEstados, // Usar el estado local actual
-        ciudadesPresencia: selectedCiudades, // Usar el estado local actual
 
         // Agregar galería de productos
         galeriaProductosUrls: galeriaPreviews,
@@ -1640,7 +1579,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   }}
                 />
 
-                {/* Países con presencia */}
+                {/* COMMENTED OUT: Países con presencia - field removed from schema */}
+                {/*
                 <FormField
                   control={form.control}
                   name="paisesPresencia"
@@ -1678,8 +1618,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     </FormItem>
                   )}
                 />
+                */}
 
-                {/* Estados de México - Solo mostrar si México está seleccionado */}
+                {/* COMMENTED OUT: Estados de México - field removed from schema */}
+                {/*
                 {form.watch("paisesPresencia")?.includes("México") && (
                 <FormField
                   control={form.control}
@@ -1723,8 +1665,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 />
                 )}
+                */}
 
-                {/* Ciudades de presencia - Solo mostrar si hay estados seleccionados */}
+                {/* COMMENTED OUT: Ciudades de presencia - field removed from schema */}
+                {/*
                 {selectedEstados.length > 0 && (
                 <FormField
                   control={form.control}
@@ -1776,8 +1720,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   }}
                 />
                 )}
+                */}
 
-                {/* Ubicación Principal */}
+                {/* COMMENTED OUT: Ubicación Principal - field removed from schema */}
+                {/*
                 <FormField
                   control={form.control}
                   name="ubicacionPrincipal"
@@ -1805,6 +1751,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     </FormItem>
                   )}
                 />
+                */}
 
                 {/* Dirección Física */}
                 <FormField
@@ -1846,53 +1793,15 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                       <FormControl>
                         <div className="border rounded-lg overflow-hidden h-64">
                           <MapLocationPicker
-                            ciudad={form.watch("ubicacionPrincipal") || form.watch("ciudadesPresencia")?.[0] || "México"}
+                            ciudad={"México"}
                             direccionFisica={form.watch("direccionFisica")}
                             onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
                               field.onChange(location);
                               
-                              // Auto-completar campos de ubicación basados en la geocodificación
+                              // SIMPLIFIED: Only log location data - presence fields removed from schema
                               if (location.country && location.state && location.city) {
                                 console.log('Ubicación geocodificada:', location);
-                                
-                                // Auto-seleccionar país si es uno de los disponibles
-                                if (location.country === 'Mexico' || location.country === 'México') {
-                                  const currentPaises = form.getValues("paisesPresencia") || [];
-                                  if (!currentPaises.includes("México")) {
-                                    form.setValue("paisesPresencia", [...currentPaises, "México"]);
-                                  }
-                                  
-                                  // Auto-seleccionar estado si está disponible en estadosMexico
-                                  const estadosMexico = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas', 'Ciudad de México'];
-                                  
-                                  const matchingEstado = estadosMexico.find(estado => 
-                                    estado.toLowerCase().includes(location.state?.toLowerCase() || '') ||
-                                    (location.state?.toLowerCase() || '').includes(estado.toLowerCase())
-                                  );
-                                  
-                                  if (matchingEstado) {
-                                    const currentEstados = form.getValues("estadosPresencia") || [];
-                                    if (!currentEstados.includes(matchingEstado)) {
-                                      form.setValue("estadosPresencia", [...currentEstados, matchingEstado]);
-                                      setSelectedEstados(prev => [...prev, matchingEstado]);
-                                    }
-                                  }
-                                  
-                                  // Auto-seleccionar ciudad
-                                  if (location.city) {
-                                    const currentCiudades = form.getValues("ciudadesPresencia") || [];
-                                    if (!currentCiudades.includes(location.city)) {
-                                      form.setValue("ciudadesPresencia", [...currentCiudades, location.city]);
-                                      setSelectedCiudades(prev => [...prev, location.city as string]);
-                                    }
-                                    
-                                    // Auto-seleccionar como ubicación principal si no hay ninguna
-                                    const currentUbicacionPrincipal = form.getValues("ubicacionPrincipal");
-                                    if (!currentUbicacionPrincipal) {
-                                      form.setValue("ubicacionPrincipal", location.city);
-                                    }
-                                  }
-                                }
+                                // Note: Auto-completion of presence fields disabled since they were removed from schema
                               }
                             }}
                             initialLocation={field.value}
