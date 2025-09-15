@@ -53,7 +53,7 @@ const companySchema = insertCompanySchema.extend({
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   videosUrls: z.array(z.string()).optional(),
-  paisesPresencia: z.array(z.string()).min(1, "Selecciona al menos un país donde tiene presencia"),
+  paisesPresencia: z.array(z.string()).optional(), // Direcciones adicionales son opcionales
   estadosPresencia: z.array(z.string()).optional(),
   ciudadesPresencia: z.array(z.string()).optional(),
   ubicacionPrincipal: z.string().optional().nullable(),
@@ -73,15 +73,6 @@ const companySchema = insertCompanySchema.extend({
   fechaInicioMembresia: z.string().optional(),
   fechaFinMembresia: z.string().optional(),
   notasMembresia: z.string().optional(),
-}).refine((data) => {
-  // Si México está seleccionado, entonces debe haber al menos un estado
-  if (data.paisesPresencia?.includes("México")) {
-    return data.estadosPresencia && data.estadosPresencia.length > 0;
-  }
-  return true;
-}, {
-  message: "Selecciona al menos un estado de México",
-  path: ["estadosPresencia"],
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
