@@ -53,10 +53,11 @@ const companySchema = insertCompanySchema.extend({
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   videosUrls: z.array(z.string()).optional(),
-  paisesPresencia: z.array(z.string()).optional(), // Direcciones adicionales son opcionales
-  estadosPresencia: z.array(z.string()).optional(),
-  ciudadesPresencia: z.array(z.string()).optional(),
-  ubicacionPrincipal: z.string().optional().nullable(),
+  additionalAddresses: z.array(z.object({
+    address: z.string().min(1, "La dirección es requerida"),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+  })).optional(),
   categoriesIds: z.array(z.number()).min(1, "Selecciona al menos una categoría"),
   tagIds: z.array(z.number()).optional(),
   certificateIds: z.array(z.number()).optional(),
@@ -94,16 +95,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [fotoPortadaFile, setFotoPortadaFile] = useState<File | null>(null);
   const [fotoPortadaPreview, setFotoPortadaPreview] = useState<string>("");
-  const [selectedEstados, setSelectedEstados] = useState<string[]>([]);
-  const [selectedCiudades, setSelectedCiudades] = useState<string[]>([]);
   const [catalogoFile, setCatalogoFile] = useState<File | null>(null);
   const [redesSociales, setRedesSociales] = useState<Array<{plataforma: string, url: string}>>([]);
   const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
   const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
-
-  const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[ciudad: string]: string}>({});
-  const [nuevaCiudad, setNuevaCiudad] = useState<string>("");
-  const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[ciudad: string]: { lat: number; lng: number; address: string }}>({});
+  const [additionalAddresses, setAdditionalAddresses] = useState<Array<{address: string, lat?: number, lng?: number}>>([]);
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
   
   // Estados para buscador de WordPress
@@ -199,9 +195,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       videosUrls: [],
       descripcionEmpresa: "",
       direccionFisica: "",
-      paisesPresencia: [],
-      estadosPresencia: [],
-      ciudadesPresencia: [],
+      additionalAddresses: [],
       categoriesIds: [],
       tagIds: [],
       certificateIds: [],
@@ -230,9 +224,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         videosUrls: [],
         descripcionEmpresa: "",
         direccionFisica: "",
-        paisesPresencia: [],
-        estadosPresencia: [],
-        ciudadesPresencia: [],
+        additionalAddresses: [],
         categoriesIds: [],
         tagIds: [],
         certificateIds: [],
@@ -253,14 +245,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setLogoPreview("");
       setFotoPortadaFile(null);
       setFotoPortadaPreview("");
-      setSelectedEstados([]);
-      setSelectedCiudades([]);
       setCatalogoFile(null);
       setRedesSociales([]);
       setGaleriaFiles([]);
       setGaleriaPreviews([]);
-      setDireccionesPorCiudad({});
-      setUbicacionesPorCiudad({});
+      setAdditionalAddresses([]);
       setVideosUrls([]);
       
       // Limpiar estados del buscador de WordPress
@@ -546,18 +535,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
           }
         });
 
-      // Combinar direcciones adicionales si existen
-      let direccionCompleta = data.direccionFisica || "";
-      const direccionesAdicionales = Object.entries(direccionesPorCiudad)
-        .filter(([_, direccion]) => direccion && direccion.trim())
-        .map(([ciudad, direccion]) => `${ciudad}: ${direccion}`)
-        .join("; ");
-      
-      if (direccionesAdicionales) {
-        direccionCompleta = direccionCompleta 
-          ? `${direccionCompleta}; ${direccionesAdicionales}`
-          : direccionesAdicionales;
-      }
+      // Prepare additional addresses data
+      const additionalAddressesData = additionalAddresses.filter(addr => addr.address.trim());
 
       // DEBUG: Log raw form data before processing
       console.log("[DEBUG] Raw form data in onSubmit:", {
@@ -571,15 +550,12 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         // Convertir membershipTypeId a null si es undefined o string vacío
         membershipTypeId: data.membershipTypeId && typeof data.membershipTypeId === 'number' ? data.membershipTypeId : null,
         videosUrls: videosValidos,
-        ubicacionPrincipal: data.ubicacionPrincipal || (selectedCiudades.length === 1 ? selectedCiudades[0] : null),
         // FIXED: Use the actual ubicacionGeografica from the form field, not computed value
         ubicacionGeografica: data.ubicacionGeografica,
-        direccionFisica: direccionCompleta,
+        direccionFisica: data.direccionFisica,
         
-        // CORREGIR: Sincronizar datos geográficos de los estados locales
-        paisesPresencia: data.paisesPresencia, // Este viene del formulario correctamente
-        estadosPresencia: selectedEstados, // Usar el estado local actual
-        ciudadesPresencia: selectedCiudades, // Usar el estado local actual
+        // Use the new additionalAddresses field
+        additionalAddresses: additionalAddressesData,
 
         // Agregar galería de productos
         galeriaProductosUrls: galeriaPreviews,
@@ -935,20 +911,19 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     setVideosUrls(newVideos);
   };
 
-  // Función para direcciones por ciudad
-  const updateDireccionCiudad = (ciudad: string, direccion: string) => {
-    setDireccionesPorCiudad(prev => ({
-      ...prev,
-      [ciudad]: direccion
-    }));
+  // Functions for managing additional addresses
+  const addAdditionalAddress = () => {
+    setAdditionalAddresses(prev => [...prev, { address: "" }]);
   };
 
-  // Función para ubicaciones del mapa
-  const updateUbicacionCiudad = (ciudad: string, ubicacion: { lat: number; lng: number; address: string }) => {
-    setUbicacionesPorCiudad(prev => ({
-      ...prev,
-      [ciudad]: ubicacion
-    }));
+  const updateAdditionalAddress = (index: number, address: string, lat?: number, lng?: number) => {
+    setAdditionalAddresses(prev => prev.map((addr, i) => 
+      i === index ? { address, lat, lng } : addr
+    ));
+  };
+
+  const removeAdditionalAddress = (index: number) => {
+    setAdditionalAddresses(prev => prev.filter((_, i) => i !== index));
   };
 
   // Obtener ciudades disponibles basadas en estados seleccionados
@@ -1632,94 +1607,94 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   }}
                 />
 
-                {/* Países con presencia */}
+                {/* Direcciones Adicionales */}
                 <FormField
                   control={form.control}
-                  name="paisesPresencia"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
+                  name="additionalAddresses"
+                  render={({ field }) => {
+                    // Sync form field with additionalAddresses state
+                    field.value = additionalAddresses;
+                    return (
+                      <FormItem className="md:col-span-2">
                       <FormLabel className="flex items-center gap-1">
                         Direcciones Adicionales 
                         <span className="text-gray-500">(Opcional)</span>
                       </FormLabel>
                       <FormDescription>
-                        Agrega direcciones adicionales donde la empresa tiene presencia. Estas NO aparecerán en el mapa del directorio.
+                        Agrega direcciones adicionales donde la empresa tiene presencia. Puedes incluir ubicaciones en el mapa para mayor precisión.
                       </FormDescription>
-                      <div className="space-y-3">
-                        {direccionesPorCiudad && Object.entries(direccionesPorCiudad).map(([ciudad, direccion], index) => (
-                          <div key={ciudad} className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg">
-                            <div className="flex-1">
-                              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {ciudad}
-                              </label>
-                              <Textarea
-                                placeholder={`Dirección específica en ${ciudad}...`}
-                                value={direccion}
-                                onChange={(e) => {
-                                  const newDirecciones = { ...direccionesPorCiudad };
-                                  newDirecciones[ciudad] = e.target.value;
-                                  setDireccionesPorCiudad(newDirecciones);
-                                }}
-                                rows={2}
-                                className="mt-1"
-                              />
+                      <FormControl>
+                        <div className="space-y-3">
+                          {additionalAddresses.map((address, index) => (
+                            <div key={index} className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg">
+                              <div className="flex-1 space-y-2">
+                                <Textarea
+                                  placeholder="Dirección completa (calle, ciudad, estado, país)..."
+                                  value={address.address}
+                                  onChange={(e) => updateAdditionalAddress(index, e.target.value, address.lat, address.lng)}
+                                  rows={3}
+                                  className="w-full"
+                                  data-testid={`textarea-additional-address-${index}`}
+                                />
+                                <div className="flex items-center gap-2">
+                                  <MapLocationPicker
+                                    onLocationSelect={(location) => {
+                                      updateAdditionalAddress(
+                                        index, 
+                                        location.address || address.address, 
+                                        location.lat, 
+                                        location.lng
+                                      );
+                                    }}
+                                    initialAddress={address.address}
+                                    initialLocation={address.lat && address.lng ? { lat: address.lat, lng: address.lng } : undefined}
+                                  />
+                                  {address.lat && address.lng && (
+                                    <span className="text-xs text-green-600 flex items-center gap-1">
+                                      <MapPin className="h-3 w-3" />
+                                      Ubicación guardada
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeAdditionalAddress(index)}
+                                className="text-red-600 hover:text-red-800 mt-1"
+                                data-testid={`button-remove-address-${index}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const newDirecciones = { ...direccionesPorCiudad };
-                                delete newDirecciones[ciudad];
-                                setDireccionesPorCiudad(newDirecciones);
-                              }}
-                              className="text-red-600 hover:text-red-800 mt-6"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
+                          ))}
 
-                        {/* Agregar nueva dirección */}
-                        <div className="flex gap-2 p-3 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
-                          <Input
-                            placeholder="Nombre de ciudad o ubicación..."
-                            value={nuevaCiudad}
-                            onChange={(e) => setNuevaCiudad(e.target.value)}
-                            className="flex-1"
-                          />
+                          {/* Agregar nueva dirección */}
                           <Button
                             type="button"
                             variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              if (nuevaCiudad.trim()) {
-                                setDireccionesPorCiudad(prev => ({
-                                  ...prev,
-                                  [nuevaCiudad.trim()]: ""
-                                }));
-                                setNuevaCiudad("");
-                              }
-                            }}
-                            className="whitespace-nowrap"
+                            onClick={addAdditionalAddress}
+                            className="w-full p-3 border-dashed border-gray-300 hover:border-gray-400"
+                            data-testid="button-add-additional-address"
                           >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Agregar
+                            <Plus className="h-4 w-4 mr-2" />
+                            Agregar Dirección Adicional
                           </Button>
-                        </div>
 
-                        {Object.keys(direccionesPorCiudad).length === 0 && (
-                          <div className="text-center py-6 text-gray-500">
-                            <MapPin className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                            <p className="text-sm">No hay direcciones adicionales agregadas</p>
-                            <p className="text-xs">Agrega ubicaciones adicionales donde tu empresa tiene presencia</p>
-                          </div>
-                        )}
-                      </div>
+                          {additionalAddresses.length === 0 && (
+                            <div className="text-center py-6 text-gray-500">
+                              <MapPin className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                              <p className="text-sm">No hay direcciones adicionales agregadas</p>
+                              <p className="text-xs">Agrega ubicaciones adicionales donde tu empresa tiene presencia</p>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
+                      </FormItem>
+                    );
+                  }}
                 />
 
 
