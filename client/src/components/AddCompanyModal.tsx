@@ -111,6 +111,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
 
   const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[ciudad: string]: string}>({});
+  const [nuevaCiudad, setNuevaCiudad] = useState<string>("");
   const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[ciudad: string]: { lat: number; lng: number; address: string }}>({});
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
   
@@ -1647,32 +1648,83 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel className="flex items-center gap-1">
-                        Países con Presencia
-                        <span className="text-red-500">*</span>
+                        Direcciones Adicionales 
+                        <span className="text-gray-500">(Opcional)</span>
                       </FormLabel>
                       <FormDescription>
-                        Selecciona al menos un país donde la empresa tiene presencia
+                        Agrega direcciones adicionales donde la empresa tiene presencia. Estas NO aparecerán en el mapa del directorio.
                       </FormDescription>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4">
-                        {paisesAmericaLatina.map((pais) => (
-                          <div key={pais} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`pais-${pais}`}
-                              checked={field.value?.includes(pais) || false}
-                              onCheckedChange={(checked) => {
-                                const currentValues = field.value || [];
-                                if (checked) {
-                                  field.onChange([...currentValues, pais]);
-                                } else {
-                                  field.onChange(currentValues.filter(p => p !== pais));
-                                }
+                      <div className="space-y-3">
+                        {direccionesPorCiudad && Object.entries(direccionesPorCiudad).map(([ciudad, direccion], index) => (
+                          <div key={ciudad} className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg">
+                            <div className="flex-1">
+                              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {ciudad}
+                              </label>
+                              <Textarea
+                                placeholder={`Dirección específica en ${ciudad}...`}
+                                value={direccion}
+                                onChange={(e) => {
+                                  const newDirecciones = { ...direccionesPorCiudad };
+                                  newDirecciones[ciudad] = e.target.value;
+                                  setDireccionesPorCiudad(newDirecciones);
+                                }}
+                                rows={2}
+                                className="mt-1"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newDirecciones = { ...direccionesPorCiudad };
+                                delete newDirecciones[ciudad];
+                                setDireccionesPorCiudad(newDirecciones);
                               }}
-                            />
-                            <label htmlFor={`pais-${pais}`} className="text-sm cursor-pointer">
-                              {pais}
-                            </label>
+                              className="text-red-600 hover:text-red-800 mt-6"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         ))}
+
+                        {/* Agregar nueva dirección */}
+                        <div className="flex gap-2 p-3 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
+                          <Input
+                            placeholder="Nombre de ciudad o ubicación..."
+                            value={nuevaCiudad}
+                            onChange={(e) => setNuevaCiudad(e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (nuevaCiudad.trim()) {
+                                setDireccionesPorCiudad(prev => ({
+                                  ...prev,
+                                  [nuevaCiudad.trim()]: ""
+                                }));
+                                setNuevaCiudad("");
+                              }
+                            }}
+                            className="whitespace-nowrap"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Agregar
+                          </Button>
+                        </div>
+
+                        {Object.keys(direccionesPorCiudad).length === 0 && (
+                          <div className="text-center py-6 text-gray-500">
+                            <MapPin className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                            <p className="text-sm">No hay direcciones adicionales agregadas</p>
+                            <p className="text-xs">Agrega ubicaciones adicionales donde tu empresa tiene presencia</p>
+                          </div>
+                        )}
                       </div>
                       <FormMessage />
                     </FormItem>
@@ -1851,49 +1903,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                             onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
                               field.onChange(location);
                               
-                              // Auto-completar campos de ubicación basados en la geocodificación
-                              if (location.country && location.state && location.city) {
-                                console.log('Ubicación geocodificada:', location);
-                                
-                                // Auto-seleccionar país si es uno de los disponibles
-                                if (location.country === 'Mexico' || location.country === 'México') {
-                                  const currentPaises = form.getValues("paisesPresencia") || [];
-                                  if (!currentPaises.includes("México")) {
-                                    form.setValue("paisesPresencia", [...currentPaises, "México"]);
-                                  }
-                                  
-                                  // Auto-seleccionar estado si está disponible en estadosMexico
-                                  const estadosMexico = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas', 'Ciudad de México'];
-                                  
-                                  const matchingEstado = estadosMexico.find(estado => 
-                                    estado.toLowerCase().includes(location.state?.toLowerCase() || '') ||
-                                    (location.state?.toLowerCase() || '').includes(estado.toLowerCase())
-                                  );
-                                  
-                                  if (matchingEstado) {
-                                    const currentEstados = form.getValues("estadosPresencia") || [];
-                                    if (!currentEstados.includes(matchingEstado)) {
-                                      form.setValue("estadosPresencia", [...currentEstados, matchingEstado]);
-                                      setSelectedEstados(prev => [...prev, matchingEstado]);
-                                    }
-                                  }
-                                  
-                                  // Auto-seleccionar ciudad
-                                  if (location.city) {
-                                    const currentCiudades = form.getValues("ciudadesPresencia") || [];
-                                    if (!currentCiudades.includes(location.city)) {
-                                      form.setValue("ciudadesPresencia", [...currentCiudades, location.city]);
-                                      setSelectedCiudades(prev => [...prev, location.city as string]);
-                                    }
-                                    
-                                    // Auto-seleccionar como ubicación principal si no hay ninguna
-                                    const currentUbicacionPrincipal = form.getValues("ubicacionPrincipal");
-                                    if (!currentUbicacionPrincipal) {
-                                      form.setValue("ubicacionPrincipal", location.city);
-                                    }
-                                  }
-                                }
-                              }
+                              // La ubicación en el mapa es SOLO para mostrar en el directorio
+                              // NO debe interferir con la sección de "Países con Presencia"
+                              console.log('Ubicación seleccionada en mapa:', location);
                             }}
                             initialLocation={field.value}
                           />
