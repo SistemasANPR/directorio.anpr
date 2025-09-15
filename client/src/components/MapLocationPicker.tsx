@@ -40,6 +40,33 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
 
+  // Función segura para crear contenido de InfoWindow sin XSS
+  const createSecureInfoWindowContent = (title: string, content: Record<string, string>): string => {
+    const container = document.createElement('div');
+    container.style.cssText = 'padding: 8px; max-width: 250px; font-family: sans-serif;';
+    
+    const titleElement = document.createElement('strong');
+    titleElement.textContent = title;
+    container.appendChild(titleElement);
+    
+    container.appendChild(document.createElement('br'));
+    
+    Object.entries(content).forEach(([key, value]) => {
+      if (value && value.trim()) {
+        const keyElement = document.createElement('strong');
+        keyElement.textContent = `${key}: `;
+        container.appendChild(keyElement);
+        
+        const valueElement = document.createTextNode(value);
+        container.appendChild(valueElement);
+        
+        container.appendChild(document.createElement('br'));
+      }
+    });
+    
+    return container.outerHTML;
+  };
+
   // Coordenadas de referencia para ciudades mexicanas
   const cityReferences = {
     "Ciudad de México": { lat: 19.4326, lng: -99.1332 },
@@ -206,10 +233,10 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
           });
           
           const infoWindow = new google.maps.InfoWindow({
-            content: `<div style="padding: 8px; max-width: 250px; font-family: sans-serif;">
-              <strong>📍 Ubicación</strong><br/>
-              ${selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`}
-            </div>`
+            content: createSecureInfoWindowContent(
+              '📍 Ubicación',
+              { 'Dirección': selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}` }
+            )
           });
           
           marker.addListener('click', () => {
@@ -240,12 +267,14 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
           });
           
           const infoWindow = new google.maps.InfoWindow({
-            content: `<div style="padding: 8px; max-width: 250px; font-family: sans-serif;">
-              <strong>📍 Nueva Ubicación</strong><br/>
-              <strong>Lat:</strong> ${lat.toFixed(6)}<br/>
-              <strong>Lng:</strong> ${lng.toFixed(6)}<br/>
-              <strong>Ciudad:</strong> ${ciudad}
-            </div>`
+            content: createSecureInfoWindowContent(
+              '📍 Nueva Ubicación',
+              {
+                'Lat': lat.toFixed(6),
+                'Lng': lng.toFixed(6),
+                'Ciudad': ciudad
+              }
+            )
           });
           
           marker.addListener('click', () => {
@@ -307,10 +336,10 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       });
       
       const infoWindow = new google.maps.InfoWindow({
-        content: `<div style="padding: 8px; max-width: 250px; font-family: sans-serif;">
-          <strong>📍 Ubicación Inicial</strong><br/>
-          ${initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`}
-        </div>`
+        content: createSecureInfoWindowContent(
+          '📍 Ubicación Inicial',
+          { 'Dirección': initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}` }
+        )
       });
       
       marker.addListener('click', () => {
@@ -374,10 +403,10 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
             });
             
             const infoWindow = new google.maps.InfoWindow({
-              content: `<div style="padding: 8px; max-width: 250px; font-family: sans-serif;">
-                <strong>📍 Ubicación Geocodificada</strong><br/>
-                ${location.address || `${location.lat}, ${location.lng}`}
-              </div>`
+              content: createSecureInfoWindowContent(
+                '📍 Ubicación Geocodificada',
+                { 'Dirección': location.address || `${location.lat}, ${location.lng}` }
+              )
             });
             
             marker.addListener('click', () => {
@@ -442,10 +471,10 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       });
       
       const infoWindow = new google.maps.InfoWindow({
-        content: `<div style="padding: 8px; max-width: 250px; font-family: sans-serif;">
-          <strong>📍 Ubicación Manual</strong><br/>
-          ${location.address}
-        </div>`
+        content: createSecureInfoWindowContent(
+          '📍 Ubicación Manual',
+          { 'Dirección': location.address }
+        )
       });
       
       marker.addListener('click', () => {
@@ -486,10 +515,10 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       });
       
       const infoWindow = new google.maps.InfoWindow({
-        content: `<div style="padding: 8px; max-width: 250px; font-family: sans-serif;">
-          <strong>🏙️ Centro de ${ciudad.split(',')[0]}</strong><br/>
-          Ubicación de referencia de la ciudad
-        </div>`
+        content: createSecureInfoWindowContent(
+          `🏙️ Centro de ${ciudad.split(',')[0]}`,
+          { 'Descripción': 'Ubicación de referencia de la ciudad' }
+        )
       });
       
       marker.addListener('click', () => {
