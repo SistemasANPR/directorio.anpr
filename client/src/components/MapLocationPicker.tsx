@@ -4,7 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Loader } from "@googlemaps/js-api-loader";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix for default markers in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface LocationInfo {
   lat: number;
@@ -35,11 +44,9 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [lastGeocodedAddress, setLastGeocodedAddress] = useState("");
-  const [mapError, setMapError] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
-  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   // Coordenadas de referencia para ciudades mexicanas
   const cityReferences = {
@@ -65,7 +72,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   };
 
   // Función para extraer información de ubicación de los componentes de Google Maps
-  const extractLocationInfo = (addressComponents: google.maps.GeocoderAddressComponent[]) => {
+  const extractLocationInfo = (addressComponents: any[]) => {
     let country = '';
     let state = '';
     let city = '';
@@ -90,34 +97,36 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     return { country, state, city };
   };
 
-  // Función para geocodificar dirección usando Google Maps Geocoder
+  // Función para geocodificar dirección usando Google Maps API
   const geocodeAddress = async (address: string): Promise<LocationInfo | null> => {
-    if (!address || address.trim().length < 5 || !geocoderRef.current) return null;
+    if (!address || address.trim().length < 5) return null;
     
     setIsGeocoding(true);
     try {
-      const results = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
-        geocoderRef.current!.geocode(
-          { address: address.trim() },
-          (results, status) => {
-            if (status === google.maps.GeocoderStatus.OK && results) {
-              resolve(results);
-            } else {
-              reject(new Error(`Geocoding failed: ${status}`));
-            }
-          }
-        );
+      // Usar Google Maps Geocoding API a través del endpoint del backend
+      const response = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address: address.trim() }),
       });
 
-      if (results && results.length > 0) {
-        const result = results[0];
+      if (!response.ok) {
+        throw new Error('Error en geocodificación');
+      }
+
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        const result = data.results[0];
         
         // Extraer información detallada de ubicación
         const locationInfo = extractLocationInfo(result.address_components || []);
         
         const location: LocationInfo = {
-          lat: result.geometry.location.lat(),
-          lng: result.geometry.location.lng(),
+          lat: result.geometry.location.lat,
+          lng: result.geometry.location.lng,
           address: result.formatted_address,
           country: locationInfo.country,
           state: locationInfo.state,
@@ -136,91 +145,45 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     }
   };
 
-  // Cargar Google Maps
   useEffect(() => {
-    const loadGoogleMaps = async () => {
-      try {
-        const loader = new Loader({
-          apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-          version: "weekly",
-          libraries: ["places", "geometry"]
-        });
-
-        await loader.load();
-
-        // Inicializar geocoder
-        geocoderRef.current = new google.maps.Geocoder();
-        
-        setMapLoaded(true);
-        setMapError(null);
-      } catch (error) {
-        console.error('Error loading Google Maps:', error);
-        setMapError('Error al cargar Google Maps. Verifica la configuración de la API key.');
-      }
-    };
-
-    loadGoogleMaps();
-  }, []);
-
-  // Inicializar mapa
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current || mapInstanceRef.current) {
-      return;
-    }
-
-    try {
+    if (mapRef.current && !mapInstanceRef.current) {
       // Obtener coordenadas de referencia de la ciudad
       const cityRef = getCityReference();
       const center = selectedLocation ? 
-        { lat: selectedLocation.lat, lng: selectedLocation.lng } : 
-        { lat: cityRef.lat, lng: cityRef.lng };
+        [selectedLocation.lat, selectedLocation.lng] as [number, number] : 
+        [cityRef.lat, cityRef.lng] as [number, number];
 
       // Crear el mapa
-      const map = new google.maps.Map(mapRef.current, {
-        center: center,
-        zoom: selectedLocation ? 15 : 10,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-        styles: [
-          {
-            featureType: "poi",
-            elementType: "labels",
-            stylers: [{ visibility: "off" }]
-          }
-        ]
-      });
+      const map = L.map(mapRef.current).setView(center, selectedLocation ? 15 : 10);
+
+      // Agregar capa de tiles de OpenStreetMap
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
 
       mapInstanceRef.current = map;
 
       // Agregar marcador si hay ubicación inicial
       if (selectedLocation) {
-        const marker = new google.maps.Marker({
-          position: { lat: selectedLocation.lat, lng: selectedLocation.lng },
-          map: map,
-          title: selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`,
-          animation: google.maps.Animation.DROP
-        });
+        const marker = L.marker([selectedLocation.lat, selectedLocation.lng])
+          .addTo(map)
+          .bindPopup(selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`);
         markerRef.current = marker;
       }
 
       // Evento de clic en el mapa
-      map.addListener('click', (event: google.maps.MapMouseEvent) => {
-        if (!event.latLng) return;
-        
-        const lat = event.latLng.lat();
-        const lng = event.latLng.lng();
+      map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
         
         // Remover marcador anterior
         if (markerRef.current) {
-          markerRef.current.setMap(null);
+          map.removeLayer(markerRef.current);
         }
 
         // Crear nuevo marcador
-        const marker = new google.maps.Marker({
-          position: { lat, lng },
-          map: map,
-          title: `Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-          animation: google.maps.Animation.DROP
-        });
+        const marker = L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
         
         markerRef.current = marker;
 
@@ -242,31 +205,33 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         onLocationSelect(location);
       });
 
-    } catch (error) {
-      console.error('Error initializing Google Maps:', error);
-      setMapError('Error al inicializar el mapa. Intenta recargar la página.');
+      setMapLoaded(true);
     }
-  }, [mapLoaded, selectedLocation]);
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, []);
 
   // Actualizar marcador cuando cambie la ubicación inicial
   useEffect(() => {
     if (mapInstanceRef.current && initialLocation && mapLoaded) {
       // Remover marcador anterior
       if (markerRef.current) {
-        markerRef.current.setMap(null);
+        mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
       // Crear nuevo marcador
-      const marker = new google.maps.Marker({
-        position: { lat: initialLocation.lat, lng: initialLocation.lng },
-        map: mapInstanceRef.current,
-        title: initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`,
-        animation: google.maps.Animation.DROP
-      });
+      const marker = L.marker([initialLocation.lat, initialLocation.lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`);
       
       markerRef.current = marker;
-      mapInstanceRef.current.setCenter({ lat: initialLocation.lat, lng: initialLocation.lng });
-      mapInstanceRef.current.setZoom(15);
+      mapInstanceRef.current.setView([initialLocation.lat, initialLocation.lng], 15);
 
       setSelectedLocation(initialLocation);
       setManualCoords({
@@ -287,8 +252,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       if (direccionFisica && 
           direccionFisica.trim().length > 10 && 
           direccionFisica !== lastGeocodedAddress &&
-          !isGeocoding &&
-          geocoderRef.current) {
+          !isGeocoding) {
         
         const location = await geocodeAddress(direccionFisica);
         
@@ -305,21 +269,17 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
           // Actualizar mapa si está disponible
           if (mapInstanceRef.current) {
-            mapInstanceRef.current.setCenter({ lat: location.lat, lng: location.lng });
-            mapInstanceRef.current.setZoom(15);
+            mapInstanceRef.current.setView([location.lat, location.lng], 15);
             
             // Remover marcador anterior
             if (markerRef.current) {
-              markerRef.current.setMap(null);
+              mapInstanceRef.current.removeLayer(markerRef.current);
             }
 
             // Crear nuevo marcador
-            const marker = new google.maps.Marker({
-              position: { lat: location.lat, lng: location.lng },
-              map: mapInstanceRef.current,
-              title: `📍 ${location.address}`,
-              animation: google.maps.Animation.DROP
-            });
+            const marker = L.marker([location.lat, location.lng])
+              .addTo(mapInstanceRef.current)
+              .bindPopup(`📍 ${location.address}`);
             
             markerRef.current = marker;
           }
@@ -362,21 +322,17 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
     // Actualizar mapa si está disponible
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({ lat, lng });
-      mapInstanceRef.current.setZoom(15);
+      mapInstanceRef.current.setView([lat, lng], 15);
       
       // Remover marcador anterior
       if (markerRef.current) {
-        markerRef.current.setMap(null);
+        mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
       // Crear nuevo marcador
-      const marker = new google.maps.Marker({
-        position: { lat, lng },
-        map: mapInstanceRef.current,
-        title: location.address,
-        animation: google.maps.Animation.DROP
-      });
+      const marker = L.marker([lat, lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(location.address);
       
       markerRef.current = marker;
     }
@@ -395,74 +351,21 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
     // Actualizar mapa si está disponible
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({ lat: ref.lat, lng: ref.lng });
-      mapInstanceRef.current.setZoom(12);
+      mapInstanceRef.current.setView([ref.lat, ref.lng], 12);
       
       // Remover marcador anterior
       if (markerRef.current) {
-        markerRef.current.setMap(null);
+        mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
       // Crear nuevo marcador
-      const marker = new google.maps.Marker({
-        position: { lat: ref.lat, lng: ref.lng },
-        map: mapInstanceRef.current,
-        title: `Centro de ${ciudad}`,
-        animation: google.maps.Animation.DROP
-      });
+      const marker = L.marker([ref.lat, ref.lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(`Centro de ${ciudad}`);
       
       markerRef.current = marker;
     }
   };
-
-  // Limpiar al desmontar
-  useEffect(() => {
-    return () => {
-      if (markerRef.current) {
-        markerRef.current.setMap(null);
-      }
-    };
-  }, []);
-
-  if (mapError) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Error en el Mapa
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-red-50 p-4 rounded-lg text-center">
-            <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50 text-red-500" />
-            <h3 className="text-lg font-medium text-red-800 mb-2">Error al cargar el mapa</h3>
-            <p className="text-sm text-red-600">{mapError}</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!mapLoaded) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Cargando Mapa...
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-gray-50 p-4 rounded-lg text-center">
-            <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50 animate-pulse" />
-            <h3 className="text-lg font-medium text-gray-700 mb-2">Inicializando Google Maps</h3>
-            <p className="text-sm text-gray-500">Configurando mapa interactivo y geocodificación...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full">
@@ -470,7 +373,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5" />
           Seleccionar Ubicación - {ciudad}
-          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded ml-auto">Google Maps</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -494,7 +396,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
             ref={mapRef} 
             className="w-full h-64 border rounded-lg"
             style={{ minHeight: '256px' }}
-            data-testid="map-location-picker"
           />
           <p className="text-xs text-gray-500">
             Haz clic en el mapa para seleccionar una ubicación
@@ -514,7 +415,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
                 placeholder="19.4326"
                 value={manualCoords.lat}
                 onChange={(e) => setManualCoords(prev => ({ ...prev, lat: e.target.value }))}
-                data-testid="input-latitude"
               />
               <p className="text-xs text-gray-500">Rango: -90 a 90</p>
             </div>
@@ -527,7 +427,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
                 placeholder="-99.1332"
                 value={manualCoords.lng}
                 onChange={(e) => setManualCoords(prev => ({ ...prev, lng: e.target.value }))}
-                data-testid="input-longitude"
               />
               <p className="text-xs text-gray-500">Rango: -180 a 180</p>
             </div>
@@ -540,7 +439,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
               placeholder="Descripción de la ubicación"
               value={manualCoords.address}
               onChange={(e) => setManualCoords(prev => ({ ...prev, address: e.target.value }))}
-              data-testid="input-address"
             />
           </div>
 
@@ -549,7 +447,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
             className="w-full"
             type="button"
             disabled={!manualCoords.lat || !manualCoords.lng}
-            data-testid="button-confirm-location"
           >
             <Navigation className="h-4 w-4 mr-2" />
             Confirmar Ubicación
