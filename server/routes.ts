@@ -4695,6 +4695,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obtener la API key de Google Maps
+  app.get("/api/google-maps-key", async (req, res) => {
+    try {
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        console.error('GOOGLE_MAPS_API_KEY no está configurada');
+        return res.status(500).json({ error: 'API key no configurada' });
+      }
+      res.json({ apiKey });
+    } catch (error: any) {
+      console.error('Error obteniendo Google Maps API key:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
