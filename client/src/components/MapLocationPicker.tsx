@@ -172,38 +172,9 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       }
 
       // Evento de clic en el mapa
-      map.on('click', (e) => {
-        const { lat, lng } = e.latlng;
-        
-        // Remover marcador anterior
-        if (markerRef.current) {
-          map.removeLayer(markerRef.current);
-        }
-
-        // Crear nuevo marcador
-        const marker = L.marker([lat, lng])
-          .addTo(map)
-          .bindPopup(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-        
-        markerRef.current = marker;
-
-        // Actualizar estado
-        const location: LocationInfo = {
-          lat: parseFloat(lat.toFixed(6)),
-          lng: parseFloat(lng.toFixed(6)),
-          address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
-        };
-
-        setSelectedLocation(location);
-        setManualCoords({
-          lat: location.lat.toString(),
-          lng: location.lng.toString(),
-          address: location.address
-        });
-
-        // Notificar al componente padre
-        onLocationSelect(location);
-      });
+      // MODO SOLO CONFIRMACIÓN VISUAL - Sin clicks en el mapa
+      // El mapa solo muestra la ubicación geocodificada automáticamente
+      // map.on('click', (e) => { ... }) - DESHABILITADO PARA SOLO CONFIRMACIÓN
 
       setMapLoaded(true);
     }
@@ -372,86 +343,64 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5" />
-          Seleccionar Ubicación - {ciudad}
+          Confirmación de Ubicación Automática
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Botón de referencia de ciudad */}
-        <div>
-          <Button 
-            onClick={useCityReference}
-            variant="outline" 
-            className="w-full"
-            type="button"
-          >
-            <Globe className="h-4 w-4 mr-2" />
-            Centrar en {ciudad.split(',')[0]}
-          </Button>
+        {/* Información automática */}
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="h-4 w-4 text-blue-600" />
+            <span className="font-medium text-blue-800">Ubicación Automática</span>
+          </div>
+          <p className="text-sm text-blue-700">
+            La ubicación se actualiza automáticamente cuando escribes la dirección física. 
+            El mapa te muestra dónde se agregará la empresa para confirmación visual.
+          </p>
         </div>
 
         {/* Mapa */}
         <div className="space-y-2">
-          <Label>Mapa Interactivo</Label>
+          <Label>Mapa de Confirmación</Label>
           <div 
             ref={mapRef} 
             className="w-full h-64 border rounded-lg"
             style={{ minHeight: '256px' }}
           />
-          <p className="text-xs text-gray-500">
-            Haz clic en el mapa para seleccionar una ubicación
+          <p className="text-xs text-green-600 font-medium">
+            ✅ Ubicación mostrada automáticamente desde la dirección física
           </p>
         </div>
 
-        {/* Coordenadas manuales */}
-        <div className="space-y-4">
-          <Label>Coordenadas Manuales</Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="latitude">Latitud</Label>
-              <Input
-                id="latitude"
-                type="number"
-                step="any"
-                placeholder="19.4326"
-                value={manualCoords.lat}
-                onChange={(e) => setManualCoords(prev => ({ ...prev, lat: e.target.value }))}
-              />
-              <p className="text-xs text-gray-500">Rango: -90 a 90</p>
+        {/* Coordenadas de Solo Lectura */}
+        {selectedLocation && (
+          <div className="space-y-4">
+            <Label>Coordenadas Detectadas</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Latitud</Label>
+                <Input
+                  type="text"
+                  value={selectedLocation.lat.toFixed(6)}
+                  readOnly
+                  className="bg-gray-50 text-gray-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Longitud</Label>
+                <Input
+                  type="text"
+                  value={selectedLocation.lng.toFixed(6)}
+                  readOnly
+                  className="bg-gray-50 text-gray-700"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="longitude">Longitud</Label>
-              <Input
-                id="longitude"
-                type="number"
-                step="any"
-                placeholder="-99.1332"
-                value={manualCoords.lng}
-                onChange={(e) => setManualCoords(prev => ({ ...prev, lng: e.target.value }))}
-              />
-              <p className="text-xs text-gray-500">Rango: -180 a 180</p>
-            </div>
+            <p className="text-xs text-gray-500">
+              💡 Estas coordenadas fueron detectadas automáticamente desde la dirección física
+            </p>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Dirección o Descripción</Label>
-            <Input
-              id="address"
-              placeholder="Descripción de la ubicación"
-              value={manualCoords.address}
-              onChange={(e) => setManualCoords(prev => ({ ...prev, address: e.target.value }))}
-            />
-          </div>
-
-          <Button 
-            onClick={handleManualLocationSubmit}
-            className="w-full"
-            type="button"
-            disabled={!manualCoords.lat || !manualCoords.lng}
-          >
-            <Navigation className="h-4 w-4 mr-2" />
-            Confirmar Ubicación
-          </Button>
-        </div>
+        )}
 
         {/* Estado de geocodificación */}
         {isGeocoding && (
