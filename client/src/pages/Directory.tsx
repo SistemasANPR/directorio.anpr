@@ -108,18 +108,18 @@ export default function Directory() {
                            (company.categories && Array.isArray(company.categories) && 
                             company.categories.some((cat: any) => cat.id === parseInt(selectedCategory)));
     
-    const matchesState = !selectedState || selectedState === "all" || 
-                        (company.estadosPresencia && Array.isArray(company.estadosPresencia) && 
-                         company.estadosPresencia.includes(selectedState));
+    const matchesState = true; // Temporarily disabled state filtering
+                        // (company.estadosPresencia && Array.isArray(company.estadosPresencia) && 
+                        //  company.estadosPresencia.includes(selectedState));
     
     return matchesSearch && matchesCategory && matchesState;
   });
 
-  // Unique states from companies (extract from estadosPresencia)
-  const allStates = companies.flatMap((company: CompanyWithDetails) => 
-    Array.isArray(company.estadosPresencia) ? company.estadosPresencia : []
-  );
-  const states = Array.from(new Set(allStates)).filter(Boolean).sort();
+  // Unique states from companies (temporarily disabled)
+  // const allStates = companies.flatMap((company: CompanyWithDetails) => 
+  //   Array.isArray(company.estadosPresencia) ? company.estadosPresencia : []
+  // );
+  const states: string[] = []; // Temporarily disabled state filtering
 
   if (companiesLoading) {
     return (
@@ -282,12 +282,13 @@ export default function Directory() {
                       <span className="truncate">{company.email1}</span>
                     </div>
                   )}
-                  {Array.isArray(company.estadosPresencia) && company.estadosPresencia.length > 0 && (
+                  {/* Temporarily disabled state display */}
+                  {false && (
                     <div className="flex items-center text-sm text-gray-500">
                       <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                       <span>
-                        {company.estadosPresencia.slice(0, 2).join(', ')}
-                        {company.estadosPresencia.length > 2 && ` +${company.estadosPresencia.length - 2}`}
+                        {/* {company.estadosPresencia.slice(0, 2).join(', ')} */}
+                        {/* {company.estadosPresencia.length > 2 && ` +${company.estadosPresencia.length - 2}`} */}
                       </span>
                     </div>
                   )}
