@@ -41,6 +41,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
+  const apiKeyRef = useRef<string | null>(null); // Cache para API key
 
   // Coordenadas de referencia para ciudades mexicanas
   const cityReferences = {
@@ -65,14 +66,17 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     return cityReferences[cityName as keyof typeof cityReferences] || cityReferences["México"];
   };
 
-  // Función para obtener la API key de Google Maps
+  // Función para obtener la API key de Google Maps (con cache)
   const getGoogleMapsApiKey = async (): Promise<string | null> => {
+    if (apiKeyRef.current) return apiKeyRef.current;
+    
     try {
       const response = await fetch('/api/google-maps-key');
       if (!response.ok) {
         throw new Error(`Error fetching API key: ${response.status}`);
       }
       const data = await response.json();
+      apiKeyRef.current = data.apiKey;
       return data.apiKey;
     } catch (error) {
       console.error('Error fetching Google Maps API key:', error);
@@ -195,13 +199,24 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   // Inicializar mapa
   useEffect(() => {
     const initializeMap = async () => {
-      if (!mapRef.current) return;
+      // Verificar que el div del mapa esté disponible
+      if (!mapRef.current) {
+        console.warn('MapLocationPicker: MapDiv no disponible aún, reintentando...');
+        setTimeout(initializeMap, 100);
+        return;
+      }
+
+      // Evitar re-inicializar si ya hay un mapa
+      if (mapInstanceRef.current) {
+        setIsMapLoading(false);
+        return;
+      }
 
       setIsMapLoading(true);
       setMapError(null);
 
       try {
-        // Obtener API key
+        // Obtener API key (con cache)
         const apiKey = await getGoogleMapsApiKey();
         if (!apiKey) {
           setMapError('No se pudo obtener la API key de Google Maps');

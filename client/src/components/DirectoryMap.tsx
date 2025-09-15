@@ -70,14 +70,20 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
     }
   });
 
-  // Función para obtener la API key de Google Maps
+  // Cache para la API key
+  const apiKeyRef = useRef<string | null>(null);
+  
+  // Función para obtener la API key de Google Maps (con cache)
   const getGoogleMapsApiKey = async (): Promise<string | null> => {
+    if (apiKeyRef.current) return apiKeyRef.current;
+    
     try {
       const response = await fetch('/api/google-maps-key');
       if (!response.ok) {
         throw new Error(`Error fetching API key: ${response.status}`);
       }
       const data = await response.json();
+      apiKeyRef.current = data.apiKey;
       return data.apiKey;
     } catch (error) {
       console.error('Error fetching Google Maps API key:', error);
@@ -91,12 +97,25 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
       return;
     }
 
+    // Evitar re-inicializar si ya hay un mapa
+    if (mapInstanceRef.current) {
+      setIsLoading(false);
+      return;
+    }
+
     const initializeMap = async () => {
+      // Verificar que el div del mapa esté disponible
+      if (!mapRef.current) {
+        console.warn('MapDiv no disponible aún, reintentando...');
+        setTimeout(initializeMap, 100);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
       try {
-        // Obtener API key
+        // Obtener API key (con cache)
         const apiKey = await getGoogleMapsApiKey();
         if (!apiKey) {
           setError('No se pudo obtener la API key de Google Maps');
@@ -117,12 +136,19 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
 
         const google = await loader.load();
 
+        // Verificar nuevamente que el div esté disponible
+        if (!mapRef.current) {
+          setError('Error: Elemento del mapa no disponible');
+          setIsLoading(false);
+          return;
+        }
+
         // Coordenadas de México como centro por defecto
         const defaultCenter = { lat: 19.4326, lng: -99.1332 };
         const defaultZoom = 6;
 
         // Crear el mapa
-        const map = new google.maps.Map(mapRef.current!, {
+        const map = new google.maps.Map(mapRef.current, {
           zoom: defaultZoom,
           center: defaultCenter,
           mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -275,7 +301,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
       markersRef.current = [];
       mapInstanceRef.current = null;
     };
-  }, [companiesWithLocation]);
+  }, [companiesWithLocation.length]);
 
   if (companiesWithLocation.length === 0) {
     return (
