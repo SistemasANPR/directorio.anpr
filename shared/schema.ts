@@ -63,12 +63,8 @@ export const companies = pgTable("companies", {
   telefono2: text("telefono2"),
   email1: text("email1").notNull(),
   email2: text("email2"),
-  paisesPresencia: jsonb("paises_presencia"), // Array of strings
-  estadosPresencia: jsonb("estados_presencia"), // Array of strings
-  ciudadesPresencia: jsonb("ciudades_presencia"), // Array of strings
-  ubicacionPrincipal: text("ubicacion_principal"), // Primary city when multiple locations exist
-  direccionFisica: text("direccion_fisica"),
-  ubicacionGeografica: jsonb("ubicacion_geografica"), // {lat: number, lng: number}
+  direccionFisica: text("direccion_fisica").notNull(), // Dirección física única de la empresa
+  ubicacionGeografica: jsonb("ubicacion_geografica"), // {lat: number, lng: number, address: string}
   representantesVentas: jsonb("representantes_ventas"), // Array of user IDs
   descripcionEmpresa: text("descripcion_empresa"),
   galeriaProductosUrls: jsonb("galeria_productos_urls"), // Array of image URLs
@@ -238,6 +234,8 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  direccionFisica: z.string().min(10, "La dirección física debe tener al menos 10 caracteres"),
 });
 
 export const insertCertificateSchema = createInsertSchema(certificates).omit({
