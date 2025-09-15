@@ -31,10 +31,17 @@ export default function MultipleLocationsPicker({
   const [expandedLocation, setExpandedLocation] = useState<number | null>(null);
 
   const addLocation = () => {
-    const newLocation: Partial<LocationInfo> = {
-      nombre: `Ubicación ${locations.length + 1}`
+    const newLocation: LocationInfo = {
+      lat: 0,
+      lng: 0,
+      address: "",
+      country: "",
+      state: "",
+      city: "",
+      nombre: `Ubicación ${locations.length + 1}`,
+      direccionFisica: ""
     };
-    onLocationsChange([...locations, newLocation as LocationInfo]);
+    onLocationsChange([...locations, newLocation]);
     setExpandedLocation(locations.length); // Expandir la nueva ubicación
   };
 
