@@ -662,7 +662,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Lógica automática para empresas con ubicación: asegurar que aparezcan en el mapa
-      if (companyWithUser.ubicacionGeografica && (!companyWithUser.fechaFinMembresia || companyWithUser.fechaFinMembresia === '')) {
+      // Verificar si ubicacionGeografica es un array con al menos una ubicación válida
+      const hasValidLocation = Array.isArray(companyWithUser.ubicacionGeografica) 
+        && companyWithUser.ubicacionGeografica.length > 0
+        && companyWithUser.ubicacionGeografica.some(loc => loc && loc.lat && loc.lng);
+      
+      if (hasValidLocation && (!companyWithUser.fechaFinMembresia || companyWithUser.fechaFinMembresia === '')) {
         const today = new Date();
         const oneYearFromNow = new Date(today);
         oneYearFromNow.setFullYear(today.getFullYear() + 1);
@@ -671,7 +676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companyWithUser.fechaFinMembresia = oneYearFromNow.toISOString().split('T')[0];
         companyWithUser.estado = 'activo';
         
-        console.log(`[Auto-Activation] Company with location will be automatically activated:`);
+        console.log(`[Auto-Activation] Company with ${companyWithUser.ubicacionGeografica.length} location(s) will be automatically activated:`);
         console.log(`[Auto-Activation] Start: ${companyWithUser.fechaInicioMembresia}`);
         console.log(`[Auto-Activation] End: ${companyWithUser.fechaFinMembresia}`);
       }
@@ -779,7 +784,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Lógica automática para empresas con ubicación: asegurar que aparezcan en el mapa
-      if (companyWithUser.ubicacionGeografica && (!companyWithUser.fechaFinMembresia || companyWithUser.fechaFinMembresia === '')) {
+      // Verificar si ubicacionGeografica es un array con al menos una ubicación válida
+      const hasValidLocation = Array.isArray(companyWithUser.ubicacionGeografica) 
+        && companyWithUser.ubicacionGeografica.length > 0
+        && companyWithUser.ubicacionGeografica.some(loc => loc && loc.lat && loc.lng);
+      
+      if (hasValidLocation && (!companyWithUser.fechaFinMembresia || companyWithUser.fechaFinMembresia === '')) {
         const today = new Date();
         const oneYearFromNow = new Date(today);
         oneYearFromNow.setFullYear(today.getFullYear() + 1);
@@ -788,7 +798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companyWithUser.fechaFinMembresia = oneYearFromNow.toISOString().split('T')[0];
         companyWithUser.estado = 'activo';
         
-        console.log(`[Auto-Activation] Company with location will be automatically activated:`);
+        console.log(`[Auto-Activation] Company with ${companyWithUser.ubicacionGeografica.length} location(s) will be automatically activated:`);
         console.log(`[Auto-Activation] Start: ${companyWithUser.fechaInicioMembresia}`);
         console.log(`[Auto-Activation] End: ${companyWithUser.fechaFinMembresia}`);
       }
