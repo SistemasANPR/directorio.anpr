@@ -21,6 +21,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapInstanceRef = useRef<L.Map | null>(null);
   
   // Filtrar empresas que tienen ubicación geográfica válida
+  console.log(`🔍 DirectoryMap recibió ${companies.length} empresas:`, companies.map(c => c.nombreEmpresa));
   const companiesWithLocation = companies.filter(company => {
     try {
       // Verificar que ubicacionGeografica existe y no es null/undefined
@@ -64,6 +65,8 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
     }
   });
 
+  console.log(`✅ Empresas con ubicación válida: ${companiesWithLocation.length}`, companiesWithLocation.map(c => c.nombreEmpresa));
+
   useEffect(() => {
     if (!mapRef.current || companiesWithLocation.length === 0) {
       return;
@@ -96,7 +99,9 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         const markersGroup = L.featureGroup();
 
         // Agregar marcadores para cada empresa
-        companiesWithLocation.forEach(company => {
+        console.log(`📍 Agregando ${companiesWithLocation.length} marcadores al mapa`);
+        companiesWithLocation.forEach((company, index) => {
+          console.log(`📍 Marcador ${index + 1}/${companiesWithLocation.length}: ${company.nombreEmpresa}`);
           // Parsear ubicación (puede ser string o objeto)
           let ubicacion: { lat: number; lng: number; address?: string };
           
@@ -138,6 +143,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
 
           // Agregar al grupo de marcadores
           markersGroup.addLayer(marker);
+          console.log(`✅ Marcador agregado: ${company.nombreEmpresa} en [${ubicacion.lat}, ${ubicacion.lng}]`);
         });
 
         // Agregar grupo de marcadores al mapa
