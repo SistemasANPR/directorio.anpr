@@ -71,39 +71,38 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     return cityReferences[cityName as keyof typeof cityReferences] || cityReferences["México"];
   };
 
-  // Función para extraer información de ubicación de los componentes de Google Maps
-  const extractLocationInfo = (addressComponents: any[]) => {
+  // Función para extraer información de ubicación de la respuesta de Nominatim
+  const extractLocationInfoFromNominatim = (nominatimResult: any) => {
     let country = '';
     let state = '';
     let city = '';
 
-    for (const component of addressComponents) {
-      const types = component.types;
-      
-      if (types.includes('country')) {
-        country = component.long_name;
-      }
-      else if (types.includes('administrative_area_level_1')) {
-        state = component.long_name;
-      }
-      else if (types.includes('locality') || types.includes('administrative_area_level_2')) {
-        if (!city) city = component.long_name;
-      }
-      else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
-        if (!city) city = component.long_name;
+    // Extraer información del campo address de Nominatim
+    if (nominatimResult.address) {
+      const addr = nominatimResult.address;
+      country = addr.country || '';
+      state = addr.state || addr.region || '';
+      city = addr.city || addr.town || addr.municipality || addr.village || '';
+    } else {
+      // Fallback: extraer de display_name
+      const displayParts = nominatimResult.display_name?.split(', ') || [];
+      if (displayParts.length >= 3) {
+        city = displayParts[displayParts.length - 3] || '';
+        state = displayParts[displayParts.length - 2] || '';
+        country = displayParts[displayParts.length - 1] || '';
       }
     }
 
     return { country, state, city };
   };
 
-  // Función para geocodificar dirección usando Google Maps API
+  // Función para geocodificar dirección usando OpenStreetMap Nominatim API
   const geocodeAddress = async (address: string): Promise<LocationInfo | null> => {
     if (!address || address.trim().length < 5) return null;
     
     setIsGeocoding(true);
     try {
-      // Usar Google Maps Geocoding API a través del endpoint del backend
+      // Usar OpenStreetMap Nominatim API a través del endpoint del backend
       const response = await fetch('/api/geocode', {
         method: 'POST',
         headers: {
@@ -118,21 +117,39 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
       const data = await response.json();
       
-      if (data.results && data.results.length > 0) {
-        const result = data.results[0];
-        
-        // Extraer información detallada de ubicación
-        const locationInfo = extractLocationInfo(result.address_components || []);
+      // Manejar respuesta de Nominatim (puede ser array directo o formato transformado)
+      let result;
+      if (Array.isArray(data) && data.length > 0) {
+        // Respuesta directa de Nominatim: [{ lat: "string", lon: "string", display_name: "string" }]
+        result = data[0];
+      } else if (data.results && data.results.length > 0) {
+        // Respuesta transformada a formato Google Maps API
+        const googleResult = data.results[0];
+        result = {
+          lat: googleResult.geometry.location.lat.toString(),
+          lon: googleResult.geometry.location.lng.toString(),
+          display_name: googleResult.formatted_address,
+          address: googleResult.address_components
+        };
+      } else {
+        console.log('No results found in geocoding response:', data);
+        return null;
+      }
+      
+      if (result && result.lat && result.lon) {
+        // Extraer información detallada de ubicación usando el método de Nominatim
+        const locationInfo = extractLocationInfoFromNominatim(result);
         
         const location: LocationInfo = {
-          lat: result.geometry.location.lat,
-          lng: result.geometry.location.lng,
-          address: result.formatted_address,
+          lat: Number(result.lat),
+          lng: Number(result.lon), // Nominatim usa 'lon', no 'lng'
+          address: result.display_name || `${result.lat}, ${result.lon}`,
           country: locationInfo.country,
           state: locationInfo.state,
           city: locationInfo.city
         };
         
+        console.log('Geocoding successful:', location);
         return location;
       }
       
