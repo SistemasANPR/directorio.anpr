@@ -661,6 +661,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Lógica automática para empresas con ubicación: asegurar que aparezcan en el mapa
+      if (companyWithUser.ubicacionGeografica && (!companyWithUser.fechaFinMembresia || companyWithUser.fechaFinMembresia === '')) {
+        const today = new Date();
+        const oneYearFromNow = new Date(today);
+        oneYearFromNow.setFullYear(today.getFullYear() + 1);
+        
+        companyWithUser.fechaInicioMembresia = today.toISOString().split('T')[0];
+        companyWithUser.fechaFinMembresia = oneYearFromNow.toISOString().split('T')[0];
+        companyWithUser.estado = 'activo';
+        
+        console.log(`[Auto-Activation] Company with location will be automatically activated:`);
+        console.log(`[Auto-Activation] Start: ${companyWithUser.fechaInicioMembresia}`);
+        console.log(`[Auto-Activation] End: ${companyWithUser.fechaFinMembresia}`);
+      }
+      
       const company = await storage.createCompany(companyWithUser);
       res.status(201).json(company);
     } catch (error) {
@@ -761,6 +776,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('[Company Creation] Error processing transaction expiration date:', dateError);
           // Continuar con las fechas originales si hay error
         }
+      }
+      
+      // Lógica automática para empresas con ubicación: asegurar que aparezcan en el mapa
+      if (companyWithUser.ubicacionGeografica && (!companyWithUser.fechaFinMembresia || companyWithUser.fechaFinMembresia === '')) {
+        const today = new Date();
+        const oneYearFromNow = new Date(today);
+        oneYearFromNow.setFullYear(today.getFullYear() + 1);
+        
+        companyWithUser.fechaInicioMembresia = today.toISOString().split('T')[0];
+        companyWithUser.fechaFinMembresia = oneYearFromNow.toISOString().split('T')[0];
+        companyWithUser.estado = 'activo';
+        
+        console.log(`[Auto-Activation] Company with location will be automatically activated:`);
+        console.log(`[Auto-Activation] Start: ${companyWithUser.fechaInicioMembresia}`);
+        console.log(`[Auto-Activation] End: ${companyWithUser.fechaFinMembresia}`);
       }
       
       const company = await storage.createCompany(companyWithUser);
