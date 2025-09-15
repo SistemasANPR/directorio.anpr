@@ -111,6 +111,12 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const [canAddProjects, setCanAddProjects] = useState(true);
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
   
+  // Estados para presencia geográfica
+  const [selectedEstados, setSelectedEstados] = useState<string[]>([]);
+  const [selectedCiudades, setSelectedCiudades] = useState<string[]>([]);
+  const [direccionesPorCiudad, setDireccionesPorCiudad] = useState<{[key: string]: string[]}>({});
+  const [ubicacionesPorCiudad, setUbicacionesPorCiudad] = useState<{[key: string]: {lat: number, lng: number, address: string}[]}>({});
+  
   // Estados para transacciones de WordPress
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
