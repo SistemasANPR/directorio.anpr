@@ -108,7 +108,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         // Agregar marcadores para cada empresa y cada ubicación
         companiesWithLocation.forEach(company => {
           // Parsear ubicaciones (puede ser string o objeto/array)
-          let ubicaciones: Array<{ lat: number; lng: number; address?: string; nombre?: string }>;
+          let ubicaciones: Array<{ lat: number; lng: number; address?: string; nombre?: string; direccionFisica?: string }>;
           
           if (typeof company.ubicacionGeografica === 'string') {
             try {
@@ -117,7 +117,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
               return; // Skip this company if parsing fails
             }
           } else {
-            ubicaciones = company.ubicacionGeografica as Array<{ lat: number; lng: number; address?: string; nombre?: string }>;
+            ubicaciones = company.ubicacionGeografica as Array<{ lat: number; lng: number; address?: string; nombre?: string; direccionFisica?: string }>;
           }
           
           // Si es un objeto simple (formato antiguo), convertirlo a array
@@ -155,7 +155,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
               <div style="text-align: center; min-width: 200px; max-width: 250px;">
                 <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937; font-size: 16px;">${escapeHtml(company.nombreEmpresa)}</h3>
                 ${locationName ? `<p style="margin: 0 0 4px 0; font-size: 13px; color: #4b5563; font-weight: 500;">${locationName}</p>` : ''}
-                ${company.direccionFisica ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">${escapeHtml(company.direccionFisica)}</p>` : ''}
+                ${ubicacion.direccionFisica || ubicacion.address || company.direccionFisica ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">${escapeHtml(ubicacion.direccionFisica || ubicacion.address || company.direccionFisica || '')}</p>` : ''}
                 ${company.categories && company.categories.length > 0 ? 
                   `<p style="margin: 0 0 4px 0; font-size: 12px; color: #9ca3af;">
                     ${company.categories.map(cat => escapeHtml(cat.nombreCategoria)).join(', ')}
@@ -163,9 +163,8 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
                 }
                 ${company.telefono1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #059669;">📞 ${escapeHtml(company.telefono1)}</p>` : ''}
                 ${company.email1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #0284c7;">✉️ ${escapeHtml(company.email1)}</p>` : ''}
-                ${ubicacion.address ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">${escapeHtml(ubicacion.address)}</p>` : ''}
                 <button 
-                  onclick="window.open('/company/${company.id}', '_blank')" 
+                  onclick="window.open('/empresa/${company.id}', '_blank')" 
                   style="margin-top: 8px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
                 >
                   Ver detalles
