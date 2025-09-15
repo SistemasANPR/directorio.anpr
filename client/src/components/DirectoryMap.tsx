@@ -19,12 +19,14 @@ interface DirectoryMapProps {
 export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-
+  
   // Filtrar empresas que tienen ubicación geográfica válida
   const companiesWithLocation = companies.filter(company => {
     try {
       // Verificar que ubicacionGeografica existe y no es null/undefined
-      if (!company.ubicacionGeografica) return false;
+      if (!company.ubicacionGeografica) {
+        return false;
+      }
       
       let ubicacion;
       
@@ -145,8 +147,8 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         if (companiesWithLocation.length > 0) {
           try {
             map.fitBounds(markersGroup.getBounds(), {
-              padding: [20, 20],
-              maxZoom: 15
+              padding: [50, 50],
+              maxZoom: 12
             });
           } catch (error) {
             // Si hay error al calcular bounds, usar vista por defecto
@@ -200,7 +202,12 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
       <div 
         ref={mapRef} 
         className="w-full h-96 border rounded-lg shadow-sm"
-        style={{ minHeight: '384px' }}
+        style={{ 
+          minHeight: '400px',
+          height: '400px',
+          position: 'relative',
+          zIndex: 1
+        }}
       />
     </div>
   );
