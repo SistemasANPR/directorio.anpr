@@ -21,7 +21,6 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapInstanceRef = useRef<L.Map | null>(null);
   
   // Filtrar empresas que tienen ubicación geográfica válida
-  console.log(`🔍 DirectoryMap recibió ${companies.length} empresas:`, companies.map(c => c.nombreEmpresa));
   const companiesWithLocation = companies.filter(company => {
     try {
       // Verificar que ubicacionGeografica existe y no es null/undefined
@@ -65,8 +64,6 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
     }
   });
 
-  console.log(`✅ Empresas con ubicación válida: ${companiesWithLocation.length}`, companiesWithLocation.map(c => c.nombreEmpresa));
-
   useEffect(() => {
     if (!mapRef.current || companiesWithLocation.length === 0) {
       return;
@@ -98,10 +95,11 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         // Crear grupo de marcadores para ajustar el zoom automáticamente
         const markersGroup = L.featureGroup();
 
+        // Objeto para rastrear coordenadas ya usadas
+        const usedCoordinates = new Map();
+        
         // Agregar marcadores para cada empresa
-        console.log(`📍 Agregando ${companiesWithLocation.length} marcadores al mapa`);
-        companiesWithLocation.forEach((company, index) => {
-          console.log(`📍 Marcador ${index + 1}/${companiesWithLocation.length}: ${company.nombreEmpresa}`);
+        companiesWithLocation.forEach(company => {
           // Parsear ubicación (puede ser string o objeto)
           let ubicacion: { lat: number; lng: number; address?: string };
           
@@ -137,13 +135,27 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
             </div>
           `;
 
-          // Crear marcador
-          const marker = L.marker([ubicacion.lat, ubicacion.lng])
+          // Verificar si estas coordenadas ya se usaron y agregar offset si es necesario
+          const coordKey = `${ubicacion.lat.toFixed(6)},${ubicacion.lng.toFixed(6)}`;
+          let finalLat = ubicacion.lat;
+          let finalLng = ubicacion.lng;
+          
+          if (usedCoordinates.has(coordKey)) {
+            // Agregar pequeño offset para evitar superposición
+            const offset = usedCoordinates.get(coordKey);
+            finalLat += (offset * 0.0008); // ~89 metros
+            finalLng += (offset * 0.0008); 
+            usedCoordinates.set(coordKey, offset + 1);
+          } else {
+            usedCoordinates.set(coordKey, 1);
+          }
+          
+          // Crear marcador con coordenadas ajustadas
+          const marker = L.marker([finalLat, finalLng])
             .bindPopup(popupContent);
 
           // Agregar al grupo de marcadores
           markersGroup.addLayer(marker);
-          console.log(`✅ Marcador agregado: ${company.nombreEmpresa} en [${ubicacion.lat}, ${ubicacion.lng}]`);
         });
 
         // Agregar grupo de marcadores al mapa

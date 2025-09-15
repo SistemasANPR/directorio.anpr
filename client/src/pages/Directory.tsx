@@ -82,9 +82,9 @@ export default function Directory() {
   }, [location]);
 
   const { data: companiesData, isLoading: companiesLoading } = useQuery({
-    queryKey: ["/api/companies"],
+    queryKey: ["/api/companies", "limit=1000"],
     queryFn: async () => {
-      const response = await fetch("/api/companies");
+      const response = await fetch("/api/companies?limit=1000");
       if (!response.ok) throw new Error("Failed to fetch companies");
       return response.json();
     },
