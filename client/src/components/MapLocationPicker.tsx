@@ -4,7 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Loader } from "@googlemaps/js-api-loader";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix for default markers in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface LocationInfo {
   lat: number;
@@ -35,37 +44,9 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [lastGeocodedAddress, setLastGeocodedAddress] = useState("");
-  const [mapError, setMapError] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
-
-  // Función segura para crear contenido de InfoWindow sin XSS
-  const createSecureInfoWindowContent = (title: string, content: Record<string, string>): string => {
-    const container = document.createElement('div');
-    container.style.cssText = 'padding: 8px; max-width: 250px; font-family: sans-serif;';
-    
-    const titleElement = document.createElement('strong');
-    titleElement.textContent = title;
-    container.appendChild(titleElement);
-    
-    container.appendChild(document.createElement('br'));
-    
-    Object.entries(content).forEach(([key, value]) => {
-      if (value && value.trim()) {
-        const keyElement = document.createElement('strong');
-        keyElement.textContent = `${key}: `;
-        container.appendChild(keyElement);
-        
-        const valueElement = document.createTextNode(value);
-        container.appendChild(valueElement);
-        
-        container.appendChild(document.createElement('br'));
-      }
-    });
-    
-    return container.outerHTML;
-  };
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   // Coordenadas de referencia para ciudades mexicanas
   const cityReferences = {
@@ -165,154 +146,71 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   };
 
   useEffect(() => {
-    const initializeMap = async () => {
-      if (!mapRef.current || mapInstanceRef.current) return;
-      
-      setMapError(null);
-      
-      try {
-        // Cargar Google Maps API
-        let apiKey = '';
-        try {
-          const response = await fetch('/api/google-maps-key');
-          if (!response.ok) {
-            throw new Error('Failed to fetch API key');
-          }
-          const data = await response.json();
-          apiKey = data.apiKey || '';
-          if (!apiKey) {
-            throw new Error('API key is empty');
-          }
-        } catch (error) {
-          console.error('Error obteniendo API key:', error);
-          setMapError('No se pudo obtener la clave de API para Google Maps');
-          return;
-        }
+    if (mapRef.current && !mapInstanceRef.current) {
+      // Obtener coordenadas de referencia de la ciudad
+      const cityRef = getCityReference();
+      const center = selectedLocation ? 
+        [selectedLocation.lat, selectedLocation.lng] as [number, number] : 
+        [cityRef.lat, cityRef.lng] as [number, number];
 
-        const loader = new Loader({
-          apiKey,
-          version: "weekly",
-          language: "es",
-          region: "MX"
-        });
+      // Crear el mapa
+      const map = L.map(mapRef.current).setView(center, selectedLocation ? 15 : 10);
 
-        try {
-          await loader.load();
-        } catch (error) {
-          console.error('Error loading Google Maps:', error);
-          setMapError('No se pudo cargar Google Maps. Verifica tu conexión a internet.');
-          return;
-        }
+      // Agregar capa de tiles de OpenStreetMap
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
 
-        // Obtener coordenadas de referencia de la ciudad
-        const cityRef = getCityReference();
-        const center = selectedLocation ? 
-          { lat: selectedLocation.lat, lng: selectedLocation.lng } : 
-          { lat: cityRef.lat, lng: cityRef.lng };
+      mapInstanceRef.current = map;
 
-        // Crear el mapa
-        const map = new google.maps.Map(mapRef.current, {
-          center,
-          zoom: selectedLocation ? 15 : 10,
-          mapTypeControl: true,
-          streetViewControl: true,
-          fullscreenControl: true,
-          zoomControl: true,
-          styles: []
-        });
-
-        mapInstanceRef.current = map;
-
-        // Agregar marcador si hay ubicación inicial
-        if (selectedLocation) {
-          const marker = new google.maps.Marker({
-            position: { lat: selectedLocation.lat, lng: selectedLocation.lng },
-            map,
-            title: selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`,
-            draggable: false
-          });
-          
-          const infoWindow = new google.maps.InfoWindow({
-            content: createSecureInfoWindowContent(
-              '📍 Ubicación',
-              { 'Dirección': selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}` }
-            )
-          });
-          
-          marker.addListener('click', () => {
-            infoWindow.open(map, marker);
-          });
-          
-          markerRef.current = marker;
-        }
-
-        // Evento de clic en el mapa
-        map.addListener('click', (event: google.maps.MapMouseEvent) => {
-          if (!event.latLng) return;
-          
-          const lat = event.latLng.lat();
-          const lng = event.latLng.lng();
-          
-          // Remover marcador anterior
-          if (markerRef.current) {
-            markerRef.current.setMap(null);
-          }
-
-          // Crear nuevo marcador
-          const marker = new google.maps.Marker({
-            position: { lat, lng },
-            map,
-            title: `Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-            draggable: false
-          });
-          
-          const infoWindow = new google.maps.InfoWindow({
-            content: createSecureInfoWindowContent(
-              '📍 Nueva Ubicación',
-              {
-                'Lat': lat.toFixed(6),
-                'Lng': lng.toFixed(6),
-                'Ciudad': ciudad
-              }
-            )
-          });
-          
-          marker.addListener('click', () => {
-            infoWindow.open(map, marker);
-          });
-          
-          markerRef.current = marker;
-
-          // Actualizar estado
-          const location: LocationInfo = {
-            lat: parseFloat(lat.toFixed(6)),
-            lng: parseFloat(lng.toFixed(6)),
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
-          };
-
-          setSelectedLocation(location);
-          setManualCoords({
-            lat: location.lat.toString(),
-            lng: location.lng.toString(),
-            address: location.address
-          });
-
-          // Notificar al componente padre
-          onLocationSelect(location);
-        });
-
-        setMapLoaded(true);
-      } catch (error) {
-        console.error('Error initializing map:', error);
-        setMapError('Error inesperado al inicializar el mapa');
+      // Agregar marcador si hay ubicación inicial
+      if (selectedLocation) {
+        const marker = L.marker([selectedLocation.lat, selectedLocation.lng])
+          .addTo(map)
+          .bindPopup(selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`);
+        markerRef.current = marker;
       }
-    };
 
-    initializeMap();
+      // Evento de clic en el mapa
+      map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        
+        // Remover marcador anterior
+        if (markerRef.current) {
+          map.removeLayer(markerRef.current);
+        }
+
+        // Crear nuevo marcador
+        const marker = L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        
+        markerRef.current = marker;
+
+        // Actualizar estado
+        const location: LocationInfo = {
+          lat: parseFloat(lat.toFixed(6)),
+          lng: parseFloat(lng.toFixed(6)),
+          address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
+        };
+
+        setSelectedLocation(location);
+        setManualCoords({
+          lat: location.lat.toString(),
+          lng: location.lng.toString(),
+          address: location.address
+        });
+
+        // Notificar al componente padre
+        onLocationSelect(location);
+      });
+
+      setMapLoaded(true);
+    }
 
     return () => {
       if (mapInstanceRef.current) {
-        // No need to explicitly destroy Google Maps - it handles cleanup automatically
+        mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
         markerRef.current = null;
       }
@@ -324,31 +222,16 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     if (mapInstanceRef.current && initialLocation && mapLoaded) {
       // Remover marcador anterior
       if (markerRef.current) {
-        markerRef.current.setMap(null);
+        mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
       // Crear nuevo marcador
-      const marker = new google.maps.Marker({
-        position: { lat: initialLocation.lat, lng: initialLocation.lng },
-        map: mapInstanceRef.current,
-        title: initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`,
-        draggable: false
-      });
-      
-      const infoWindow = new google.maps.InfoWindow({
-        content: createSecureInfoWindowContent(
-          '📍 Ubicación Inicial',
-          { 'Dirección': initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}` }
-        )
-      });
-      
-      marker.addListener('click', () => {
-        infoWindow.open(mapInstanceRef.current!, marker);
-      });
+      const marker = L.marker([initialLocation.lat, initialLocation.lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`);
       
       markerRef.current = marker;
-      mapInstanceRef.current.setCenter({ lat: initialLocation.lat, lng: initialLocation.lng });
-      mapInstanceRef.current.setZoom(15);
+      mapInstanceRef.current.setView([initialLocation.lat, initialLocation.lng], 15);
 
       setSelectedLocation(initialLocation);
       setManualCoords({
@@ -386,32 +269,17 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
           // Actualizar mapa si está disponible
           if (mapInstanceRef.current) {
-            mapInstanceRef.current.setCenter({ lat: location.lat, lng: location.lng });
-            mapInstanceRef.current.setZoom(15);
+            mapInstanceRef.current.setView([location.lat, location.lng], 15);
             
             // Remover marcador anterior
             if (markerRef.current) {
-              markerRef.current.setMap(null);
+              mapInstanceRef.current.removeLayer(markerRef.current);
             }
 
             // Crear nuevo marcador
-            const marker = new google.maps.Marker({
-              position: { lat: location.lat, lng: location.lng },
-              map: mapInstanceRef.current,
-              title: `📍 ${location.address}`,
-              draggable: false
-            });
-            
-            const infoWindow = new google.maps.InfoWindow({
-              content: createSecureInfoWindowContent(
-                '📍 Ubicación Geocodificada',
-                { 'Dirección': location.address || `${location.lat}, ${location.lng}` }
-              )
-            });
-            
-            marker.addListener('click', () => {
-              infoWindow.open(mapInstanceRef.current!, marker);
-            });
+            const marker = L.marker([location.lat, location.lng])
+              .addTo(mapInstanceRef.current)
+              .bindPopup(`📍 ${location.address}`);
             
             markerRef.current = marker;
           }
@@ -454,32 +322,17 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
     // Actualizar mapa si está disponible
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({ lat, lng });
-      mapInstanceRef.current.setZoom(15);
+      mapInstanceRef.current.setView([lat, lng], 15);
       
       // Remover marcador anterior
       if (markerRef.current) {
-        markerRef.current.setMap(null);
+        mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
       // Crear nuevo marcador
-      const marker = new google.maps.Marker({
-        position: { lat, lng },
-        map: mapInstanceRef.current,
-        title: location.address,
-        draggable: false
-      });
-      
-      const infoWindow = new google.maps.InfoWindow({
-        content: createSecureInfoWindowContent(
-          '📍 Ubicación Manual',
-          { 'Dirección': location.address }
-        )
-      });
-      
-      marker.addListener('click', () => {
-        infoWindow.open(mapInstanceRef.current!, marker);
-      });
+      const marker = L.marker([lat, lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(location.address);
       
       markerRef.current = marker;
     }
@@ -498,32 +351,17 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
     // Actualizar mapa si está disponible
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({ lat: ref.lat, lng: ref.lng });
-      mapInstanceRef.current.setZoom(12);
+      mapInstanceRef.current.setView([ref.lat, ref.lng], 12);
       
       // Remover marcador anterior
       if (markerRef.current) {
-        markerRef.current.setMap(null);
+        mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
       // Crear nuevo marcador
-      const marker = new google.maps.Marker({
-        position: { lat: ref.lat, lng: ref.lng },
-        map: mapInstanceRef.current,
-        title: `Centro de ${ciudad}`,
-        draggable: false
-      });
-      
-      const infoWindow = new google.maps.InfoWindow({
-        content: createSecureInfoWindowContent(
-          `🏙️ Centro de ${ciudad.split(',')[0]}`,
-          { 'Descripción': 'Ubicación de referencia de la ciudad' }
-        )
-      });
-      
-      marker.addListener('click', () => {
-        infoWindow.open(mapInstanceRef.current!, marker);
-      });
+      const marker = L.marker([ref.lat, ref.lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(`Centro de ${ciudad}`);
       
       markerRef.current = marker;
     }
@@ -554,25 +392,14 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         {/* Mapa */}
         <div className="space-y-2">
           <Label>Mapa Interactivo</Label>
-          {mapError ? (
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-              <p className="text-sm text-red-800">
-                <strong>❌ Error cargando el mapa:</strong><br />
-                {mapError}
-              </p>
-            </div>
-          ) : (
-            <>
-              <div 
-                ref={mapRef} 
-                className="w-full h-64 border rounded-lg"
-                style={{ minHeight: '256px' }}
-              />
-              <p className="text-xs text-gray-500">
-                Haz clic en el mapa para seleccionar una ubicación
-              </p>
-            </>
-          )}
+          <div 
+            ref={mapRef} 
+            className="w-full h-64 border rounded-lg"
+            style={{ minHeight: '256px' }}
+          />
+          <p className="text-xs text-gray-500">
+            Haz clic en el mapa para seleccionar una ubicación
+          </p>
         </div>
 
         {/* Coordenadas manuales */}
