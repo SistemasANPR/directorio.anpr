@@ -80,7 +80,6 @@ export const companies = pgTable("companies", {
   sitioWeb: text("sitio_web"),
   certificateIds: jsonb("certificate_ids"), // Array of certificate IDs
   tagIds: jsonb("tag_ids"), // Array of tag IDs for keywords/search enhancement
-  additionalAddresses: jsonb("additional_addresses"), // Array of {address: string, lat?: number, lng?: number} objects
   // Campos de información de membresía
   membershipPeriodicidad: text("membership_periodicidad", { enum: ["mensual", "anual"] }),
   formaPago: text("forma_pago"), // "efectivo", "transferencia", "otro"
@@ -239,12 +238,6 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  additionalAddresses: z.array(z.object({
-    address: z.string().min(1, "La dirección es requerida"),
-    lat: z.number().optional(),
-    lng: z.number().optional(),
-  })).optional(),
 });
 
 export const insertCertificateSchema = createInsertSchema(certificates).omit({

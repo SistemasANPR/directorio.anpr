@@ -4,7 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Loader } from "@googlemaps/js-api-loader";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix for default markers in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface LocationInfo {
   lat: number;
@@ -35,13 +44,9 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [lastGeocodedAddress, setLastGeocodedAddress] = useState("");
-  const [isMapLoading, setIsMapLoading] = useState(true);
-  const [mapError, setMapError] = useState<string | null>(null);
-
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
-  const apiKeyRef = useRef<string | null>(null); // Cache para API key
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   // Coordenadas de referencia para ciudades mexicanas
   const cityReferences = {
@@ -64,24 +69,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   const getCityReference = () => {
     const cityName = ciudad.split(',')[0];
     return cityReferences[cityName as keyof typeof cityReferences] || cityReferences["México"];
-  };
-
-  // Función para obtener la API key de Google Maps (con cache)
-  const getGoogleMapsApiKey = async (): Promise<string | null> => {
-    if (apiKeyRef.current) return apiKeyRef.current;
-    
-    try {
-      const response = await fetch('/api/google-maps-key');
-      if (!response.ok) {
-        throw new Error(`Error fetching API key: ${response.status}`);
-      }
-      const data = await response.json();
-      apiKeyRef.current = data.apiKey;
-      return data.apiKey;
-    } catch (error) {
-      console.error('Error fetching Google Maps API key:', error);
-      return null;
-    }
   };
 
   // Función para extraer información de ubicación de los componentes de Google Maps
@@ -158,170 +145,93 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     }
   };
 
-  // Función para crear/actualizar marcador
-  const updateMarker = (lat: number, lng: number, title: string) => {
-    if (!mapInstanceRef.current) return;
+  useEffect(() => {
+    if (mapRef.current && !mapInstanceRef.current) {
+      // Obtener coordenadas de referencia de la ciudad
+      const cityRef = getCityReference();
+      const center = selectedLocation ? 
+        [selectedLocation.lat, selectedLocation.lng] as [number, number] : 
+        [cityRef.lat, cityRef.lng] as [number, number];
 
-    // Remover marcador anterior
-    if (markerRef.current) {
-      markerRef.current.setMap(null);
+      // Crear el mapa
+      const map = L.map(mapRef.current).setView(center, selectedLocation ? 15 : 10);
+
+      // Agregar capa de tiles de OpenStreetMap
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      mapInstanceRef.current = map;
+
+      // Agregar marcador si hay ubicación inicial
+      if (selectedLocation) {
+        const marker = L.marker([selectedLocation.lat, selectedLocation.lng])
+          .addTo(map)
+          .bindPopup(selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`);
+        markerRef.current = marker;
+      }
+
+      // Evento de clic en el mapa
+      map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        
+        // Remover marcador anterior
+        if (markerRef.current) {
+          map.removeLayer(markerRef.current);
+        }
+
+        // Crear nuevo marcador
+        const marker = L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        
+        markerRef.current = marker;
+
+        // Actualizar estado
+        const location: LocationInfo = {
+          lat: parseFloat(lat.toFixed(6)),
+          lng: parseFloat(lng.toFixed(6)),
+          address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
+        };
+
+        setSelectedLocation(location);
+        setManualCoords({
+          lat: location.lat.toString(),
+          lng: location.lng.toString(),
+          address: location.address
+        });
+
+        // Notificar al componente padre
+        onLocationSelect(location);
+      });
+
+      setMapLoaded(true);
     }
 
-    // Crear nuevo marcador
-    const marker = new google.maps.Marker({
-      position: { lat, lng },
-      map: mapInstanceRef.current,
-      title: title,
-      animation: google.maps.Animation.DROP,
-      icon: {
-        url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-        scaledSize: new google.maps.Size(32, 32)
-      }
-    });
-
-    // Crear InfoWindow
-    const infoWindow = new google.maps.InfoWindow({
-      content: `
-        <div style="padding: 8px; max-width: 200px;">
-          <strong>📍 Ubicación Seleccionada</strong><br />
-          <small>${title}</small><br />
-          <small>Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
-        </div>
-      `
-    });
-
-    // Mostrar InfoWindow automáticamente
-    infoWindow.open(mapInstanceRef.current, marker);
-
-    markerRef.current = marker;
-  };
-
-  // Inicializar mapa
-  useEffect(() => {
-    const initializeMap = async () => {
-      // Verificar que el div del mapa esté disponible
-      if (!mapRef.current) {
-        console.warn('MapLocationPicker: MapDiv no disponible aún, reintentando...');
-        setTimeout(initializeMap, 100);
-        return;
-      }
-
-      // Evitar re-inicializar si ya hay un mapa
-      if (mapInstanceRef.current) {
-        setIsMapLoading(false);
-        return;
-      }
-
-      setIsMapLoading(true);
-      setMapError(null);
-
-      try {
-        // Obtener API key (con cache)
-        const apiKey = await getGoogleMapsApiKey();
-        if (!apiKey) {
-          setMapError('No se pudo obtener la API key de Google Maps');
-          setIsMapLoading(false);
-          return;
-        }
-
-        // Cargar Google Maps API
-        const loader = new Loader({
-          apiKey: apiKey,
-          version: 'weekly',
-          libraries: ['places']
-        });
-
-        const google = await loader.load();
-
-        // Obtener coordenadas de referencia de la ciudad
-        const cityRef = getCityReference();
-        const center = selectedLocation ? 
-          { lat: selectedLocation.lat, lng: selectedLocation.lng } : 
-          { lat: cityRef.lat, lng: cityRef.lng };
-
-        // Crear el mapa
-        const map = new google.maps.Map(mapRef.current, {
-          zoom: selectedLocation ? 15 : 10,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.ROADMAP,
-          disableDefaultUI: false,
-          zoomControl: true,
-          streetViewControl: false,
-          fullscreenControl: true
-        });
-
-        mapInstanceRef.current = map;
-
-        // Agregar marcador si hay ubicación inicial
-        if (selectedLocation) {
-          updateMarker(
-            selectedLocation.lat, 
-            selectedLocation.lng, 
-            selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`
-          );
-        }
-
-        // Evento de clic en el mapa
-        map.addListener('click', (event: google.maps.MapMouseEvent) => {
-          if (!event.latLng) return;
-          
-          const lat = event.latLng.lat();
-          const lng = event.latLng.lng();
-
-          // Actualizar estado
-          const location: LocationInfo = {
-            lat: parseFloat(lat.toFixed(6)),
-            lng: parseFloat(lng.toFixed(6)),
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)} - ${ciudad}`
-          };
-
-          setSelectedLocation(location);
-          setManualCoords({
-            lat: location.lat.toString(),
-            lng: location.lng.toString(),
-            address: location.address
-          });
-
-          // Crear marcador
-          updateMarker(lat, lng, location.address);
-
-          // Notificar al componente padre
-          onLocationSelect(location);
-        });
-
-        setMapLoaded(true);
-        setIsMapLoading(false);
-
-      } catch (error) {
-        console.error('Error inicializando mapa:', error);
-        setMapError('Error al cargar el mapa');
-        setIsMapLoading(false);
-      }
-    };
-
-    initializeMap();
-
     return () => {
-      // Limpiar marcador al desmontar
-      if (markerRef.current) {
-        markerRef.current.setMap(null);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
         markerRef.current = null;
       }
-      mapInstanceRef.current = null;
     };
   }, []);
 
   // Actualizar marcador cuando cambie la ubicación inicial
   useEffect(() => {
     if (mapInstanceRef.current && initialLocation && mapLoaded) {
-      updateMarker(
-        initialLocation.lat,
-        initialLocation.lng,
-        initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`
-      );
+      // Remover marcador anterior
+      if (markerRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
+      }
+
+      // Crear nuevo marcador
+      const marker = L.marker([initialLocation.lat, initialLocation.lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`);
       
-      mapInstanceRef.current.setCenter({ lat: initialLocation.lat, lng: initialLocation.lng });
-      mapInstanceRef.current.setZoom(15);
+      markerRef.current = marker;
+      mapInstanceRef.current.setView([initialLocation.lat, initialLocation.lng], 15);
 
       setSelectedLocation(initialLocation);
       setManualCoords({
@@ -359,10 +269,19 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
           // Actualizar mapa si está disponible
           if (mapInstanceRef.current) {
-            mapInstanceRef.current.setCenter({ lat: location.lat, lng: location.lng });
-            mapInstanceRef.current.setZoom(15);
+            mapInstanceRef.current.setView([location.lat, location.lng], 15);
             
-            updateMarker(location.lat, location.lng, `📍 ${location.address}`);
+            // Remover marcador anterior
+            if (markerRef.current) {
+              mapInstanceRef.current.removeLayer(markerRef.current);
+            }
+
+            // Crear nuevo marcador
+            const marker = L.marker([location.lat, location.lng])
+              .addTo(mapInstanceRef.current)
+              .bindPopup(`📍 ${location.address}`);
+            
+            markerRef.current = marker;
           }
 
           // Notificar al componente padre
@@ -403,10 +322,19 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
     // Actualizar mapa si está disponible
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({ lat, lng });
-      mapInstanceRef.current.setZoom(15);
+      mapInstanceRef.current.setView([lat, lng], 15);
       
-      updateMarker(lat, lng, location.address);
+      // Remover marcador anterior
+      if (markerRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
+      }
+
+      // Crear nuevo marcador
+      const marker = L.marker([lat, lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(location.address);
+      
+      markerRef.current = marker;
     }
 
     setSelectedLocation(location);
@@ -423,20 +351,20 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
     // Actualizar mapa si está disponible
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({ lat: ref.lat, lng: ref.lng });
-      mapInstanceRef.current.setZoom(12);
+      mapInstanceRef.current.setView([ref.lat, ref.lng], 12);
       
-      updateMarker(ref.lat, ref.lng, `Centro de ${ciudad}`);
+      // Remover marcador anterior
+      if (markerRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
+      }
+
+      // Crear nuevo marcador
+      const marker = L.marker([ref.lat, ref.lng])
+        .addTo(mapInstanceRef.current)
+        .bindPopup(`Centro de ${ciudad}`);
+      
+      markerRef.current = marker;
     }
-
-    const location: LocationInfo = {
-      lat: ref.lat,
-      lng: ref.lng,
-      address: ciudad
-    };
-
-    setSelectedLocation(location);
-    onLocationSelect(location);
   };
 
   return (
@@ -455,7 +383,6 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
             variant="outline" 
             className="w-full"
             type="button"
-            disabled={isMapLoading}
           >
             <Globe className="h-4 w-4 mr-2" />
             Centrar en {ciudad.split(',')[0]}
@@ -465,34 +392,14 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         {/* Mapa */}
         <div className="space-y-2">
           <Label>Mapa Interactivo</Label>
-          <div className="relative">
-            <div 
-              ref={mapRef} 
-              className="w-full h-64 border rounded-lg bg-gray-100"
-              style={{ minHeight: '256px' }}
-            />
-            {isMapLoading && (
-              <div className="absolute inset-0 bg-gray-100 bg-opacity-75 flex items-center justify-center rounded-lg">
-                <div className="text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                  <p className="text-sm">Cargando mapa...</p>
-                </div>
-              </div>
-            )}
-            {mapError && (
-              <div className="absolute inset-0 bg-red-50 flex items-center justify-center rounded-lg border border-red-200">
-                <div className="text-center text-red-600">
-                  <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">{mapError}</p>
-                </div>
-              </div>
-            )}
-          </div>
-          {!isMapLoading && !mapError && (
-            <p className="text-xs text-gray-500">
-              Haz clic en el mapa para seleccionar una ubicación
-            </p>
-          )}
+          <div 
+            ref={mapRef} 
+            className="w-full h-64 border rounded-lg"
+            style={{ minHeight: '256px' }}
+          />
+          <p className="text-xs text-gray-500">
+            Haz clic en el mapa para seleccionar una ubicación
+          </p>
         </div>
 
         {/* Coordenadas manuales */}
@@ -539,7 +446,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
             onClick={handleManualLocationSubmit}
             className="w-full"
             type="button"
-            disabled={!manualCoords.lat || !manualCoords.lng || isMapLoading}
+            disabled={!manualCoords.lat || !manualCoords.lng}
           >
             <Navigation className="h-4 w-4 mr-2" />
             Confirmar Ubicación
@@ -548,7 +455,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
         {/* Estado de geocodificación */}
         {isGeocoding && (
-          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+          <div className="bg-yellow-50 p-3 rounded-lg">
             <p className="text-sm text-yellow-800">
               <strong>🔍 Geocodificando dirección...</strong><br />
               Buscando coordenadas y datos de ubicación automáticamente...
@@ -558,9 +465,9 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
         {/* Información actual */}
         {selectedLocation && !isGeocoding && (
-          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+          <div className="bg-green-50 p-3 rounded-lg">
             <p className="text-sm text-green-800">
-              <strong>✅ Ubicación encontrada:</strong><br />
+              <strong>✅ Ubicación encontrada automáticamente:</strong><br />
               Latitud: {selectedLocation.lat}<br />
               Longitud: {selectedLocation.lng}<br />
               {selectedLocation.address && (

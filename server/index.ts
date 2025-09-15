@@ -48,12 +48,7 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        // Ocultar información sensible de los logs
-        let sanitizedResponse = { ...capturedJsonResponse };
-        if (sanitizedResponse.apiKey) {
-          sanitizedResponse.apiKey = sanitizedResponse.apiKey.substring(0, 8) + "***HIDDEN***";
-        }
-        logLine += ` :: ${JSON.stringify(sanitizedResponse)}`;
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
       if (logLine.length > 80) {
