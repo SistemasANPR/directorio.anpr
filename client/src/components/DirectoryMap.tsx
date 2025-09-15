@@ -1,16 +1,7 @@
-import { useEffect, useRef } from "react";
-import { MapPin } from "lucide-react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState } from "react";
+import { MapPin, AlertCircle } from "lucide-react";
+import { Loader } from "@googlemaps/js-api-loader";
 import type { CompanyWithDetails } from "@shared/schema";
-
-// Fix for default markers in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 interface DirectoryMapProps {
   companies: CompanyWithDetails[];
@@ -18,7 +9,17 @@ interface DirectoryMapProps {
 
 export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Función para escapar HTML y prevenir XSS
+  const escapeHtml = (text: string): string => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  };
 
   // Filtrar empresas que tienen ubicación geográfica válida
   const companiesWithLocation = companies.filter(company => {
@@ -63,35 +64,69 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   });
 
   useEffect(() => {
-    if (!mapRef.current || companiesWithLocation.length === 0) {
-      return;
-    }
+    const initializeMap = async () => {
+      if (!mapRef.current || companiesWithLocation.length === 0) {
+        return;
+      }
 
-    // Limpiar mapa anterior si existe
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
+      setIsLoading(true);
+      setMapError(null);
 
-    // Usar setTimeout para asegurar que el DOM esté listo
-    const timer = setTimeout(() => {
-      if (!mapRef.current) return;
+      // Limpiar marcadores existentes
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
 
       try {
+        // Cargar Google Maps API
+        let apiKey = '';
+        try {
+          const response = await fetch('/api/google-maps-key');
+          if (!response.ok) {
+            throw new Error('Failed to fetch API key');
+          }
+          const data = await response.json();
+          apiKey = data.apiKey || '';
+          if (!apiKey) {
+            throw new Error('API key is empty');
+          }
+        } catch (error) {
+          console.error('Error obteniendo API key:', error);
+          setMapError('No se pudo obtener la clave de API para Google Maps');
+          setIsLoading(false);
+          return;
+        }
+
+        const loader = new Loader({
+          apiKey,
+          version: "weekly",
+          language: "es",
+          region: "MX"
+        });
+
+        try {
+          await loader.load();
+        } catch (error) {
+          console.error('Error loading Google Maps:', error);
+          setMapError('No se pudo cargar Google Maps. Verifica tu conexión a internet.');
+          setIsLoading(false);
+          return;
+        }
+
         // Coordenadas de México como centro por defecto
-        const defaultCenter: [number, number] = [19.4326, -99.1332];
+        const defaultCenter = { lat: 19.4326, lng: -99.1332 };
         const defaultZoom = 6;
 
-        // Crear el mapa
-        const map = L.map(mapRef.current).setView(defaultCenter, defaultZoom);
+        // Crear el mapa con Google Maps
+        const map = new google.maps.Map(mapRef.current, {
+          zoom: companiesWithLocation.length === 1 ? 15 : defaultZoom,
+          center: defaultCenter,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          language: "es",
+          region: "MX"
+        });
 
-        // Agregar capa de tiles de OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Crear grupo de marcadores para ajustar el zoom automáticamente
-        const markersGroup = L.featureGroup();
+        const bounds = new google.maps.LatLngBounds();
+        const infoWindow = new google.maps.InfoWindow();
 
         // Agregar marcadores para cada empresa
         companiesWithLocation.forEach(company => {
@@ -107,65 +142,117 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
           } else {
             ubicacion = company.ubicacionGeografica as { lat: number; lng: number; address?: string };
           }
+
+          // Crear contenido del popup de forma segura para prevenir XSS
+          const popupDiv = document.createElement('div');
+          popupDiv.style.cssText = 'text-align: center; min-width: 200px; max-width: 250px; font-family: Inter, sans-serif;';
           
-          // Crear el contenido del popup
-          const popupContent = `
-            <div style="text-align: center; min-width: 200px; max-width: 250px;">
-              <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937; font-size: 16px;">${company.nombreEmpresa}</h3>
-              ${company.direccionFisica ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">${company.direccionFisica}</p>` : ''}
-              ${company.categories && company.categories.length > 0 ? 
-                `<p style="margin: 0 0 4px 0; font-size: 12px; color: #9ca3af;">
-                  ${company.categories.map(cat => cat.nombreCategoria).join(', ')}
-                </p>` : ''
-              }
-              ${company.telefono1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #059669;">📞 ${company.telefono1}</p>` : ''}
-              ${company.email1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #0284c7;">✉️ ${company.email1}</p>` : ''}
-              ${ubicacion.address ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">${ubicacion.address}</p>` : ''}
-              <button 
-                onclick="window.open('/company/${company.id}', '_blank')" 
-                style="margin-top: 8px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
-              >
-                Ver detalles
-              </button>
-            </div>
-          `;
+          const titleEl = document.createElement('h3');
+          titleEl.style.cssText = 'margin: 0 0 8px 0; font-weight: bold; color: #1f2937; font-size: 16px;';
+          titleEl.textContent = company.nombreEmpresa;
+          popupDiv.appendChild(titleEl);
 
-          // Crear marcador
-          const marker = L.marker([ubicacion.lat, ubicacion.lng])
-            .bindPopup(popupContent);
+          // Dirección física
+          if (company.direccionFisica) {
+            const addressEl = document.createElement('p');
+            addressEl.style.cssText = 'margin: 0 0 4px 0; font-size: 14px; color: #6b7280;';
+            addressEl.textContent = company.direccionFisica;
+            popupDiv.appendChild(addressEl);
+          }
 
-          // Agregar al grupo de marcadores
-          markersGroup.addLayer(marker);
+          // Categorías
+          if (company.categories && company.categories.length > 0) {
+            const categoriesEl = document.createElement('p');
+            categoriesEl.style.cssText = 'margin: 0 0 4px 0; font-size: 12px; color: #9ca3af;';
+            categoriesEl.textContent = company.categories.map(cat => cat.nombreCategoria).join(', ');
+            popupDiv.appendChild(categoriesEl);
+          }
+
+          // Teléfono
+          if (company.telefono1) {
+            const phoneEl = document.createElement('p');
+            phoneEl.style.cssText = 'margin: 0 0 4px 0; font-size: 12px; color: #059669;';
+            phoneEl.textContent = `📞 ${company.telefono1}`;
+            popupDiv.appendChild(phoneEl);
+          }
+
+          // Email
+          if (company.email1) {
+            const emailEl = document.createElement('p');
+            emailEl.style.cssText = 'margin: 0 0 4px 0; font-size: 12px; color: #0284c7;';
+            emailEl.textContent = `✉️ ${company.email1}`;
+            popupDiv.appendChild(emailEl);
+          }
+
+          // Dirección de ubicación
+          if (ubicacion.address) {
+            const locationEl = document.createElement('p');
+            locationEl.style.cssText = 'margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;';
+            locationEl.textContent = ubicacion.address;
+            popupDiv.appendChild(locationEl);
+          }
+
+          // Botón para ver detalles
+          const detailsButton = document.createElement('button');
+          detailsButton.style.cssText = 'margin-top: 8px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;';
+          detailsButton.textContent = 'Ver detalles';
+          detailsButton.onclick = () => {
+            window.open(`/company/${company.id}`, '_blank');
+          };
+          popupDiv.appendChild(detailsButton);
+
+          // Crear marcador con título sanitizado para prevenir XSS
+          const sanitizedTitle = escapeHtml(company.nombreEmpresa);
+          const marker = new google.maps.Marker({
+            position: { lat: ubicacion.lat, lng: ubicacion.lng },
+            map,
+            title: sanitizedTitle,
+            icon: {
+              url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+              scaledSize: new google.maps.Size(32, 32)
+            }
+          });
+
+          marker.addListener('click', () => {
+            infoWindow.setContent(popupDiv);
+            infoWindow.open(map, marker);
+          });
+
+          markersRef.current.push(marker);
+          bounds.extend(marker.getPosition()!);
         });
 
-        // Agregar grupo de marcadores al mapa
-        markersGroup.addTo(map);
-
-        // Ajustar zoom para mostrar todos los marcadores
-        if (companiesWithLocation.length > 0) {
-          try {
-            map.fitBounds(markersGroup.getBounds(), {
-              padding: [20, 20],
-              maxZoom: 15
-            });
-          } catch (error) {
-            // Si hay error al calcular bounds, usar vista por defecto
-            map.setView(defaultCenter, defaultZoom);
-          }
+        // Ajustar vista del mapa para mostrar todos los marcadores
+        if (companiesWithLocation.length === 1) {
+          map.setCenter(bounds.getCenter());
+          map.setZoom(15);
+        } else if (companiesWithLocation.length > 1) {
+          map.fitBounds(bounds, { padding: 20 });
+          // Establecer zoom máximo para evitar acercamiento excesivo
+          const listener = google.maps.event.addListener(map, 'bounds_changed', () => {
+            if (map.getZoom()! > 15) {
+              map.setZoom(15);
+            }
+            google.maps.event.removeListener(listener);
+          });
         }
 
         mapInstanceRef.current = map;
+        setIsLoading(false);
       } catch (error) {
         console.error('Error initializing map:', error);
+        setMapError('Error inesperado al cargar el mapa. Por favor, intenta de nuevo.');
+        setIsLoading(false);
       }
-    }, 100);
+    };
+
+    initializeMap();
 
     return () => {
-      clearTimeout(timer);
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
+      // Limpiar marcadores
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
+      mapInstanceRef.current = null;
     };
   }, [companiesWithLocation]);
 
@@ -178,6 +265,31 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
           <p className="text-sm">
             No hay empresas con ubicación geográfica registrada para mostrar en el mapa.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error si hubo problemas cargando el mapa
+  if (mapError) {
+    return (
+      <div className="w-full h-96 bg-red-50 border border-red-200 rounded-lg flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+          <p className="text-sm font-medium">Error al cargar el mapa</p>
+          <p className="text-xs mt-1 text-red-500">{mapError}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar estado de carga
+  if (isLoading) {
+    return (
+      <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center border">
+        <div className="text-center text-gray-500">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-sm">Cargando mapa...</p>
         </div>
       </div>
     );
@@ -201,6 +313,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         ref={mapRef} 
         className="w-full h-96 border rounded-lg shadow-sm"
         style={{ minHeight: '384px' }}
+        data-testid="directory-map"
       />
     </div>
   );
