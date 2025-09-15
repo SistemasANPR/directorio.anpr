@@ -4644,6 +4644,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para obtener la API key de Google Maps (solo para el frontend)
+  app.get("/api/google-maps-key", async (req, res) => {
+    try {
+      const apiKey = process.env.GOOGLE_API_KEY_MAPS;
+      if (!apiKey) {
+        return res.status(500).json({ error: 'API key no configurada' });
+      }
+      res.json({ apiKey });
+    } catch (error: any) {
+      console.error('Error getting Google Maps API key:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Endpoint para geocodificación usando Google Maps Geocoding API
   app.post("/api/geocode", async (req, res) => {
     try {
@@ -4653,9 +4667,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Dirección inválida' });
       }
 
-      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      const apiKey = process.env.GOOGLE_API_KEY_MAPS;
       if (!apiKey) {
-        console.error('GOOGLE_MAPS_API_KEY no está configurada');
+        console.error('GOOGLE_API_KEY_MAPS no está configurada');
         return res.status(500).json({ error: 'API key no configurada' });
       }
 
