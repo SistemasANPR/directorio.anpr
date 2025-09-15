@@ -41,7 +41,7 @@ import {
   Briefcase, Heart, GraduationCap, Home, Coffee, Camera, Music,
   Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Crown, Search, User, Check, ExternalLink
 } from "lucide-react";
-import MapLocationPicker from "./MapLocationPicker";
+import MultipleLocationsPicker from "./MultipleLocationsPicker";
 import RichTextEditor from "./RichTextEditor";
 
 const companySchema = insertCompanySchema.extend({
@@ -61,7 +61,15 @@ const companySchema = insertCompanySchema.extend({
     url: z.string().url("URL inválida"),
   })).optional(),
   direccionFisica: z.string().optional(),
-  ubicacionGeografica: z.any().optional(),
+  ubicacionGeografica: z.array(z.object({
+    lat: z.number(),
+    lng: z.number(),
+    address: z.string(),
+    country: z.string().optional(),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    nombre: z.string().optional(),
+  })).optional(),
   // Campos de membresía
   membershipTypeId: z.number().optional().nullable(),
   membershipPeriodicidad: z.enum(["mensual", "anual"]).optional(),
@@ -205,7 +213,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       fechaFinMembresia: "",
       notasMembresia: "",
       // CRITICAL FIX: Add ubicacionGeografica to default values
-      ubicacionGeografica: null,
+      ubicacionGeografica: [],
     },
   });
 
@@ -232,7 +240,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         fechaFinMembresia: "",
         notasMembresia: "",
         // CRITICAL FIX: Add ubicacionGeografica to reset values
-        ubicacionGeografica: null,
+        ubicacionGeografica: [],
       });
       
       // Reset all state variables
@@ -1645,37 +1653,25 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                     <FormItem className="md:col-span-2">
                       <FormLabel className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        Ubicación en el Mapa (Opcional)
+                        Ubicaciones de la Empresa (Opcional)
                       </FormLabel>
                       <FormDescription>
-                        La ubicación se actualizará automáticamente cuando escribas la dirección física arriba. También puedes hacer clic en el mapa para ajustar manualmente la ubicación exacta.
+                        Puedes agregar múltiples ubicaciones si tu empresa tiene oficinas, sucursales o puntos de venta en diferentes lugares. La primera ubicación se geocodificará automáticamente usando la dirección física.
                       </FormDescription>
                       <FormControl>
-                        <div className="border rounded-lg overflow-hidden h-64">
-                          <MapLocationPicker
-                            ciudad={"México"}
-                            direccionFisica={form.watch("direccionFisica")}
-                            onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
-                              field.onChange(location);
-                              
-                              // SIMPLIFIED: Only log location data - presence fields removed from schema
-                              if (location.country && location.state && location.city) {
-                                console.log('Ubicación geocodificada:', location);
-                                // Note: Auto-completion of presence fields disabled since they were removed from schema
-                              }
-                            }}
-                            initialLocation={field.value}
-                          />
-                        </div>
+                        <MultipleLocationsPicker
+                          locations={field.value || []}
+                          onLocationsChange={(locations) => {
+                            field.onChange(locations);
+                            
+                            // Log para debugging
+                            if (locations.length > 0) {
+                              console.log(`${locations.length} ubicación(es) configurada(s):`, locations);
+                            }
+                          }}
+                          direccionFisica={form.watch("direccionFisica")}
+                        />
                       </FormControl>
-                      {field.value && (
-                        <div className="text-xs text-gray-600 mt-2">
-                          📍 Ubicación seleccionada: {field.value.lat?.toFixed(6)}, {field.value.lng?.toFixed(6)}
-                          {field.value.address && (
-                            <span className="block mt-1">📍 {field.value.address}</span>
-                          )}
-                        </div>
-                      )}
                       <FormMessage />
                     </FormItem>
                   )}
