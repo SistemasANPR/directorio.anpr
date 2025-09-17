@@ -185,7 +185,7 @@ export default function Users() {
   const { data: companies = [] } = useQuery({
     queryKey: ["/api/companies"],
     queryFn: async () => {
-      const response = await fetch("/api/companies", {
+      const response = await fetch("/api/companies?limit=1000", {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch companies");
