@@ -1082,6 +1082,23 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   )}
                 />
 
+                {/* Mapa de ubicación */}
+                <div className="md:col-span-2">
+                  <FormLabel>Ubicación en el Mapa</FormLabel>
+                  <div className="mt-2">
+                    <MapLocationPicker
+                      onLocationChange={(location) => {
+                        form.setValue("ubicacionGeografica", JSON.stringify(location));
+                      }}
+                      initialLocation={form.watch("ubicacionGeografica") ? JSON.parse(form.watch("ubicacionGeografica")) : null}
+                      direccionFisica={form.watch("direccionFisica")}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    La ubicación se actualizará automáticamente basándose en la dirección física
+                  </p>
+                </div>
+
                 {/* Email adicional */}
                 <FormField
                   control={form.control}
