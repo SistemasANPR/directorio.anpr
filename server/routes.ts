@@ -253,16 +253,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/users/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userData = insertUserSchema.partial().parse(req.body);
-      const user = await storage.updateUser(id, userData);
+      
+      // Extract companyId if present in request body
+      const { companyId, ...userData } = req.body;
+      
+      // Validate the user data (excluding companyId since it's not in the user schema)
+      const validatedUserData = insertUserSchema.partial().parse(userData);
+      
+      // Handle company assignment if companyId is provided
+      if (companyId !== undefined) {
+        // If user is being assigned as representante and companyId is provided
+        if (validatedUserData.role === "representante" && companyId) {
+          // First, remove the user from any company they're currently assigned to
+          const currentCompanies = await storage.getCompaniesByUser(id);
+          for (const company of currentCompanies) {
+            await storage.updateCompany(company.id, { userId: null });
+          }
+          
+          // Then assign the user to the new company
+          await storage.updateCompany(parseInt(companyId), { userId: id });
+        } else if (validatedUserData.role !== "representante") {
+          // If user is no longer a representante, remove them from any company
+          const currentCompanies = await storage.getCompaniesByUser(id);
+          for (const company of currentCompanies) {
+            await storage.updateCompany(company.id, { userId: null });
+          }
+        }
+      }
+      
+      // Update the user with the validated data
+      const user = await storage.updateUser(id, validatedUserData);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+      
       res.json(user);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Validation error", details: error.errors });
       }
+      console.error("Error updating user:", error);
       res.status(500).json({ error: "Failed to update user" });
     }
   });
