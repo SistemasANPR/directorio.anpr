@@ -86,8 +86,8 @@ export default function Login() {
               console.log("Redirecting to admin dashboard");
               window.location.href = "/dashboard";
             } else if (userRole === 2 || roleString === 'representante') { // Representative role
-              console.log("Redirecting to representative dashboard");
-              window.location.href = "/representative-dashboard";
+              console.log("Redirecting to representative summary");
+              window.location.href = "/resumen";
             } else {
               console.log("Unknown role, defaulting to admin dashboard");
               window.location.href = "/dashboard";
