@@ -1251,28 +1251,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 />
 
-                {/* Dirección Física */}
-                <FormField
-                  control={form.control}
-                  name="direccionFisica"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Dirección Física *</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Dirección completa de la empresa"
-                          className="min-h-[80px]"
-                          autoComplete="street-address"
-                          {...field} 
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-
               </div>
             </div>
 
