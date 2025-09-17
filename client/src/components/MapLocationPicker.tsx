@@ -381,8 +381,8 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
           <Label>Mapa de Confirmación</Label>
           <div 
             ref={mapRef} 
-            className="w-full h-64 border rounded-lg"
-            style={{ minHeight: '256px' }}
+            className="w-full h-full border rounded-lg"
+            style={{ minHeight: '384px' }}
           />
           <p className="text-xs text-green-600 font-medium">
             ✅ Ubicación mostrada automáticamente desde la dirección física

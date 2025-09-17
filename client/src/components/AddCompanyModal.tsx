@@ -1629,7 +1629,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         La ubicación se actualizará automáticamente cuando escribas la dirección física arriba. También puedes hacer clic en el mapa para ajustar manualmente la ubicación exacta.
                       </FormDescription>
                       <FormControl>
-                        <div className="border rounded-lg overflow-hidden h-64">
+                        <div className="border rounded-lg overflow-hidden h-96">
                           <MapLocationPicker
                             ciudad={"México"}
                             direccionFisica={form.watch("direccionFisica")}
