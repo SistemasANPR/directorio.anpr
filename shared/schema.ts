@@ -247,7 +247,7 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
-  direccionFisica: z.string().min(10, "La dirección física debe tener al menos 10 caracteres"),
+  direccionFisica: z.string().optional(),
   // Ubicación geográfica: acepta tanto array de ubicaciones como objeto único (compatibilidad hacia atrás)
   ubicacionGeografica: z.union([
     z.array(locationSchema), // Formato nuevo: array de ubicaciones
