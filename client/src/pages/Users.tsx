@@ -203,6 +203,7 @@ export default function Users() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       toast({
         title: "Usuario actualizado",
         description: "El usuario ha sido actualizado exitosamente",
