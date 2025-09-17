@@ -260,10 +260,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the user data (excluding companyId since it's not in the user schema)
       const validatedUserData = insertUserSchema.partial().parse(userData);
       
+      // Get current user to determine effective role
+      const currentUser = await storage.getUser(id);
+      if (!currentUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Use role from request data or fall back to current user role
+      const effectiveRole = validatedUserData.role || currentUser.role;
+      
       // Handle company assignment if companyId is provided
       if (companyId !== undefined) {
+        const parsedCompanyId = parseInt(companyId);
+        
         // If user is being assigned as representante and companyId is provided
-        if (validatedUserData.role === "representante" && companyId) {
+        if (effectiveRole === "representante" && companyId) {
+          // Validate that the company exists
+          if (isNaN(parsedCompanyId)) {
+            return res.status(400).json({ error: "Invalid company ID format" });
+          }
+          
+          const targetCompany = await storage.getCompany(parsedCompanyId);
+          if (!targetCompany) {
+            return res.status(400).json({ error: "Company not found" });
+          }
+          
           // First, remove the user from any company they're currently assigned to
           const currentCompanies = await storage.getCompaniesByUser(id);
           for (const company of currentCompanies) {
@@ -271,8 +292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           // Then assign the user to the new company
-          await storage.updateCompany(parseInt(companyId), { userId: id });
-        } else if (validatedUserData.role !== "representante") {
+          await storage.updateCompany(parsedCompanyId, { userId: id });
+        } else if (effectiveRole !== "representante") {
           // If user is no longer a representante, remove them from any company
           const currentCompanies = await storage.getCompaniesByUser(id);
           for (const company of currentCompanies) {

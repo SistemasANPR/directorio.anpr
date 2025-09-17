@@ -246,13 +246,30 @@ export default function Users() {
     updateUserMutation.mutate(data);
   };
 
-  const handleEdit = (user: UserType) => {
+  const handleEdit = async (user: UserType) => {
     setSelectedUser(user);
+    
+    // Get user's assigned company if they are a representante
+    let assignedCompanyId = undefined;
+    if (user.role === "representante") {
+      try {
+        const response = await fetch(`/api/companies/by-user/${user.id}`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const company = await response.json();
+          assignedCompanyId = company.id;
+        }
+      } catch (error) {
+        console.log("No company assigned to this user");
+      }
+    }
+    
     editForm.reset({
       displayName: user.displayName || "",
       email: user.email,
       role: user.role as "admin" | "user" | "representante",
-      companyId: (user as any).companyId || undefined,
+      companyId: assignedCompanyId,
     });
     setIsEditModalOpen(true);
   };
