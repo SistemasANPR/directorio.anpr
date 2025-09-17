@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Building, Mail, Lock, Loader2 } from "lucide-react";
 import { signInWithEmail, signInWithGoogle, createUserWithEmail } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -21,11 +22,39 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+// Helper function to handle role-based redirection
+const redirectBasedOnRole = (currentUser?: any) => {
+  if (!currentUser) {
+    console.log("No user data available, defaulting to dashboard");
+    window.location.href = "/dashboard";
+    return;
+  }
+  
+  // Extract role information robustly
+  const roleId = Number(currentUser.roleId ?? currentUser.role?.id);
+  const roleName = (currentUser.roleName || currentUser.role?.name || currentUser.role)?.toString().toLowerCase();
+  
+  console.log("Redirecting user with roleId:", roleId, "roleName:", roleName, "Full user:", currentUser);
+  
+  // Redirect based on role
+  if (roleId === 1 || roleName === 'admin') {
+    console.log("Redirecting to admin dashboard");
+    window.location.href = "/dashboard";
+  } else if (roleId === 2 || roleName === 'representante') {
+    console.log("Redirecting to representative summary");
+    window.location.href = "/resumen";
+  } else {
+    console.log("Unknown role (roleId:", roleId, "roleName:", roleName, "), defaulting to admin dashboard");
+    window.location.href = "/dashboard";
+  }
+};
+
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -45,8 +74,12 @@ export default function Login() {
           title: "Cuenta creada",
           description: "Tu cuenta ha sido creada exitosamente",
         });
-        // Redirigir al dashboard después de crear cuenta
-        setTimeout(() => setLocation("/dashboard"), 1000);
+        // Redirect based on user role after account creation
+        setTimeout(() => {
+          // Try to get user from context or localStorage
+          const currentUser = user || JSON.parse(localStorage.getItem('tempUser') || 'null');
+          redirectBasedOnRole(currentUser);
+        }, 1000);
       } else {
         // Try temporary login first (for newly registered users)
         const tempResponse = await fetch('/api/login-temp', {
@@ -81,17 +114,7 @@ export default function Login() {
           
           // Force page reload to ensure proper state initialization
           setTimeout(() => {
-            // Check if user is admin (roleId 1 or role string "admin")
-            if (userRole === 1 || roleString === 'admin') {
-              console.log("Redirecting to admin dashboard");
-              window.location.href = "/dashboard";
-            } else if (userRole === 2 || roleString === 'representante') { // Representative role
-              console.log("Redirecting to representative summary");
-              window.location.href = "/resumen";
-            } else {
-              console.log("Unknown role, defaulting to admin dashboard");
-              window.location.href = "/dashboard";
-            }
+            redirectBasedOnRole(tempResult.user);
           }, 500);
           return;
         }
@@ -106,7 +129,46 @@ export default function Login() {
                 ? "Has iniciado sesión exitosamente. Tu sesión será recordada."
                 : "Has iniciado sesión exitosamente",
             });
-            setTimeout(() => setLocation("/dashboard"), 1000);
+            setTimeout(async () => {
+              // For Firebase fallback, try to get user data properly
+              const attemptRedirect = async (attempt = 0) => {
+                let currentUser = user || JSON.parse(localStorage.getItem('tempUser') || 'null');
+                
+                // If we have user data with role, redirect
+                if (currentUser && (currentUser.roleId || currentUser.role)) {
+                  redirectBasedOnRole(currentUser);
+                  return;
+                }
+                
+                // If we have Firebase user but no role data, fetch from backend
+                if (attempt === 0 && user && user.firebaseUid) {
+                  try {
+                    const response = await fetch(`/api/users/firebase/${user.firebaseUid}`, {
+                      credentials: 'include'
+                    });
+                    if (response.ok) {
+                      const userData = await response.json();
+                      console.log("Firebase fallback: Got user data from backend:", userData);
+                      redirectBasedOnRole(userData);
+                      return;
+                    }
+                  } catch (error) {
+                    console.error("Firebase fallback: Error fetching user data:", error);
+                  }
+                }
+                
+                // Retry up to 2 more times with increasing delays
+                if (attempt < 2) {
+                  setTimeout(() => attemptRedirect(attempt + 1), 1000 * (attempt + 1));
+                } else {
+                  // Final fallback - redirect to dashboard
+                  console.log("Firebase fallback: No role data found after all attempts, defaulting to dashboard");
+                  window.location.href = "/dashboard";
+                }
+              };
+              
+              await attemptRedirect();
+            }, 1000);
             return;
           } catch (firebaseError: any) {
             throw firebaseError;
@@ -151,8 +213,47 @@ export default function Login() {
         title: "Bienvenido",
         description: "Has iniciado sesión con Google exitosamente",
       });
-      // Redirigir al dashboard después del login con Google
-      setTimeout(() => setLocation("/dashboard"), 1000);
+      // Redirect based on user role after Google sign-in
+      setTimeout(async () => {
+        // For Google sign-in, try to get user data properly
+        const attemptRedirect = async (attempt = 0) => {
+          let currentUser = user || JSON.parse(localStorage.getItem('tempUser') || 'null');
+          
+          // If we have user data with role, redirect
+          if (currentUser && (currentUser.roleId || currentUser.role)) {
+            redirectBasedOnRole(currentUser);
+            return;
+          }
+          
+          // If we have Firebase user but no role data, fetch from backend
+          if (attempt === 0 && user && user.firebaseUid) {
+            try {
+              const response = await fetch(`/api/users/firebase/${user.firebaseUid}`, {
+                credentials: 'include'
+              });
+              if (response.ok) {
+                const userData = await response.json();
+                console.log("Google sign-in: Got user data from backend:", userData);
+                redirectBasedOnRole(userData);
+                return;
+              }
+            } catch (error) {
+              console.error("Google sign-in: Error fetching user data:", error);
+            }
+          }
+          
+          // Retry up to 2 more times with increasing delays
+          if (attempt < 2) {
+            setTimeout(() => attemptRedirect(attempt + 1), 1000 * (attempt + 1));
+          } else {
+            // Final fallback - redirect to dashboard
+            console.log("Google sign-in: No role data found after all attempts, defaulting to dashboard");
+            window.location.href = "/dashboard";
+          }
+        };
+        
+        await attemptRedirect();
+      }, 1000);
     } catch (error: any) {
       console.error("Error detallado de Google Sign-In:", error);
       let errorMessage = "No se pudo iniciar sesión con Google";
