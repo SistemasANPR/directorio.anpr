@@ -910,65 +910,6 @@ export default function CompanyDetails() {
                   </div>
                 )}
                 
-                {/* Información de presencia geográfica */}
-                {(company.paisesPresencia?.length > 0 || company.estadosPresencia?.length > 0 || company.ciudadesPresencia?.length > 0) && (
-                  <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                    <h4 className="font-medium text-blue-900 mb-3 flex items-center">
-                      <Globe className="h-4 w-4 mr-2" />
-                      Presencia Geográfica
-                    </h4>
-                    <div className="space-y-3">
-                      {company.paisesPresencia && company.paisesPresencia.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-blue-800 mb-1">Países:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {company.paisesPresencia.map((pais: string, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                              >
-                                🌍 {pais}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {company.estadosPresencia && company.estadosPresencia.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-blue-800 mb-1">Estados:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {company.estadosPresencia.map((estado: string, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                              >
-                                🏛️ {estado}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {company.ciudadesPresencia && company.ciudadesPresencia.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-blue-800 mb-1">Ciudades:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {company.ciudadesPresencia.map((ciudad: string, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                              >
-                                🏙️ {ciudad}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 {/* Mapa */}
                 <CompanyLocationMap 
                   ubicacionGeografica={company.ubicacionGeografica}
