@@ -356,102 +356,12 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          Confirmación de Ubicación Automática
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Información automática */}
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="flex items-center gap-2 mb-2">
-            <MapPin className="h-4 w-4 text-blue-600" />
-            <span className="font-medium text-blue-800">Ubicación Automática</span>
-          </div>
-          <p className="text-sm text-blue-700">
-            La ubicación se actualiza automáticamente cuando escribes la dirección física. 
-            El mapa te muestra dónde se agregará la empresa para confirmación visual.
-          </p>
-        </div>
-
-        {/* Mapa */}
-        <div className="space-y-2">
-          <Label>Mapa de Confirmación</Label>
-          <div 
-            ref={mapRef} 
-            className="w-full h-full border rounded-lg"
-            style={{ minHeight: '384px' }}
-          />
-          <p className="text-xs text-green-600 font-medium">
-            ✅ Ubicación mostrada automáticamente desde la dirección física
-          </p>
-        </div>
-
-        {/* Coordenadas de Solo Lectura */}
-        {selectedLocation && (
-          <div className="space-y-4">
-            <Label>Coordenadas Detectadas</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Latitud</Label>
-                <Input
-                  type="text"
-                  value={selectedLocation.lat.toFixed(6)}
-                  readOnly
-                  className="bg-gray-50 text-gray-700"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Longitud</Label>
-                <Input
-                  type="text"
-                  value={selectedLocation.lng.toFixed(6)}
-                  readOnly
-                  className="bg-gray-50 text-gray-700"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500">
-              💡 Estas coordenadas fueron detectadas automáticamente desde la dirección física
-            </p>
-          </div>
-        )}
-
-        {/* Estado de geocodificación */}
-        {isGeocoding && (
-          <div className="bg-yellow-50 p-3 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              <strong>🔍 Geocodificando dirección...</strong><br />
-              Buscando coordenadas y datos de ubicación automáticamente...
-            </p>
-          </div>
-        )}
-
-        {/* Información actual */}
-        {selectedLocation && !isGeocoding && (
-          <div className="bg-green-50 p-3 rounded-lg">
-            <p className="text-sm text-green-800">
-              <strong>✅ Ubicación encontrada automáticamente:</strong><br />
-              Latitud: {selectedLocation.lat}<br />
-              Longitud: {selectedLocation.lng}<br />
-              {selectedLocation.address && (
-                <>📍 Dirección: {selectedLocation.address}<br /></>
-              )}
-              {selectedLocation.country && (
-                <>🌍 País: {selectedLocation.country}<br /></>
-              )}
-              {selectedLocation.state && (
-                <>🏛️ Estado: {selectedLocation.state}<br /></>
-              )}
-              {selectedLocation.city && (
-                <>🏙️ Ciudad: {selectedLocation.city}</>
-              )}
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="w-full h-full">
+      <div 
+        ref={mapRef} 
+        className="w-full h-full border rounded-lg"
+        style={{ minHeight: '384px' }}
+      />
+    </div>
   );
 }

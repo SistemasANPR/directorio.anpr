@@ -1615,21 +1615,33 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   )}
                 />
 
-                {/* Ubicación Geográfica */}
+                {/* Sección Informativa de Ubicación Automática */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPin className="h-5 w-5" />
+                    <h3 className="text-lg font-semibold text-primary">Confirmación de Ubicación Automática</h3>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium text-blue-800">Ubicación Automática</span>
+                    </div>
+                    <p className="text-sm text-blue-700">
+                      La ubicación se actualiza automáticamente cuando escribes la dirección física. El mapa te muestra dónde
+                      se agregará la empresa para confirmación visual.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Ubicación Geográfica - Solo Mapa */}
                 <FormField
                   control={form.control}
                   name="ubicacionGeografica"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Ubicación en el Mapa (Opcional)
-                      </FormLabel>
-                      <FormDescription>
-                        La ubicación se actualizará automáticamente cuando escribas la dirección física arriba. También puedes hacer clic en el mapa para ajustar manualmente la ubicación exacta.
-                      </FormDescription>
+                      <FormLabel>Mapa de Confirmación</FormLabel>
                       <FormControl>
-                        <div className="border rounded-lg overflow-hidden h-96">
+                        <div className="h-96">
                           <MapLocationPicker
                             ciudad={"México"}
                             direccionFisica={form.watch("direccionFisica")}
