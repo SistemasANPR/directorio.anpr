@@ -24,7 +24,7 @@ interface RepresentativeSidebarProps {
 const representativeNavItems = [
   {
     name: "Resumen",
-    href: "/representative-dashboard?tab=overview",
+    href: "/resumen",
     icon: BarChart3,
     requireAdmin: false, // Disponible para todos los representantes
   },
