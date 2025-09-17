@@ -591,13 +591,9 @@ export default function RepresentativeDashboard() {
             </div>
 
             {/* Membership Limits Display */}
-            {primaryCompany?.membershipType && (
+            {primaryCompany && (
               <div className="mb-6">
-                <MembershipLimitsDisplay 
-                  membershipType={primaryCompany.membershipType}
-                  productCount={primaryCompany.galeriaProductosUrls?.length || 0}
-                  projectCount={0} // TODO: Implementar conteo de proyectos cuando esté disponible
-                />
+                <MembershipLimitsDisplay companyId={primaryCompany.id} />
               </div>
             )}
 

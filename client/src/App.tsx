@@ -94,7 +94,7 @@ function Router() {
       </Route>
       
       <Route path="/dashboard">
-        <ProtectedRoute requireAdmin>
+        <ProtectedRoute>
           <AppLayout>
             <Dashboard />
           </AppLayout>
@@ -304,14 +304,6 @@ function Router() {
       </Route>
       
       <Route path="/representative-dashboard">
-        <ProtectedRoute>
-          <RepresentativeLayout>
-            <RepresentativeDashboard />
-          </RepresentativeLayout>
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/resumen">
         <ProtectedRoute>
           <RepresentativeLayout>
             <RepresentativeDashboard />
