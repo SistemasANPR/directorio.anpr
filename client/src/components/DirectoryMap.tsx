@@ -20,7 +20,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   
-  // Filtrar empresas que tienen al menos una ubicación geográfica válida
+  // Filtrar empresas que tienen ubicación geográfica válida
   const companiesWithLocation = companies.filter(company => {
     try {
       // Verificar que ubicacionGeografica existe y no es null/undefined
@@ -28,7 +28,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         return false;
       }
       
-      let ubicaciones;
+      let ubicacion;
       
       // Si es string, intentar parsearlo como JSON
       if (typeof company.ubicacionGeografica === 'string') {
@@ -40,31 +40,24 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         }
         
         try {
-          ubicaciones = JSON.parse(company.ubicacionGeografica);
+          ubicacion = JSON.parse(company.ubicacionGeografica);
         } catch {
           return false;
         }
       } else if (typeof company.ubicacionGeografica === 'object') {
-        ubicaciones = company.ubicacionGeografica;
+        ubicacion = company.ubicacionGeografica;
       } else {
         return false;
       }
       
-      // Si es un objeto simple (formato antiguo), convertirlo a array
-      if (ubicaciones && !Array.isArray(ubicaciones) && ubicaciones.lat && ubicaciones.lng) {
-        ubicaciones = [ubicaciones];
-      }
-      
-      // Verificar que es un array con al menos una ubicación válida
-      return Array.isArray(ubicaciones) && ubicaciones.length > 0 && ubicaciones.some(ubicacion =>
-        ubicacion &&
-        typeof ubicacion.lat === 'number' && 
-        typeof ubicacion.lng === 'number' && 
-        !isNaN(ubicacion.lat) && 
-        !isNaN(ubicacion.lng) &&
-        ubicacion.lat !== 0 && 
-        ubicacion.lng !== 0
-      );
+      // Verificar que tiene propiedades lat y lng válidas
+      return ubicacion && 
+             typeof ubicacion.lat === 'number' && 
+             typeof ubicacion.lng === 'number' && 
+             !isNaN(ubicacion.lat) && 
+             !isNaN(ubicacion.lng) &&
+             ubicacion.lat !== 0 && 
+             ubicacion.lng !== 0;
     } catch (error) {
       console.warn(`Error filtering company ${company.id} (${company.nombreEmpresa}):`, error);
       return false;
@@ -105,95 +98,64 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         // Objeto para rastrear coordenadas ya usadas
         const usedCoordinates = new Map();
         
-        // Agregar marcadores para cada empresa y cada ubicación
+        // Agregar marcadores para cada empresa
         companiesWithLocation.forEach(company => {
-          // Parsear ubicaciones (puede ser string o objeto/array)
-          let ubicaciones: Array<{ lat: number; lng: number; address?: string; nombre?: string; direccionFisica?: string }>;
+          // Parsear ubicación (puede ser string o objeto)
+          let ubicacion: { lat: number; lng: number; address?: string };
           
           if (typeof company.ubicacionGeografica === 'string') {
             try {
-              ubicaciones = JSON.parse(company.ubicacionGeografica);
+              ubicacion = JSON.parse(company.ubicacionGeografica);
             } catch {
               return; // Skip this company if parsing fails
             }
           } else {
-            ubicaciones = company.ubicacionGeografica as Array<{ lat: number; lng: number; address?: string; nombre?: string; direccionFisica?: string }>;
+            ubicacion = company.ubicacionGeografica as { lat: number; lng: number; address?: string };
           }
           
-          // Si es un objeto simple (formato antiguo), convertirlo a array
-          if (ubicaciones && !Array.isArray(ubicaciones) && (ubicaciones as any).lat && (ubicaciones as any).lng) {
-            ubicaciones = [ubicaciones as any];
-          }
-          
-          // Validar que ubicaciones es un array
-          if (!Array.isArray(ubicaciones)) {
-            return;
-          }
-          
-          // Crear marcador para cada ubicación válida
-          ubicaciones.forEach((ubicacion, index) => {
-            // Verificar que la ubicación es válida
-            if (!ubicacion || 
-                typeof ubicacion.lat !== 'number' || 
-                typeof ubicacion.lng !== 'number' || 
-                isNaN(ubicacion.lat) || 
-                isNaN(ubicacion.lng) ||
-                ubicacion.lat === 0 || 
-                ubicacion.lng === 0) {
-              return;
-            }
-            
-            // Crear el contenido del popup de forma segura para evitar XSS
-            const escapeHtml = (text: string) => {
-              const div = document.createElement('div');
-              div.textContent = text;
-              return div.innerHTML;
-            };
-            
-            const locationName = ubicacion.nombre ? escapeHtml(ubicacion.nombre) : (ubicaciones.length > 1 ? `Ubicación ${index + 1}` : '');
-            const popupContent = `
-              <div style="text-align: center; min-width: 200px; max-width: 250px;">
-                <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937; font-size: 16px;">${escapeHtml(company.nombreEmpresa)}</h3>
-                ${locationName ? `<p style="margin: 0 0 4px 0; font-size: 13px; color: #4b5563; font-weight: 500;">${locationName}</p>` : ''}
-                ${ubicacion.direccionFisica || ubicacion.address || company.direccionFisica ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">${escapeHtml(ubicacion.direccionFisica || ubicacion.address || company.direccionFisica || '')}</p>` : ''}
-                ${company.categories && company.categories.length > 0 ? 
-                  `<p style="margin: 0 0 4px 0; font-size: 12px; color: #9ca3af;">
-                    ${company.categories.map(cat => escapeHtml(cat.nombreCategoria)).join(', ')}
-                  </p>` : ''
-                }
-                ${company.telefono1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #059669;">📞 ${escapeHtml(company.telefono1)}</p>` : ''}
-                ${company.email1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #0284c7;">✉️ ${escapeHtml(company.email1)}</p>` : ''}
-                <button 
-                  onclick="window.open('/empresa/${company.id}', '_blank')" 
-                  style="margin-top: 8px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
-                >
-                  Ver detalles
-                </button>
-              </div>
-            `;
+          // Crear el contenido del popup
+          const popupContent = `
+            <div style="text-align: center; min-width: 200px; max-width: 250px;">
+              <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937; font-size: 16px;">${company.nombreEmpresa}</h3>
+              ${company.direccionFisica ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">${company.direccionFisica}</p>` : ''}
+              ${company.categories && company.categories.length > 0 ? 
+                `<p style="margin: 0 0 4px 0; font-size: 12px; color: #9ca3af;">
+                  ${company.categories.map(cat => cat.nombreCategoria).join(', ')}
+                </p>` : ''
+              }
+              ${company.telefono1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #059669;">📞 ${company.telefono1}</p>` : ''}
+              ${company.email1 ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #0284c7;">✉️ ${company.email1}</p>` : ''}
+              ${ubicacion.address ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">${ubicacion.address}</p>` : ''}
+              <button 
+                onclick="window.open('/company/${company.id}', '_blank')" 
+                style="margin-top: 8px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;"
+              >
+                Ver detalles
+              </button>
+            </div>
+          `;
 
-            // Verificar si estas coordenadas ya se usaron y agregar offset si es necesario
-            const coordKey = `${ubicacion.lat.toFixed(6)},${ubicacion.lng.toFixed(6)}`;
-            let finalLat = ubicacion.lat;
-            let finalLng = ubicacion.lng;
-            
-            if (usedCoordinates.has(coordKey)) {
-              // Agregar pequeño offset para evitar superposición
-              const offset = usedCoordinates.get(coordKey);
-              finalLat += (offset * 0.0008); // ~89 metros
-              finalLng += (offset * 0.0008); 
-              usedCoordinates.set(coordKey, offset + 1);
-            } else {
-              usedCoordinates.set(coordKey, 1);
-            }
-            
-            // Crear marcador con coordenadas ajustadas
-            const marker = L.marker([finalLat, finalLng])
-              .bindPopup(popupContent);
+          // Verificar si estas coordenadas ya se usaron y agregar offset si es necesario
+          const coordKey = `${ubicacion.lat.toFixed(6)},${ubicacion.lng.toFixed(6)}`;
+          let finalLat = ubicacion.lat;
+          let finalLng = ubicacion.lng;
+          
+          if (usedCoordinates.has(coordKey)) {
+            // Agregar pequeño offset para evitar superposición
+            const offset = usedCoordinates.get(coordKey);
+            finalLat += (offset * 0.0008); // ~89 metros
+            finalLng += (offset * 0.0008); 
+            usedCoordinates.set(coordKey, offset + 1);
+          } else {
+            usedCoordinates.set(coordKey, 1);
+          }
+          
+          // Crear marcador con coordenadas ajustadas
+          const marker = L.marker([finalLat, finalLng])
+            .bindPopup(popupContent);
 
-            // Agregar al grupo de marcadores
-            markersGroup.addLayer(marker);
-          });
+          // Agregar al grupo de marcadores
+          markersGroup.addLayer(marker);
         });
 
         // Agregar grupo de marcadores al mapa

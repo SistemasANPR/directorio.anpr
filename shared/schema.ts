@@ -64,7 +64,7 @@ export const companies = pgTable("companies", {
   email1: text("email1").notNull(),
   email2: text("email2"),
   direccionFisica: text("direccion_fisica").notNull(), // Dirección física única de la empresa
-  ubicacionGeografica: jsonb("ubicacion_geografica"), // Array of {lat: number, lng: number, address: string, nombre?: string}
+  ubicacionGeografica: jsonb("ubicacion_geografica"), // {lat: number, lng: number, address: string}
   representantesVentas: jsonb("representantes_ventas"), // Array of user IDs
   descripcionEmpresa: text("descripcion_empresa"),
   galeriaProductosUrls: jsonb("galeria_productos_urls"), // Array of image URLs
@@ -230,35 +230,12 @@ export const insertMembershipTypeSchema = createInsertSchema(membershipTypes).om
   })).optional(),
 });
 
-// Schema para ubicación individual
-const locationSchema = z.object({
-  lat: z.number(),
-  lng: z.number(),
-  address: z.string().optional(),
-  country: z.string().optional(),
-  state: z.string().optional(),
-  city: z.string().optional(),
-  nombre: z.string().optional(),
-  direccionFisica: z.string().optional(), // Dirección física específica de esta ubicación
-});
-
 export const insertCompanySchema = createInsertSchema(companies).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
-  direccionFisica: z.string().optional(),
-  // Ubicación geográfica: acepta tanto array de ubicaciones como objeto único (compatibilidad hacia atrás)
-  ubicacionGeografica: z.union([
-    z.array(locationSchema), // Formato nuevo: array de ubicaciones
-    locationSchema, // Formato anterior: objeto único
-  ]).optional().transform((val) => {
-    // Normalizar a array: si es objeto único, convertir a array de un elemento
-    if (val && !Array.isArray(val)) {
-      return [val];
-    }
-    return val;
-  }),
+  direccionFisica: z.string().min(10, "La dirección física debe tener al menos 10 caracteres"),
 });
 
 export const insertCertificateSchema = createInsertSchema(certificates).omit({
