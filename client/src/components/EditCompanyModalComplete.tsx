@@ -256,7 +256,7 @@ export default function EditCompanyModalComplete({
         }
       };
 
-      const response = await apiRequest("PUT", `/api/companies/${company?.id}`, submitData);
+      const response = await apiRequest("PATCH", `/api/companies/${company?.id}`, submitData);
       return response.json();
     },
     onSuccess: () => {
