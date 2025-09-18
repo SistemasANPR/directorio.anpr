@@ -456,7 +456,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         sitioWeb: company.sitioWeb || "",
         direccionFisica: company.direccionFisica || "",
         descripcionEmpresa: cleanDescription,
-        ubicacionPrincipal: company.ubicacionPrincipal || "",
+        // ubicacionPrincipal: company.ubicacionPrincipal || "", // Property no longer exists
         ubicacionGeografica: String(company.ubicacionGeografica || ""),
         representantesVentas: cleanRepresentantes,
         catalogoDigitalUrl: String(company.catalogoDigitalUrl || ""),
@@ -469,9 +469,9 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         fechaInicioMembresia: company.fechaInicioMembresia || currentDate,
         fechaFinMembresia: company.fechaFinMembresia || "",
         notasMembresia: company.notasMembresia || "",
-        paisesPresencia: Array.isArray(company.paisesPresencia) ? company.paisesPresencia : [],
-        estadosPresencia: Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [],
-        ciudadesPresencia: Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [],
+        // paisesPresencia: Array.isArray(company.paisesPresencia) ? company.paisesPresencia : [], // Property no longer exists
+        // estadosPresencia: Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [], // Property no longer exists
+        // ciudadesPresencia: Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [], // Property no longer exists
         redesSociales: Array.isArray(company.redesSociales) ? company.redesSociales : [],
         videosUrls: Array.isArray(company.videosUrls) ? company.videosUrls : [],
         galeriaProductosUrls: Array.isArray(company.galeriaProductosUrls) ? company.galeriaProductosUrls : [],
@@ -508,15 +508,15 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       }
 
       // Set estados and ciudades if they exist
-      if (company.estadosPresencia) {
-        const estados = Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [];
-        setSelectedEstados(estados);
-      }
+      // if (company.estadosPresencia) {
+      //   const estados = Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [];
+      //   setSelectedEstados(estados);
+      // } // Property no longer exists
       
-      if (company.ciudadesPresencia) {
-        const ciudades = Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [];
-        setSelectedCiudades(ciudades);
-      }
+      // if (company.ciudadesPresencia) {
+      //   const ciudades = Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [];
+      //   setSelectedCiudades(ciudades);
+      // } // Property no longer exists
     }
   }, [company, open, form]);
 

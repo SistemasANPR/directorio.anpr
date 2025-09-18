@@ -166,42 +166,70 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   };
 
   useEffect(() => {
-    if (mapRef.current && !mapInstanceRef.current) {
-      // Obtener coordenadas de referencia de la ciudad
-      const cityRef = getCityReference();
-      const center = selectedLocation ? 
-        [selectedLocation.lat, selectedLocation.lng] as [number, number] : 
-        [cityRef.lat, cityRef.lng] as [number, number];
+    const initMap = () => {
+      if (mapRef.current && !mapInstanceRef.current) {
+        try {
+          // Verificar que el elemento tiene dimensiones
+          if (mapRef.current.offsetWidth === 0 || mapRef.current.offsetHeight === 0) {
+            console.warn('Map container has no dimensions, retrying...');
+            setTimeout(initMap, 100);
+            return;
+          }
 
-      // Crear el mapa
-      const map = L.map(mapRef.current).setView(center, selectedLocation ? 15 : 10);
+          // Obtener coordenadas de referencia de la ciudad
+          const cityRef = getCityReference();
+          const center = selectedLocation ? 
+            [selectedLocation.lat, selectedLocation.lng] as [number, number] : 
+            [cityRef.lat, cityRef.lng] as [number, number];
 
-      // Agregar capa de tiles de OpenStreetMap
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
+          // Crear el mapa con manejo de errores
+          const map = L.map(mapRef.current, {
+            zoomControl: true,
+            attributionControl: true
+          }).setView(center, selectedLocation ? 15 : 10);
 
-      mapInstanceRef.current = map;
+          // Agregar capa de tiles de OpenStreetMap
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
 
-      // Agregar marcador si hay ubicación inicial
-      if (selectedLocation) {
-        const marker = L.marker([selectedLocation.lat, selectedLocation.lng])
-          .addTo(map)
-          .bindPopup(selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`);
-        markerRef.current = marker;
+          mapInstanceRef.current = map;
+
+          // Agregar marcador si hay ubicación inicial
+          if (selectedLocation) {
+            const marker = L.marker([selectedLocation.lat, selectedLocation.lng])
+              .addTo(map)
+              .bindPopup(selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`);
+            markerRef.current = marker;
+          }
+
+          // Invalidar el tamaño del mapa después de la inicialización
+          setTimeout(() => {
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.invalidateSize();
+            }
+          }, 100);
+
+          setMapLoaded(true);
+        } catch (error) {
+          console.error('Error initializing map:', error);
+          // Reintentar después de un breve delay
+          setTimeout(initMap, 500);
+        }
       }
+    };
 
-      // Evento de clic en el mapa
-      // MODO SOLO CONFIRMACIÓN VISUAL - Sin clicks en el mapa
-      // El mapa solo muestra la ubicación geocodificada automáticamente
-      // map.on('click', (e) => { ... }) - DESHABILITADO PARA SOLO CONFIRMACIÓN
-
-      setMapLoaded(true);
-    }
+    // Agregar un pequeño delay para asegurar que el DOM esté listo
+    const timer = setTimeout(initMap, 50);
 
     return () => {
+      clearTimeout(timer);
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.remove();
+        } catch (error) {
+          console.warn('Error removing map:', error);
+        }
         mapInstanceRef.current = null;
         markerRef.current = null;
       }
