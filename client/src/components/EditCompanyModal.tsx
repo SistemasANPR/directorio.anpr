@@ -1087,10 +1087,31 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   <FormLabel>Ubicación en el Mapa</FormLabel>
                   <div className="mt-2">
                     <MapLocationPicker
-                      onLocationChange={(location) => {
+                      ciudad="México"
+                      onLocationSelect={(location) => {
                         form.setValue("ubicacionGeografica", JSON.stringify(location));
                       }}
-                      initialLocation={form.watch("ubicacionGeografica") ? JSON.parse(form.watch("ubicacionGeografica")) : null}
+                      initialLocation={(() => {
+                        const ubicacion = form.watch("ubicacionGeografica");
+                        if (!ubicacion) return null;
+                        
+                        // Si ya es un objeto, devolverlo directamente
+                        if (typeof ubicacion === 'object' && ubicacion !== null) {
+                          return ubicacion;
+                        }
+                        
+                        // Si es una cadena, intentar parsear como JSON
+                        if (typeof ubicacion === 'string') {
+                          try {
+                            return JSON.parse(ubicacion);
+                          } catch (e) {
+                            console.warn('Error parsing ubicacionGeografica:', e);
+                            return null;
+                          }
+                        }
+                        
+                        return null;
+                      })()}
                       direccionFisica={form.watch("direccionFisica")}
                     />
                   </div>
