@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Users, Plus, DollarSign, TrendingUp, Activity, BarChart3, PieChart } from "lucide-react";
@@ -56,7 +56,15 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user, loading } = useAuth();
+
+  // Redirect representatives to their own dashboard
+  useEffect(() => {
+    if (!loading && user && !isAdmin) {
+      // User is a representative, redirect to representative dashboard
+      window.location.href = "/representative-dashboard?tab=overview";
+    }
+  }, [loading, user, isAdmin]);
 
   // Queries
   const { data: statistics, isLoading: statisticsLoading } = useQuery<StatisticsData>({
