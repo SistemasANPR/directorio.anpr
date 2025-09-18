@@ -52,9 +52,9 @@ const companySchema = z.object({
   email1: z.string().email("Email inválido").min(1, "Email principal es requerido"),
   email2: z.string().email("Email inválido").optional().or(z.literal("")),
   sitioWeb: z.string().optional(),
-  direccionFisica: z.string().min(1, "Dirección física es requerida"),
-  descripcionEmpresa: z.string().min(1, "Descripción es requerida"),
-  ubicacionPrincipal: z.string().optional(),
+  direccionFisica: z.string().optional(), // Made optional to prevent blocking
+  descripcionEmpresa: z.string().optional(), // Made optional - companies may not have description initially
+  // ubicacionPrincipal: z.string().optional(), // Removed - obsolete field
   ubicacionGeografica: z.string().optional(),
   representantesVentas: z.string().optional(),
   catalogoDigitalUrl: z.string().optional(),
@@ -69,9 +69,9 @@ const companySchema = z.object({
   categoriesIds: z.array(z.number()).optional(),
   certificateIds: z.array(z.number()).optional(),
   tagIds: z.array(z.number()).optional(),
-  paisesPresencia: z.array(z.string()).optional(),
-  estadosPresencia: z.array(z.string()).optional(),
-  ciudadesPresencia: z.array(z.string()).optional(),
+  // paisesPresencia: z.array(z.string()).optional(), // Removed - obsolete field
+  // estadosPresencia: z.array(z.string()).optional(), // Removed - obsolete field  
+  // ciudadesPresencia: z.array(z.string()).optional(), // Removed - obsolete field
   redesSociales: z.array(z.object({
     plataforma: z.string(),
     url: z.string()
@@ -131,7 +131,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       sitioWeb: "",
       direccionFisica: "",
       descripcionEmpresa: "",
-      ubicacionPrincipal: "",
+      // ubicacionPrincipal: "", // Removed - obsolete field
       ubicacionGeografica: "",
       representantesVentas: "",
       catalogoDigitalUrl: "",
@@ -144,9 +144,9 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       fechaInicioMembresia: "",
       fechaFinMembresia: "",
       notasMembresia: "",
-      paisesPresencia: [],
-      estadosPresencia: [],
-      ciudadesPresencia: [],
+      // paisesPresencia: [], // Removed - obsolete field
+      // estadosPresencia: [], // Removed - obsolete field
+      // ciudadesPresencia: [], // Removed - obsolete field
       redesSociales: [],
       videosUrls: [],
       galeriaProductosUrls: [],
@@ -604,8 +604,6 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   });
 
   const onSubmit = (data: CompanyFormData) => {
-    console.log("🚀 Form submission started!", data);
-    console.log("🔍 Form errors:", form.formState.errors);
     updateCompanyMutation.mutate(data);
   };
 
@@ -1901,12 +1899,6 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 type="submit" 
                 disabled={updateCompanyMutation.isPending}
                 className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  console.log("🔥 Button clicked!");
-                  console.log("📋 Form state:", form.formState);
-                  console.log("🚨 Form errors:", form.formState.errors);
-                  console.log("✅ Form is valid:", form.formState.isValid);
-                }}
               >
                 {updateCompanyMutation.isPending ? "Actualizando..." : "Actualizar Empresa"}
               </Button>
