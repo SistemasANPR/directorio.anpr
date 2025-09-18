@@ -48,14 +48,6 @@ export default function MembershipLimitsDisplay({
       <XCircle className="h-4 w-4 text-red-600" />;
   };
 
-  const canAddProducts = membershipType.cantidadProductosAdmitidos === -1 || 
-    membershipType.cantidadProductosAdmitidos === null || 
-    productCount <= (membershipType.cantidadProductosAdmitidos || 0);
-
-  const canAddProjects = membershipType.cantidadProyectosAdmitidos === -1 || 
-    membershipType.cantidadProyectosAdmitidos === null || 
-    projectCount <= (membershipType.cantidadProyectosAdmitidos || 0);
-
   if (!membershipType) {
     return (
       <Alert className={className}>
@@ -66,6 +58,14 @@ export default function MembershipLimitsDisplay({
       </Alert>
     );
   }
+
+  const canAddProducts = membershipType.cantidadProductosAdmitidos === -1 || 
+    membershipType.cantidadProductosAdmitidos === null || 
+    productCount <= (membershipType.cantidadProductosAdmitidos || 0);
+
+  const canAddProjects = membershipType.cantidadProyectosAdmitidos === -1 || 
+    membershipType.cantidadProyectosAdmitidos === null || 
+    projectCount <= (membershipType.cantidadProyectosAdmitidos || 0);
 
   return (
     <Card className={className}>
