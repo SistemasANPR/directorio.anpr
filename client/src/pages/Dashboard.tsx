@@ -53,7 +53,7 @@ export default function Dashboard() {
 
   // Immediate redirect for representatives - no delay
   if (!loading && user && !isAdmin) {
-    window.location.href = "/representative-dashboard?tab=overview";
+    window.location.replace("/representative-dashboard?tab=overview");
     return null; // Don't render anything while redirecting
   }
 

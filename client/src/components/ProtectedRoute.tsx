@@ -35,7 +35,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
 
   if (requireAdmin && !isAdmin) {
     // Redirect representatives automatically to their dashboard
-    window.location.href = "/representative-dashboard?tab=overview";
+    window.location.replace("/representative-dashboard?tab=overview");
     return null; // Don't render anything while redirecting
   }
 
