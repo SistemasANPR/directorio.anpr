@@ -602,8 +602,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   });
 
   const onSubmit = (data: CompanyFormData) => {
+    console.log("🚀 SUBMIT EJECUTÁNDOSE - datos:", data);
+    console.log("🔍 redesSociales en submit:", data.redesSociales);
     updateCompanyMutation.mutate(data);
   };
+  
+  // DEBUG: Mostrar errores de validación
+  console.log("❌ ERRORES DEL FORMULARIO:", form.formState.errors);
+  console.log("📝 ESTADO DEL FORMULARIO:", form.formState);
 
   if (!company) return null;
 
