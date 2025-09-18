@@ -67,6 +67,9 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   };
 
   const getCityReference = () => {
+    if (!ciudad || typeof ciudad !== 'string') {
+      return cityReferences["México"];
+    }
     const cityName = ciudad.split(',')[0];
     return cityReferences[cityName as keyof typeof cityReferences] || cityReferences["México"];
   };
@@ -305,7 +308,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     const location: LocationInfo = {
       lat,
       lng,
-      address: manualCoords.address || `${lat}, ${lng} - ${ciudad}`
+      address: manualCoords.address || `${lat}, ${lng} - ${ciudad || 'México'}`
     };
 
     // Actualizar mapa si está disponible
@@ -334,7 +337,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
     setManualCoords({
       lat: ref.lat.toString(),
       lng: ref.lng.toString(),
-      address: ciudad
+      address: ciudad || 'México'
     });
 
     // Actualizar mapa si está disponible
@@ -349,7 +352,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
       // Crear nuevo marcador
       const marker = L.marker([ref.lat, ref.lng])
         .addTo(mapInstanceRef.current)
-        .bindPopup(`Centro de ${ciudad}`);
+        .bindPopup(`Centro de ${ciudad || 'México'}`);
       
       markerRef.current = marker;
     }
