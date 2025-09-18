@@ -68,7 +68,7 @@ export default function RepresentativeLogin() {
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
         
         // Force immediate redirect using window.location
-        window.location.href = "/representative-dashboard";
+        window.location.href = "/representative-dashboard?tab=overview";
         return;
       }
 
@@ -82,7 +82,7 @@ export default function RepresentativeLogin() {
         });
         
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        setLocation("/representative-dashboard");
+        setLocation("/representative-dashboard?tab=overview");
       } catch (firebaseError) {
         throw new Error("Email o contraseña incorrectos");
       }
