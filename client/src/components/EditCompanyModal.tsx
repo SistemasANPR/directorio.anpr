@@ -72,10 +72,14 @@ const companySchema = z.object({
   // paisesPresencia: z.array(z.string()).optional(), // Removed - obsolete field
   // estadosPresencia: z.array(z.string()).optional(), // Removed - obsolete field  
   // ciudadesPresencia: z.array(z.string()).optional(), // Removed - obsolete field
-  redesSociales: z.array(z.object({
-    plataforma: z.string(),
-    url: z.string()
-  })).optional(),
+  redesSociales: z.object({
+    facebook: z.string().optional(),
+    instagram: z.string().optional(),
+    twitter: z.string().optional(),
+    linkedin: z.string().optional(),
+    youtube: z.string().optional(),
+    whatsapp: z.string().optional()
+  }).optional(),
   videosUrls: z.array(z.string()).optional(),
   galeriaProductosUrls: z.array(z.string()).optional(),
 });
@@ -107,7 +111,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const [selectedEstados, setSelectedEstados] = useState<string[]>([]);
   const [selectedCiudades, setSelectedCiudades] = useState<string[]>([]);
   const [catalogoFile, setCatalogoFile] = useState<File | null>(null);
-  const [redesSociales, setRedesSociales] = useState<Array<{plataforma: string, url: string}>>([]);
+  const [redesSociales, setRedesSociales] = useState<{
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+    youtube?: string;
+    whatsapp?: string;
+  }>({});
   const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
   const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
@@ -147,7 +158,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       // paisesPresencia: [], // Removed - obsolete field
       // estadosPresencia: [], // Removed - obsolete field
       // ciudadesPresencia: [], // Removed - obsolete field
-      redesSociales: [],
+      redesSociales: {},
       videosUrls: [],
       galeriaProductosUrls: [],
       logotipoUrl: "",
@@ -155,17 +166,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     },
   });
 
-  // Redes sociales disponibles
-  const socialPlatforms = [
-    { name: "Facebook", icon: Facebook },
-    { name: "Instagram", icon: Instagram },
-    { name: "LinkedIn", icon: Linkedin },
-    { name: "Twitter", icon: Twitter },
-    { name: "YouTube", icon: Youtube },
-    { name: "Sitio Web", icon: Globe },
-    { name: "TikTok", icon: Music },
-    { name: "WhatsApp", icon: Phone },
-  ];
+  // Redes sociales disponibles - eliminado: ahora se usan campos discretos
 
   // Helper function to strip HTML tags and decode entities
   const stripHtmlAndDecode = (str: string): string => {
@@ -369,18 +370,8 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   }, []);
 
   // Funciones para redes sociales
-  const addRedSocial = () => {
-    setRedesSociales([...redesSociales, { plataforma: "", url: "" }]);
-  };
-
-  const removeRedSocial = (index: number) => {
-    setRedesSociales(redesSociales.filter((_, i) => i !== index));
-  };
-
-  const updateRedSocial = (index: number, field: 'plataforma' | 'url', value: string) => {
-    const updated = redesSociales.map((red, i) => 
-      i === index ? { ...red, [field]: value } : red
-    );
+  const updateRedSocial = (platform: string, value: string) => {
+    const updated = { ...redesSociales, [platform]: value };
     setRedesSociales(updated);
     form.setValue("redesSociales", updated);
   };
@@ -472,7 +463,9 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         // paisesPresencia: Array.isArray(company.paisesPresencia) ? company.paisesPresencia : [], // Property no longer exists
         // estadosPresencia: Array.isArray(company.estadosPresencia) ? company.estadosPresencia : [], // Property no longer exists
         // ciudadesPresencia: Array.isArray(company.ciudadesPresencia) ? company.ciudadesPresencia : [], // Property no longer exists
-        redesSociales: Array.isArray(company.redesSociales) ? company.redesSociales : [],
+        redesSociales: typeof company.redesSociales === 'object' && company.redesSociales !== null 
+          ? company.redesSociales 
+          : {},
         videosUrls: Array.isArray(company.videosUrls) ? company.videosUrls : [],
         galeriaProductosUrls: Array.isArray(company.galeriaProductosUrls) ? company.galeriaProductosUrls : [],
         logotipoUrl: company.logotipoUrl || "",
@@ -498,8 +491,8 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       }
 
       // Set redes sociales - SOLUCIONADO: Cargar redes sociales existentes
-      if (company.redesSociales) {
-        setRedesSociales(Array.isArray(company.redesSociales) ? company.redesSociales : []);
+      if (company.redesSociales && typeof company.redesSociales === 'object') {
+        setRedesSociales(company.redesSociales);
       }
 
       // Set videos URLs
@@ -1540,65 +1533,55 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
               
               <div>
                 <FormLabel>Redes Sociales</FormLabel>
-                <div className="space-y-3 mt-2">
-                  {redesSociales.map((red, index) => (
-                    <div key={index} className="flex gap-2 items-end">
-                      <div className="flex-1">
-                        <Select
-                          value={red.plataforma}
-                          onValueChange={(value) => updateRedSocial(index, 'plataforma', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona plataforma">
-                              {red.plataforma && (
-                                <div className="flex items-center gap-2">
-                                  {(() => {
-                                    const platform = socialPlatforms.find(p => p.name === red.plataforma);
-                                    return platform ? <platform.icon className="h-4 w-4" /> : null;
-                                  })()}
-                                  {red.plataforma}
-                                </div>
-                              )}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {socialPlatforms.map((platform) => (
-                              <SelectItem key={platform.name} value={platform.name}>
-                                <div className="flex items-center gap-2">
-                                  <platform.icon className="h-4 w-4" />
-                                  {platform.name}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-2">
-                        <Input
-                          placeholder="https://..."
-                          value={red.url}
-                          onChange={(e) => updateRedSocial(index, 'url', e.target.value)}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeRedSocial(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addRedSocial}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Agregar Red Social
-                  </Button>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div>
+                    <FormLabel>Facebook</FormLabel>
+                    <Input
+                      placeholder="https://facebook.com/..."
+                      value={redesSociales.facebook || ''}
+                      onChange={(e) => updateRedSocial('facebook', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <FormLabel>Instagram</FormLabel>
+                    <Input
+                      placeholder="https://instagram.com/..."
+                      value={redesSociales.instagram || ''}
+                      onChange={(e) => updateRedSocial('instagram', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <FormLabel>Twitter/X</FormLabel>
+                    <Input
+                      placeholder="https://twitter.com/..."
+                      value={redesSociales.twitter || ''}
+                      onChange={(e) => updateRedSocial('twitter', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <FormLabel>LinkedIn</FormLabel>
+                    <Input
+                      placeholder="https://linkedin.com/..."
+                      value={redesSociales.linkedin || ''}
+                      onChange={(e) => updateRedSocial('linkedin', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <FormLabel>YouTube</FormLabel>
+                    <Input
+                      placeholder="https://youtube.com/..."
+                      value={redesSociales.youtube || ''}
+                      onChange={(e) => updateRedSocial('youtube', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <FormLabel>WhatsApp</FormLabel>
+                    <Input
+                      placeholder="https://wa.me/..."
+                      value={redesSociales.whatsapp || ''}
+                      onChange={(e) => updateRedSocial('whatsapp', e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
 
