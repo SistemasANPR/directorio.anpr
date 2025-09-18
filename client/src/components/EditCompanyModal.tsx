@@ -604,6 +604,8 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   });
 
   const onSubmit = (data: CompanyFormData) => {
+    console.log("🚀 Form submission started!", data);
+    console.log("🔍 Form errors:", form.formState.errors);
     updateCompanyMutation.mutate(data);
   };
 
@@ -1899,6 +1901,12 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 type="submit" 
                 disabled={updateCompanyMutation.isPending}
                 className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  console.log("🔥 Button clicked!");
+                  console.log("📋 Form state:", form.formState);
+                  console.log("🚨 Form errors:", form.formState.errors);
+                  console.log("✅ Form is valid:", form.formState.isValid);
+                }}
               >
                 {updateCompanyMutation.isPending ? "Actualizando..." : "Actualizar Empresa"}
               </Button>
