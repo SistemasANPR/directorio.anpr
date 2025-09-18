@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "wouter";
 import Swal from 'sweetalert2';
 
 ChartJS.register(
@@ -51,10 +52,44 @@ interface StatisticsData {
 export default function Dashboard() {
   const { isAdmin, user, loading } = useAuth();
 
-  // Immediate redirect for representatives - no delay
+  // Block access for representatives completely
   if (!loading && user && !isAdmin) {
-    window.location.href = "/representative-dashboard?tab=overview";
-    return null; // Don't render anything while redirecting
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636" />
+              </svg>
+            </div>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Acceso No Autorizado
+          </h2>
+          <p className="text-gray-600 mb-6">
+            No tienes permisos para acceder al Dashboard de Administrador. 
+            Como representante, tu panel está disponible en otra sección.
+          </p>
+          <div className="space-y-3">
+            <Link 
+              to="/representative-dashboard?tab=overview" 
+              className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors inline-block"
+              data-testid="link-representative-dashboard"
+            >
+              Ir al Panel del Representante
+            </Link>
+            <Link 
+              to="/" 
+              className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
+              data-testid="link-home"
+            >
+              Volver al Inicio
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Show loading while checking authentication
