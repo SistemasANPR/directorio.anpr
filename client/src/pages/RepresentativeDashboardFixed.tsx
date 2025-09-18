@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import EditCompanyModalComplete from "@/components/EditCompanyModalComplete";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -88,6 +89,7 @@ export default function RepresentativeDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [isAddingProject, setIsAddingProject] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const { toast } = useToast();
 
   // Handle URL parameters for direct tab navigation
@@ -403,21 +405,11 @@ export default function RepresentativeDashboard() {
                 </div>
                 {primaryCompany && (
                   <Button
-                    onClick={() => setIsEditingCompany(!isEditingCompany)}
-                    variant={isEditingCompany ? "outline" : "default"}
-                    className={isEditingCompany ? "" : "bg-[#bcce16] hover:bg-[#a8b814] text-black"}
+                    onClick={() => setEditModalOpen(true)}
+                    className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
                   >
-                    {isEditingCompany ? (
-                      <>
-                        <X className="h-4 w-4 mr-2" />
-                        Cancelar
-                      </>
-                    ) : (
-                      <>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </>
-                    )}
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Información
                   </Button>
                 )}
               </CardHeader>
@@ -1095,6 +1087,16 @@ export default function RepresentativeDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de edición completo */}
+      {dashboardData?.companies && dashboardData.companies.length > 0 && (
+        <EditCompanyModalComplete
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          company={dashboardData.companies[0]}
+          userRole="representante"
+        />
+      )}
     </div>
   );
 }

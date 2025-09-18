@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import EditCompanyModalComplete from "@/components/EditCompanyModalComplete";
 import { 
   Building, 
   CreditCard, 
@@ -30,6 +31,7 @@ import { es } from "date-fns/locale";
 export default function RepresentativeDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Handle URL parameters for direct tab navigation
   useEffect(() => {
@@ -265,7 +267,10 @@ export default function RepresentativeDashboard() {
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-4 border-t">
-                      <Button className="bg-[#bcce16] hover:bg-[#a8b814] text-black">
+                      <Button 
+                        className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                        onClick={() => setEditModalOpen(true)}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar Información
                       </Button>
@@ -537,6 +542,16 @@ export default function RepresentativeDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de edición completo */}
+      {dashboardData?.companies && dashboardData.companies.length > 0 && (
+        <EditCompanyModalComplete
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          company={dashboardData.companies[0]}
+          userRole="representante"
+        />
+      )}
     </div>
   );
 }
