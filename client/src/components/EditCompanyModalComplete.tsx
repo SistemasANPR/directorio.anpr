@@ -264,7 +264,13 @@ export default function EditCompanyModalComplete({
         title: "Empresa actualizada",
         description: "La información de la empresa ha sido actualizada exitosamente.",
       });
+      // Invalidate general company lists
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/companies"] });
+      // Invalidate the specific company data
+      queryClient.invalidateQueries({ queryKey: ["/api/companies", company?.id] });
+      // Invalidate representative dashboard that might show this company
+      queryClient.invalidateQueries({ queryKey: ["/api/representative/dashboard"] });
       onOpenChange(false);
     },
     onError: (error: any) => {
