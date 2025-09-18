@@ -909,6 +909,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Convertir cadenas vacías a null antes de validar
+      if (updateData.membershipPeriodicidad === "") {
+        updateData.membershipPeriodicidad = null;
+      }
+      if (updateData.formaPago === "") {
+        updateData.formaPago = null;
+      }
+      
       // Validar datos con schema parcial
       const parsedData = insertCompanySchema.partial().parse(updateData);
       
