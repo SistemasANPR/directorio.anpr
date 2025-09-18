@@ -49,6 +49,27 @@ interface StatisticsData {
 }
 
 export default function Dashboard() {
+  const { isAdmin, user, loading } = useAuth();
+
+  // Immediate redirect for representatives - no delay
+  if (!loading && user && !isAdmin) {
+    window.location.href = "/representative-dashboard?tab=overview";
+    return null; // Don't render anything while redirecting
+  }
+
+  // Show loading while checking authentication
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  return <DashboardContent />;
+}
+
+function DashboardContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithDetails | null>(null);
@@ -56,15 +77,7 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
-  const { isAdmin, user, loading } = useAuth();
-
-  // Redirect representatives to their own dashboard
-  useEffect(() => {
-    if (!loading && user && !isAdmin) {
-      // User is a representative, redirect to representative dashboard
-      window.location.href = "/representative-dashboard?tab=overview";
-    }
-  }, [loading, user, isAdmin]);
+  const { isAdmin } = useAuth();
 
   // Queries
   const { data: statistics, isLoading: statisticsLoading } = useQuery<StatisticsData>({
