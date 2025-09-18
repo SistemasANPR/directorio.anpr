@@ -28,7 +28,6 @@ const editCompanySchema = z.object({
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   descripcionEmpresa: z.string().optional(),
   direccionFisica: z.string().optional(),
-  ubicacionPrincipal: z.string().optional(),
   catalogoDigitalUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   // Redes sociales como strings individuales
   facebook: z.string().optional(),
@@ -64,8 +63,8 @@ export default function EditCompanyModalComplete({
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
   const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
-  const [paisesPresencia, setPaisesPresencia] = useState<string[]>([]);
-  const [estadosPresencia, setEstadosPresencia] = useState<string[]>([]);
+  // const [paisesPresencia, setPaisesPresencia] = useState<string[]>([]);
+  // const [estadosPresencia, setEstadosPresencia] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
 
   // Fetch categories
@@ -117,7 +116,6 @@ export default function EditCompanyModalComplete({
       sitioWeb: "",
       descripcionEmpresa: "",
       direccionFisica: "",
-      ubicacionPrincipal: "",
       catalogoDigitalUrl: "",
       facebook: "",
       instagram: "",
@@ -143,8 +141,7 @@ export default function EditCompanyModalComplete({
         sitioWeb: company.sitioWeb || "",
         descripcionEmpresa: company.descripcionEmpresa || "",
         direccionFisica: company.direccionFisica || "",
-        ubicacionPrincipal: company.ubicacionPrincipal || "",
-        catalogoDigitalUrl: company.catalogoDigitalUrl || "",
+          catalogoDigitalUrl: company.catalogoDigitalUrl || "",
         facebook: redes.facebook || "",
         instagram: redes.instagram || "",
         twitter: redes.twitter || "",
@@ -174,13 +171,13 @@ export default function EditCompanyModalComplete({
         setGaleriaPreviews(urls);
       }
 
-      // Set presence locations
-      if (company.paisesPresencia) {
-        setPaisesPresencia(Array.isArray(company.paisesPresencia) ? company.paisesPresencia : []);
-      }
-      if (company.estadosPresencia) {
-        setEstadosPresencia(Array.isArray(company.estadosPresencia) ? company.estadosPresencia : []);
-      }
+      // Set presence locations (commented out for now)
+      // if (company.paisesPresencia) {
+      //   setPaisesPresencia(Array.isArray(company.paisesPresencia) ? company.paisesPresencia : []);
+      // }
+      // if (company.estadosPresencia) {
+      //   setEstadosPresencia(Array.isArray(company.estadosPresencia) ? company.estadosPresencia : []);
+      // }
     }
   }, [company, form]);
 
@@ -195,7 +192,7 @@ export default function EditCompanyModalComplete({
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
-          setGaleriaPreviews(prev => [...prev, e.target.result as string]);
+          setGaleriaPreviews(prev => [...prev, e.target!.result as string]);
         }
       };
       reader.readAsDataURL(file);
@@ -246,8 +243,8 @@ export default function EditCompanyModalComplete({
         categoriesIds: selectedCategories,
         certificateIds: selectedCertificates,
         tagIds: selectedTags,
-        paisesPresencia,
-        estadosPresencia,
+        // paisesPresencia,
+        // estadosPresencia,
         galeriaProductosUrls: galeriaUrls,
         redesSociales: {
           facebook: data.facebook || "",
@@ -484,7 +481,8 @@ export default function EditCompanyModalComplete({
                     <Label htmlFor="ubicacionPrincipal">Ubicación Principal</Label>
                     <Input
                       id="ubicacionPrincipal"
-                      {...form.register("ubicacionPrincipal")}
+                      value={company.direccionFisica || ""}
+                      readOnly
                       placeholder="Ciudad, Estado, País"
                       disabled={updateCompanyMutation.isPending}
                     />
