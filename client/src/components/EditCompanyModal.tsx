@@ -574,7 +574,7 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       }
 
       const response = await fetch(`/api/companies/${company?.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         body: formData,
       });
       
