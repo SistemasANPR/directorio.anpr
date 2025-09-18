@@ -755,7 +755,7 @@ export default function RegisterAndPay() {
                   {selectedMembership.beneficios && (
                     <CardContent>
                       <div className="space-y-2">
-                        {selectedMembership.beneficios.split('\n').map((benefit: string, idx: number) => (
+                        {(Array.isArray(selectedMembership.beneficios) ? selectedMembership.beneficios : selectedMembership.beneficios ? selectedMembership.beneficios.toString().split('\n') : []).map((benefit: string, idx: number) => (
                           <div key={idx} className="flex items-center gap-2 text-sm">
                             <Star className="h-4 w-4 text-[#bcce16]" />
                             {benefit}
