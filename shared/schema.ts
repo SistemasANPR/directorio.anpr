@@ -236,6 +236,8 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   updatedAt: true,
 }).extend({
   direccionFisica: z.string().min(10, "La dirección física debe tener al menos 10 caracteres"),
+  // Allow empty string for membershipPeriodicidad during updates
+  membershipPeriodicidad: z.enum(["mensual", "anual"]).nullable().optional().or(z.literal("")),
 });
 
 export const insertCertificateSchema = createInsertSchema(certificates).omit({
