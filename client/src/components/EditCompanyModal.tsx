@@ -606,6 +606,52 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     console.log("🔍 redesSociales en submit:", data.redesSociales);
     updateCompanyMutation.mutate(data);
   };
+
+  // ✅ FUNCTION TO BYPASS REACT HOOK FORM IF NEEDED
+  const handleDirectSubmit = () => {
+    console.log("🔥🔥🔥 DIRECT SUBMIT - BYPASSING FORM VALIDATION");
+    
+    try {
+      // Get current form values directly
+      const formValues = form.getValues();
+      console.log("📝 Form values from getValues():", formValues);
+
+      // Create update payload using form values and company data as fallback
+      const updateData: CompanyFormData = {
+        id: company.id,
+        nombreEmpresa: formValues.nombreEmpresa || company.nombreEmpresa || "",
+        telefono1: formValues.telefono1 || company.telefono1 || "",
+        telefono2: formValues.telefono2 || company.telefono2 || "",
+        email1: formValues.email1 || company.email1 || "",
+        email2: formValues.email2 || company.email2 || "",
+        sitioWeb: formValues.sitioWeb || company.sitioWeb || "",
+        direccionFisica: formValues.direccionFisica || company.direccionFisica || "",
+        descripcionEmpresa: formValues.descripcionEmpresa || company.descripcionEmpresa || "",
+        ubicacionGeografica: formValues.ubicacionGeografica || company.ubicacionGeografica || "",
+        representantesVentas: formValues.representantesVentas || company.representantesVentas || "",
+        catalogoDigitalUrl: formValues.catalogoDigitalUrl || company.catalogoDigitalUrl || "",
+        categoriesIds: formValues.categoriesIds || company.categoriesIds || [],
+        certificateIds: formValues.certificateIds || company.certificateIds || [],
+        tagIds: formValues.tagIds || company.tagIds || [],
+        membershipTypeId: formValues.membershipTypeId || company.membershipTypeId || 1,
+        membershipPeriodicidad: formValues.membershipPeriodicidad || company.membershipPeriodicidad || "",
+        formaPago: formValues.formaPago || company.formaPago || "",
+        fechaInicioMembresia: formValues.fechaInicioMembresia || company.fechaInicioMembresia || "",
+        fechaFinMembresia: formValues.fechaFinMembresia || company.fechaFinMembresia || "",
+        notasMembresia: formValues.notasMembresia || company.notasMembresia || "",
+        redesSociales: formValues.redesSociales || company.redesSociales || {},
+        videosUrls: formValues.videosUrls || company.videosUrls || [],
+        galeriaProductosUrls: formValues.galeriaProductosUrls || company.galeriaProductosUrls || [],
+        logotipoUrl: formValues.logotipoUrl || company.logotipoUrl || "",
+        fotoPortadaUrl: formValues.fotoPortadaUrl || company.fotoPortadaUrl || "",
+      };
+
+      console.log("📤 DIRECT SUBMIT - Sending to mutation:", updateData);
+      updateCompanyMutation.mutate(updateData);
+    } catch (error) {
+      console.error("❌ DIRECT SUBMIT ERROR:", error);
+    }
+  };
   
   // DEBUG: Mostrar errores de validación
   console.log("❌ ERRORES DEL FORMULARIO:", form.formState.errors);
@@ -1900,15 +1946,13 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 Cancelar
               </Button>
               <Button 
-                type="submit" 
+                type="button" 
                 disabled={updateCompanyMutation.isPending}
                 className="bg-primary hover:bg-primary/90"
                 onClick={(e) => {
-                  console.log("🔥 BOTÓN CLICKED - preventDefault NOT called");
-                  console.log("🔥 Form valid?", form.formState.isValid);
-                  console.log("🔥 Form errors?", form.formState.errors);
-                  console.log("🔥 Submit count?", form.formState.submitCount);
-                  // NO llamamos preventDefault para permitir que el submit del form funcione
+                  console.log("🔥🔥🔥 BOTÓN CLICKED - USANDO DIRECT SUBMIT");
+                  e.preventDefault(); // Prevent any form submission
+                  handleDirectSubmit(); // Use our direct submit function
                 }}
               >
                 {updateCompanyMutation.isPending ? "Actualizando..." : "Actualizar Empresa"}
