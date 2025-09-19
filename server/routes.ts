@@ -4820,6 +4820,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para cambio de plan de membresía
+  app.post("/api/companies/:id/change-plan", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const { targetPlanId, periodicidad } = req.body;
+
+      if (!companyId || !targetPlanId || !periodicidad) {
+        return res.status(400).json({ error: "Faltan parámetros requeridos" });
+      }
+
+      if (!["mensual", "anual"].includes(periodicidad)) {
+        return res.status(400).json({ error: "Periodicidad debe ser 'mensual' o 'anual'" });
+      }
+
+      // Obtener la empresa
+      const company = await storage.getCompany(companyId);
+      if (!company) {
+        return res.status(404).json({ error: "Empresa no encontrada" });
+      }
+
+      // Obtener el usuario (propietario de la empresa)
+      const user = await storage.getUser(company.userId!);
+      if (!user) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      // Obtener el plan objetivo
+      const targetPlan = await storage.getMembershipType(targetPlanId);
+      if (!targetPlan) {
+        return res.status(404).json({ error: "Plan objetivo no encontrado" });
+      }
+
+      // Obtener el precio según la periodicidad
+      const opcionesPrecios = Array.isArray(targetPlan.opcionesPrecios) 
+        ? targetPlan.opcionesPrecios 
+        : [];
+      
+      const precioOption = opcionesPrecios.find((op: any) => 
+        op.periodicidad?.toLowerCase() === periodicidad.toLowerCase()
+      );
+
+      if (!precioOption) {
+        return res.status(400).json({ 
+          error: `No se encontró precio para periodicidad ${periodicidad}` 
+        });
+      }
+
+      // Si hay una suscripción activa en Stripe, programar el cambio para el próximo período
+      if (user.stripeSubscriptionId) {
+        try {
+          // Obtener la suscripción actual
+          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          
+          if (subscription.status === 'active') {
+            // Crear un schedule para cambiar el plan en el próximo período de facturación
+            const scheduleParams = {
+              from_subscription: user.stripeSubscriptionId,
+              phases: [
+                // Fase actual: mantener hasta el final del período
+                {
+                  start_date: Math.floor(Date.now() / 1000),
+                  end_date: subscription.current_period_end,
+                  items: subscription.items.data.map(item => ({
+                    price: item.price.id,
+                    quantity: item.quantity,
+                  })),
+                },
+                // Nueva fase: nuevo plan a partir del próximo período
+                {
+                  start_date: subscription.current_period_end,
+                  items: [
+                    {
+                      // Aquí necesitaríamos tener el price_id del plan en Stripe
+                      // Para esta implementación, crearemos un producto/precio dinámicamente
+                      price_data: {
+                        currency: 'mxn',
+                        product_data: {
+                          name: `${targetPlan.nombrePlan} - ${periodicidad}`,
+                        },
+                        unit_amount: Math.round(precioOption.costo * 100), // Stripe usa centavos
+                        recurring: {
+                          interval: periodicidad === 'anual' ? 'year' : 'month',
+                        },
+                      },
+                      quantity: 1,
+                    },
+                  ],
+                },
+              ],
+            };
+
+            const subscriptionSchedule = await stripe.subscriptionSchedules.create(scheduleParams);
+            
+            console.log("Subscription Schedule creado:", subscriptionSchedule.id);
+          }
+        } catch (stripeError: any) {
+          console.error("Error creando subscription schedule:", stripeError);
+          // Continuar con la actualización local incluso si Stripe falla
+        }
+      }
+
+      // Actualizar la empresa inmediatamente en nuestra base de datos
+      // Esto permite aplicar límites del nuevo plan de inmediato
+      const updateData = {
+        membershipTypeId: targetPlanId,
+        membershipPeriodicidad: periodicidad as "mensual" | "anual",
+      };
+
+      const updatedCompany = await storage.updateCompany(companyId, updateData);
+
+      // Log del cambio de plan
+      console.log(`Plan cambiado para empresa ${companyId}: ${company.membershipTypeId} -> ${targetPlanId} (${periodicidad})`);
+
+      res.json({
+        success: true,
+        message: "Plan cambiado exitosamente",
+        company: updatedCompany,
+        newPlan: targetPlan,
+        effectiveDate: user.stripeSubscriptionId ? "Próximo período de facturación" : "Inmediato",
+      });
+
+    } catch (error: any) {
+      console.error("Error cambiando plan:", error);
+      res.status(500).json({ error: error.message || "Error interno del servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
