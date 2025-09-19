@@ -3,18 +3,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, User, Mail, Lock, Building } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Building, Mail, Lock, Loader2 } from "lucide-react";
+import { signInWithEmail } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(1, "La contraseña es requerida"),
+  rememberMe: z.boolean().default(false),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -22,7 +24,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function RepresentativeLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { signInWithFirebase } = useAuth();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,6 +32,7 @@ export default function RepresentativeLogin() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -62,7 +64,9 @@ export default function RepresentativeLogin() {
         
         toast({
           title: "Sesión iniciada exitosamente",
-          description: "Bienvenido de vuelta",
+          description: data.rememberMe 
+            ? "Bienvenido de vuelta. Tu sesión será recordada."
+            : "Bienvenido de vuelta",
         });
         
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -72,13 +76,15 @@ export default function RepresentativeLogin() {
         return;
       }
 
-      // If temp login fails, try Firebase authentication
+      // If temp login fails, try Firebase authentication (without Google)
       try {
-        await signInWithFirebase(data.email, data.password, false);
+        await signInWithEmail(data.email, data.password, data.rememberMe);
         
         toast({
           title: "Sesión iniciada exitosamente",
-          description: "Bienvenido de vuelta",
+          description: data.rememberMe 
+            ? "Bienvenido de vuelta. Tu sesión será recordada."
+            : "Bienvenido de vuelta",
         });
         
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -88,9 +94,21 @@ export default function RepresentativeLogin() {
       }
       
     } catch (error: any) {
+      let errorMessage = "Ha ocurrido un error";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No existe una cuenta con este email";
+      } else if (error.code === "auth/wrong-password" || error.message.includes("incorrectos")) {
+        errorMessage = "Contraseña incorrecta";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Email inválido";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error al iniciar sesión",
-        description: error.message || "Email o contraseña incorrectos",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -99,109 +117,127 @@ export default function RepresentativeLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Iniciar Sesión</h1>
-              <p className="text-sm text-gray-600">Accede a tu cuenta de representante</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4" data-testid="representative-login-page">
+      <Card className="w-full max-w-md bg-white border border-gray-200 shadow-lg">
+        <CardHeader className="space-y-1">
+          {/* Icono AdminPlat */}
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 h-12 bg-[#1e40af] rounded-lg flex items-center justify-center">
+              <Building className="text-white text-xl" />
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-md mx-auto px-4 py-8">
-        <Card>
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="h-8 w-8 text-blue-600" />
-            </div>
-            <CardTitle>Acceso para Representantes</CardTitle>
-            <p className="text-sm text-gray-600">
-              Inicia sesión para gestionar tu empresa y membresías
-            </p>
-          </CardHeader>
           
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="email"
-                            placeholder="tu@email.com"
-                            className="pl-10"
-                            {...field} 
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {/* Título AdminPlat */}
+          <CardTitle className="text-2xl text-center font-semibold text-gray-900">
+            AdminPlat
+          </CardTitle>
+          
+          {/* Subtítulo */}
+          <CardDescription className="text-center text-gray-600 text-sm">
+            Inicia sesión en tu cuenta
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              {/* Campo Email */}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input 
+                          type="email" 
+                          placeholder="tu@email.com" 
+                          className="pl-10 h-12 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md"
+                          {...field} 
+                          data-testid="input-email"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contraseña</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password"
-                            placeholder="Tu contraseña"
-                            className="pl-10"
-                            {...field} 
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Campo Contraseña */}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Contraseña</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          className="pl-10 h-12 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md"
+                          {...field} 
+                          data-testid="input-password"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                  ) : null}
-                  Iniciar Sesión
-                </Button>
-              </form>
-            </Form>
+              {/* Checkbox Recordar sesión */}
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-remember"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm text-gray-700">
+                        Recordar mi sesión
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                ¿No tienes cuenta?{" "}
-                <button 
-                  onClick={() => setLocation("/registro-representante")}
-                  className="text-blue-600 hover:underline"
-                >
-                  Regístrate aquí
-                </button>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              {/* Botón Iniciar sesión */}
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-[#1e40af] text-white hover:bg-[#1d4ed8] font-medium rounded-md" 
+                disabled={isLoading}
+                data-testid="button-submit"
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Iniciar sesión
+              </Button>
+            </form>
+          </Form>
+
+          {/* Link inferior para crear cuenta */}
+          <div className="text-center text-sm">
+            <button
+              type="button"
+              onClick={() => setLocation("/representative-register")}
+              className="text-gray-600 hover:text-gray-800 hover:underline"
+              disabled={isLoading}
+              data-testid="link-signup"
+            >
+              ¿No tienes cuenta? Crea aquí
+            </button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
