@@ -226,14 +226,15 @@ export default function RepresentativeLogin() {
 
           {/* Link inferior para crear cuenta */}
           <div className="text-center text-sm">
+            <span className="text-gray-600">¿No tienes cuenta? </span>
             <button
               type="button"
-              onClick={() => setLocation("/representative-register")}
-              className="text-gray-600 hover:text-gray-800 hover:underline"
+              onClick={() => window.location.href = "/planes#elige-tu-plan"}
+              className="text-blue-600 hover:text-blue-800 hover:underline"
               disabled={isLoading}
               data-testid="link-signup"
             >
-              ¿No tienes cuenta? Crea aquí
+              Crea aquí
             </button>
           </div>
         </CardContent>
