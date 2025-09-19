@@ -1903,6 +1903,13 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                 type="submit" 
                 disabled={updateCompanyMutation.isPending}
                 className="bg-primary hover:bg-primary/90"
+                onClick={(e) => {
+                  console.log("🔥 BOTÓN CLICKED - preventDefault NOT called");
+                  console.log("🔥 Form valid?", form.formState.isValid);
+                  console.log("🔥 Form errors?", form.formState.errors);
+                  console.log("🔥 Submit count?", form.formState.submitCount);
+                  // NO llamamos preventDefault para permitir que el submit del form funcione
+                }}
               >
                 {updateCompanyMutation.isPending ? "Actualizando..." : "Actualizar Empresa"}
               </Button>
