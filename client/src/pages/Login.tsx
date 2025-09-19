@@ -22,7 +22,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -38,15 +37,6 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      if (isSignUp) {
-        await createUserWithEmail(data.email, data.password);
-        toast({
-          title: "Cuenta creada",
-          description: "Tu cuenta ha sido creada exitosamente",
-        });
-        // Redirigir al dashboard después de crear cuenta
-        setTimeout(() => setLocation("/dashboard"), 1000);
-      } else {
         // Try temporary login first (for newly registered users)
         const tempResponse = await fetch('/api/login-temp', {
           method: 'POST',
@@ -114,7 +104,6 @@ export default function Login() {
 
         // For all other temp login failures, show the error message
         throw new Error(tempResult.error || "Credenciales incorrectas");
-      }
     } catch (error: any) {
       let errorMessage = "Ha ocurrido un error";
       
@@ -160,7 +149,7 @@ export default function Login() {
           
           {/* Subtítulo */}
           <CardDescription className="text-center text-gray-600 text-sm">
-            {isSignUp ? "Crea tu cuenta para comenzar" : "Inicia sesión en tu cuenta"}
+            Inicia sesión en tu cuenta
           </CardDescription>
         </CardHeader>
         
@@ -216,28 +205,26 @@ export default function Login() {
               />
 
               {/* Checkbox Recordar sesión */}
-              {!isSignUp && (
-                <FormField
-                  control={form.control}
-                  name="rememberMe"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-remember"
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm text-gray-700">
-                          Recordar mi sesión
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              )}
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-remember"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm text-gray-700">
+                        Recordar mi sesión
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
               {/* Botón Iniciar sesión */}
               <Button 
@@ -247,23 +234,22 @@ export default function Login() {
                 data-testid="button-submit"
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSignUp ? "Crear cuenta" : "Iniciar sesión"}
+                Iniciar sesión
               </Button>
             </form>
           </Form>
 
           {/* Link inferior para crear cuenta */}
           <div className="text-center text-sm">
+            <span className="text-gray-600">¿No tienes cuenta? </span>
             <button
               type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-gray-600 hover:text-gray-800 hover:underline"
+              onClick={() => window.location.href = "/planes#elige-tu-plan"}
+              className="text-blue-600 hover:text-blue-800 hover:underline"
               disabled={isLoading}
               data-testid="link-signup"
             >
-              {isSignUp 
-                ? "¿Ya tienes cuenta? Inicia sesión" 
-                : "¿No tienes cuenta? Crea aquí"}
+              Crea aquí
             </button>
           </div>
         </CardContent>
