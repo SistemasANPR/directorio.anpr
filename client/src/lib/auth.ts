@@ -2,8 +2,6 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  GoogleAuthProvider, 
-  signInWithPopup,
   onAuthStateChanged,
   setPersistence,
   browserSessionPersistence,
@@ -32,13 +30,6 @@ export const signInWithEmail = async (email: string, password: string, rememberM
 // Create user with email and password
 export const createUserWithEmail = async (email: string, password: string): Promise<FirebaseUser> => {
   const result = await createUserWithEmailAndPassword(auth, email, password);
-  return result.user;
-};
-
-// Sign in with Google
-export const signInWithGoogle = async (): Promise<FirebaseUser> => {
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
   return result.user;
 };
 
