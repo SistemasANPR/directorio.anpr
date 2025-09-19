@@ -626,6 +626,16 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
+            {/* DEBUG: Mostrar errores de validación */}
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <strong>❌ ERRORES DE VALIDACIÓN:</strong>
+                <pre className="mt-2 text-xs">
+                  {JSON.stringify(form.formState.errors, null, 2)}
+                </pre>
+              </div>
+            )}
+            
             {/* INFORMACIÓN DEL USUARIO WORDPRESS (SI EXISTE) */}
             {company?.user && (
               <div className="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
