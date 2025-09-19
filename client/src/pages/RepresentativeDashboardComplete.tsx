@@ -39,6 +39,7 @@ import { Certificate, ProjectWithDetails } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Swal from 'sweetalert2';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function RepresentativeDashboard() {
   const { user } = useAuth();
@@ -59,6 +60,9 @@ export default function RepresentativeDashboard() {
   // Plan management states
   const [isChangePlanModalOpen, setIsChangePlanModalOpen] = useState(false);
   const [isCancelPlanModalOpen, setIsCancelPlanModalOpen] = useState(false);
+  const [selectedNewPlan, setSelectedNewPlan] = useState<any>(null);
+  const [selectedPeriodicidad, setSelectedPeriodicidad] = useState<"mensual" | "anual">("mensual");
+  const [showPlanConfirmation, setShowPlanConfirmation] = useState(false);
   
   // Company edit modal state
   const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
@@ -203,6 +207,99 @@ export default function RepresentativeDashboard() {
     },
   });
 
+  // Change plan mutation
+  const changePlanMutation = useMutation({
+    mutationFn: async ({ targetPlanId, periodicidad }: { targetPlanId: number; periodicidad: string }) => {
+      const response = await apiRequest("POST", `/api/companies/${primaryCompany?.id}/change-plan`, {
+        targetPlanId,
+        periodicidad
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/representative/dashboard/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/membership-types/public'] });
+      setIsChangePlanModalOpen(false);
+      setShowPlanConfirmation(false);
+      setSelectedNewPlan(null);
+      
+      toast({
+        title: "Plan cambiado exitosamente",
+        description: `Tu plan se ha actualizado. ${data.effectiveDate === 'Inmediato' ? 'Los cambios son efectivos inmediatamente.' : 'Los cambios se aplicarán en tu próximo período de facturación.'}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error al cambiar plan",
+        description: error.message || "No se pudo cambiar el plan. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    },
+  });
+
+
+  // Helper functions for plan comparison
+  const isPlanUpgrade = (currentPlan: any, targetPlan: any) => {
+    const currentPrice = currentPlan?.precioMensual || 0;
+    const targetPrice = targetPlan?.precioMensual || 0;
+    return targetPrice > currentPrice;
+  };
+
+  const isPlanDowngrade = (currentPlan: any, targetPlan: any) => {
+    const currentPrice = currentPlan?.precioMensual || 0;
+    const targetPrice = targetPlan?.precioMensual || 0;
+    return targetPrice < currentPrice;
+  };
+
+  const getUpgradeMotivation = (targetPlan: any) => {
+    return [
+      "🚀 Acceso a funciones Premium exclusivas",
+      "📈 Mayor visibilidad en el directorio",
+      "🎯 Herramientas avanzadas de marketing",
+      "⭐ Soporte prioritario 24/7",
+      "💼 Más proyectos y productos permitidos"
+    ];
+  };
+
+  const getDowngradeLimitations = (currentPlan: any, targetPlan: any) => {
+    const limitations = [];
+    
+    if (currentPlan?.cantidadProductosAdmitidos > targetPlan?.cantidadProductosAdmitidos) {
+      limitations.push(`🔴 Productos: Máximo ${targetPlan?.cantidadProductosAdmitidos || 0} (actualmente tienes ${currentPlan?.cantidadProductosAdmitidos || 0})`);
+    }
+    
+    if (currentPlan?.cantidadProyectosAdmitidos > targetPlan?.cantidadProyectosAdmitidos) {
+      limitations.push(`🔴 Proyectos: Máximo ${targetPlan?.cantidadProyectosAdmitidos || 0} (actualmente tienes ${currentPlan?.cantidadProyectosAdmitidos || 0})`);
+    }
+    
+    if (currentPlan?.cantidadFotosPorProyecto > targetPlan?.cantidadFotosPorProyecto) {
+      limitations.push(`🔴 Fotos por proyecto: Máximo ${targetPlan?.cantidadFotosPorProyecto || 5} (actualmente ${currentPlan?.cantidadFotosPorProyecto || 5})`);
+    }
+    
+    return limitations;
+  };
+
+  const handlePlanSelection = (plan: any) => {
+    setSelectedNewPlan(plan);
+    setShowPlanConfirmation(true);
+  };
+
+  const handleConfirmPlanChange = () => {
+    if (selectedNewPlan) {
+      changePlanMutation.mutate({
+        targetPlanId: selectedNewPlan.id,
+        periodicidad: selectedPeriodicidad
+      });
+    }
+  };
+
+  const getPlanPrice = (plan: any, periodicidad: string) => {
+    const opcionesPrecios = Array.isArray(plan.opcionesPrecios) ? plan.opcionesPrecios : [];
+    const precioOption = opcionesPrecios.find((op: any) => 
+      op.periodicidad?.toLowerCase() === periodicidad.toLowerCase()
+    );
+    return precioOption ? precioOption.costo : plan.precioMensual;
+  };
 
   const handleEditCertificate = (certificate: Certificate) => {
     setSelectedCertificate(certificate);
@@ -1154,62 +1251,231 @@ export default function RepresentativeDashboard() {
 
         {/* Plan Change Modal */}
         <Dialog open={isChangePlanModalOpen} onOpenChange={setIsChangePlanModalOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Cambiar Plan de Membresía</DialogTitle>
-              <DialogDescription>
-                Selecciona un nuevo plan para tu empresa
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
-              {typedMembershipTypes.map((plan: any) => (
-                <div 
-                  key={plan.id} 
-                  className={`border rounded-lg p-6 cursor-pointer transition-all hover:shadow-md ${
-                    plan.id === currentMembership?.id ? 'border-[#bcce16] bg-[#bcce16]/5' : 'border-gray-200'
-                  }`}
-                >
-                  <div className="text-center">
-                    <h3 className="font-bold text-xl mb-2">{plan.nombrePlan}</h3>
-                    <div className="text-3xl font-bold text-[#bcce16] mb-4">
-                      ${plan.precioMensual}
-                      <span className="text-sm text-gray-500 font-normal">/mes</span>
-                    </div>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            {!showPlanConfirmation ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Cambiar Plan de Membresía</DialogTitle>
+                  <DialogDescription>
+                    Selecciona un nuevo plan para tu empresa
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {/* Periodicidad Selector */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Periodicidad de pago:
+                  </label>
+                  <Select 
+                    value={selectedPeriodicidad} 
+                    onValueChange={(value: "mensual" | "anual") => setSelectedPeriodicidad(value)}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mensual">Mensual</SelectItem>
+                      <SelectItem value="anual">Anual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
+                  {typedMembershipTypes.map((plan: any) => {
+                    const planPrice = getPlanPrice(plan, selectedPeriodicidad);
+                    const isCurrentPlan = plan.id === currentMembership?.id;
+                    const isUpgrade = isPlanUpgrade(currentMembership, plan);
+                    const isDowngrade = isPlanDowngrade(currentMembership, plan);
                     
-                    <div className="space-y-2 text-sm text-gray-600 mb-6">
-                      {(Array.isArray(plan.beneficios) 
-                        ? plan.beneficios 
-                        : plan.beneficios?.split('\n') || []
-                      ).slice(0, 4).map((benefit: string, index: number) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span>{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {plan.id === currentMembership?.id ? (
-                      <Badge className="bg-[#bcce16] text-black">Plan Actual</Badge>
-                    ) : (
-                      <Button 
-                        className="w-full bg-[#bcce16] hover:bg-[#a8b814] text-black"
-                        onClick={() => {
-                          // Implement plan change logic
-                          toast({
-                            title: "Funcionalidad próximamente",
-                            description: "El cambio de plan estará disponible pronto",
-                          });
-                          setIsChangePlanModalOpen(false);
-                        }}
+                    return (
+                      <div 
+                        key={plan.id} 
+                        className={`border rounded-lg p-6 cursor-pointer transition-all hover:shadow-md relative ${
+                          isCurrentPlan ? 'border-[#bcce16] bg-[#bcce16]/5' : 'border-gray-200'
+                        } ${isUpgrade ? 'border-green-300 bg-green-50' : ''} ${isDowngrade ? 'border-orange-300 bg-orange-50' : ''}`}
                       >
-                        Cambiar a este plan
-                      </Button>
-                    )}
+                        {/* Upgrade/Downgrade indicator */}
+                        {isUpgrade && (
+                          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                              ✨ UPGRADE
+                            </span>
+                          </div>
+                        )}
+                        {isDowngrade && (
+                          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                            <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                              ⚠️ DOWNGRADE
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="text-center">
+                          <h3 className="font-bold text-xl mb-2">{plan.nombrePlan}</h3>
+                          <div className="text-3xl font-bold text-[#bcce16] mb-4">
+                            ${planPrice}
+                            <span className="text-sm text-gray-500 font-normal">/{selectedPeriodicidad === 'anual' ? 'año' : 'mes'}</span>
+                          </div>
+                          
+                          {/* Plan limits */}
+                          <div className="space-y-2 text-sm mb-4 bg-gray-50 p-3 rounded-lg">
+                            <div className="flex justify-between">
+                              <span>Productos:</span>
+                              <span className="font-medium">{plan.cantidadProductosAdmitidos === -1 ? '∞' : plan.cantidadProductosAdmitidos}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Proyectos:</span>
+                              <span className="font-medium">{plan.cantidadProyectosAdmitidos === -1 ? '∞' : plan.cantidadProyectosAdmitidos}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Fotos/proyecto:</span>
+                              <span className="font-medium">{plan.cantidadFotosPorProyecto === -1 ? '∞' : plan.cantidadFotosPorProyecto}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2 text-sm text-gray-600 mb-6">
+                            {(Array.isArray(plan.beneficios) 
+                              ? plan.beneficios 
+                              : plan.beneficios?.split('\n') || []
+                            ).slice(0, 4).map((benefit: string, index: number) => (
+                              <div key={index} className="flex items-start gap-2">
+                                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span>{benefit}</span>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {isCurrentPlan ? (
+                            <Badge className="bg-[#bcce16] text-black">Plan Actual</Badge>
+                          ) : (
+                            <Button 
+                              className="w-full bg-[#bcce16] hover:bg-[#a8b814] text-black"
+                              onClick={() => handlePlanSelection(plan)}
+                              data-testid={`button-select-plan-${plan.id}`}
+                            >
+                              {isUpgrade ? '⬆️ Upgrade a ' : isDowngrade ? '⬇️ Cambiar a ' : 'Seleccionar '}
+                              {plan.nombrePlan}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <>
+                <DialogHeader>
+                  <DialogTitle>
+                    {isPlanUpgrade(currentMembership, selectedNewPlan) ? '🚀 ¡Upgrade tu Plan!' : '⚠️ Confirmar Cambio de Plan'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {isPlanUpgrade(currentMembership, selectedNewPlan) 
+                      ? 'Estás a punto de actualizar a un plan superior'
+                      : 'Revisa los cambios antes de confirmar'
+                    }
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="py-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Current Plan */}
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-semibold mb-2 text-gray-700">Plan Actual</h4>
+                      <div className="space-y-2">
+                        <p className="font-bold text-lg">{currentMembership?.nombrePlan}</p>
+                        <p className="text-2xl font-bold text-gray-600">
+                          ${getPlanPrice(currentMembership, currentMembership?.periodicidad || selectedPeriodicidad)}
+                          /{currentMembership?.periodicidad === 'anual' ? 'año' : 'mes'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* New Plan */}
+                    <div className="border rounded-lg p-4 border-[#bcce16] bg-[#bcce16]/5">
+                      <h4 className="font-semibold mb-2 text-[#bcce16]">Nuevo Plan</h4>
+                      <div className="space-y-2">
+                        <p className="font-bold text-lg">{selectedNewPlan?.nombrePlan}</p>
+                        <p className="text-2xl font-bold text-[#bcce16]">
+                          ${getPlanPrice(selectedNewPlan, selectedPeriodicidad)}
+                          /{selectedPeriodicidad === 'anual' ? 'año' : 'mes'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upgrade Benefits or Downgrade Warnings */}
+                  {isPlanUpgrade(currentMembership, selectedNewPlan) ? (
+                    <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-green-800 mb-3">🎉 ¡Beneficios de tu upgrade!</h4>
+                      <div className="space-y-2">
+                        {getUpgradeMotivation(selectedNewPlan).map((benefit, index) => (
+                          <div key={index} className="flex items-start gap-2 text-green-700">
+                            <span>{benefit}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : isPlanDowngrade(currentMembership, selectedNewPlan) ? (
+                    <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-orange-800 mb-3">⚠️ Limitaciones del nuevo plan</h4>
+                      <div className="space-y-2">
+                        {getDowngradeLimitations(currentMembership, selectedNewPlan).map((limitation, index) => (
+                          <div key={index} className="flex items-start gap-2 text-orange-700">
+                            <span>{limitation}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 p-3 bg-orange-100 rounded border">
+                        <p className="text-sm text-orange-800">
+                          <strong>Nota:</strong> Los datos existentes que excedan los límites del nuevo plan se mantendrán, 
+                          pero no podrás agregar nuevo contenido hasta que esté dentro de los límites.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-800 mb-3">ℹ️ Información del cambio</h4>
+                      <p className="text-blue-700">
+                        Tu plan será actualizado y los cambios se aplicarán inmediatamente.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4 mt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowPlanConfirmation(false)}
+                      className="flex-1"
+                    >
+                      ← Volver a planes
+                    </Button>
+                    <Button 
+                      onClick={handleConfirmPlanChange}
+                      disabled={changePlanMutation.isPending}
+                      className={`flex-1 ${
+                        isPlanUpgrade(currentMembership, selectedNewPlan) 
+                          ? 'bg-green-600 hover:bg-green-700' 
+                          : 'bg-[#bcce16] hover:bg-[#a8b814] text-black'
+                      }`}
+                      data-testid="button-confirm-plan-change"
+                    >
+                      {changePlanMutation.isPending ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          Procesando...
+                        </div>
+                      ) : (
+                        <>
+                          {isPlanUpgrade(currentMembership, selectedNewPlan) ? '🚀 ¡Confirmar Upgrade!' : '✅ Confirmar Cambio'}
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 
