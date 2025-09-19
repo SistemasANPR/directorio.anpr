@@ -611,6 +611,11 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const handleDirectSubmit = () => {
     console.log("🔥🔥🔥 DIRECT SUBMIT - BYPASSING FORM VALIDATION");
     
+    if (!company) {
+      console.error("❌ Company data not available");
+      return;
+    }
+    
     try {
       // Get current form values directly
       const formValues = form.getValues();
@@ -624,24 +629,24 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
         telefono2: formValues.telefono2 || company.telefono2 || "",
         email1: formValues.email1 || company.email1 || "",
         email2: formValues.email2 || company.email2 || "",
-        sitioWeb: formValues.sitioWeb || company.sitioWeb || "",
-        direccionFisica: formValues.direccionFisica || company.direccionFisica || "",
+        sitioWeb: formValues.sitioWeb || (typeof company.sitioWeb === 'string' ? company.sitioWeb : '') || "",
+        direccionFisica: formValues.direccionFisica || (typeof company.direccionFisica === 'string' ? company.direccionFisica : '') || "",
         descripcionEmpresa: formValues.descripcionEmpresa || company.descripcionEmpresa || "",
         ubicacionGeografica: formValues.ubicacionGeografica || company.ubicacionGeografica || "",
         representantesVentas: formValues.representantesVentas || company.representantesVentas || "",
         catalogoDigitalUrl: formValues.catalogoDigitalUrl || company.catalogoDigitalUrl || "",
-        categoriesIds: formValues.categoriesIds || company.categoriesIds || [],
-        certificateIds: formValues.certificateIds || company.certificateIds || [],
-        tagIds: formValues.tagIds || company.tagIds || [],
+        categoriesIds: formValues.categoriesIds || (Array.isArray(company.categoriesIds) ? company.categoriesIds : []) || [],
+        certificateIds: formValues.certificateIds || (Array.isArray(company.certificateIds) ? company.certificateIds : []) || [],
+        tagIds: formValues.tagIds || (Array.isArray(company.tagIds) ? company.tagIds : []) || [],
         membershipTypeId: formValues.membershipTypeId || company.membershipTypeId || 1,
         membershipPeriodicidad: formValues.membershipPeriodicidad || company.membershipPeriodicidad || "",
         formaPago: formValues.formaPago || company.formaPago || "",
         fechaInicioMembresia: formValues.fechaInicioMembresia || company.fechaInicioMembresia || "",
         fechaFinMembresia: formValues.fechaFinMembresia || company.fechaFinMembresia || "",
         notasMembresia: formValues.notasMembresia || company.notasMembresia || "",
-        redesSociales: formValues.redesSociales || company.redesSociales || {},
-        videosUrls: formValues.videosUrls || company.videosUrls || [],
-        galeriaProductosUrls: formValues.galeriaProductosUrls || company.galeriaProductosUrls || [],
+        redesSociales: formValues.redesSociales || company.redesSociales || "",
+        videosUrls: formValues.videosUrls || (Array.isArray(company.videosUrls) ? company.videosUrls : []) || [],
+        galeriaProductosUrls: formValues.galeriaProductosUrls || (Array.isArray(company.galeriaProductosUrls) ? company.galeriaProductosUrls : []) || [],
         logotipoUrl: formValues.logotipoUrl || company.logotipoUrl || "",
         fotoPortadaUrl: formValues.fotoPortadaUrl || company.fotoPortadaUrl || "",
       };
