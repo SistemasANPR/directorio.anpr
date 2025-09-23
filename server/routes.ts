@@ -9,13 +9,15 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema, insertFrontendConfigurationSchema } from "@shared/schema";
 import { z } from "zod";
+import { SEED_DATA } from "./seed-data";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+// Initialize Stripe only if secret is available (prevents app crash in production)
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2023-10-16",
+  });
 }
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-});
 
 // Configuración de multer para imágenes
 const imageStorage = multer.diskStorage({
@@ -116,6 +118,176 @@ const uploadDocument = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // 🌱 ENDPOINTS DE SEEDING AUTOMÁTICO PARA PRODUCCIÓN
+  // ========================================================
+  
+  // Endpoint para verificar estado de la base de datos
+  app.get("/api/admin/seed/status", async (req, res) => {
+    try {
+      const [membershipTypes, companies, categories, users] = await Promise.all([
+        storage.getAllMembershipTypes(),
+        storage.getAllCompanies({ limit: 1 }),
+        storage.getAllCategories(),
+        storage.getAllUsers()
+      ]);
+
+      const status = {
+        membershipTypes: membershipTypes.length,
+        companies: companies.total,
+        categories: categories.length,
+        users: users.length,
+        isEmpty: membershipTypes.length === 0 && companies.total === 0 && categories.length === 0 && users.length === 0
+      };
+
+      res.json(status);
+    } catch (error) {
+      console.error("Error checking seed status:", error);
+      res.status(500).json({ error: "Failed to check database status" });
+    }
+  });
+
+  // Endpoint para realizar seeding automático
+  app.post("/api/admin/seed", async (req, res) => {
+    try {
+      const seedToken = req.headers['x-seed-token'];
+      const expectedToken = process.env.SEED_TOKEN || 'anpr_seed_2025';
+      
+      if (seedToken !== expectedToken) {
+        return res.status(401).json({ error: "Unauthorized seeding attempt" });
+      }
+
+      console.log("🌱 Iniciando seeding automático de base de datos...");
+      
+      const results = {
+        membershipTypes: 0,
+        categories: 0,
+        users: 0,
+        companies: 0,
+        tags: 0,
+        certificates: 0,
+        errors: []
+      };
+
+      // 1. Crear planes de membresía
+      for (const planData of SEED_DATA.membershipTypes) {
+        try {
+          const existingPlan = await storage.getAllMembershipTypes();
+          const exists = existingPlan.find(p => p.nombrePlan === planData.nombrePlan);
+          
+          if (!exists) {
+            await storage.createMembershipType(planData);
+            results.membershipTypes++;
+            console.log(`✅ Plan creado: ${planData.nombrePlan}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error creando plan ${planData.nombrePlan}:`, error);
+          results.errors.push(`Plan ${planData.nombrePlan}: ${error}`);
+        }
+      }
+
+      // 2. Crear categorías
+      for (const categoryData of SEED_DATA.categories) {
+        try {
+          const existingCategories = await storage.getAllCategories();
+          const exists = existingCategories.find(c => c.nombreCategoria === categoryData.nombreCategoria);
+          
+          if (!exists) {
+            await storage.createCategory(categoryData);
+            results.categories++;
+            console.log(`✅ Categoría creada: ${categoryData.nombreCategoria}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error creando categoría ${categoryData.nombreCategoria}:`, error);
+          results.errors.push(`Categoría ${categoryData.nombreCategoria}: ${error}`);
+        }
+      }
+
+      // 3. Crear usuarios
+      for (const userData of SEED_DATA.users) {
+        try {
+          const existingUser = await storage.getUserByEmail(userData.email);
+          
+          if (!existingUser) {
+            await storage.createUser(userData);
+            results.users++;
+            console.log(`✅ Usuario creado: ${userData.email}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error creando usuario ${userData.email}:`, error);
+          results.errors.push(`Usuario ${userData.email}: ${error}`);
+        }
+      }
+
+      // 4. Crear empresas
+      for (const companyData of SEED_DATA.companies) {
+        try {
+          const existingCompanies = await storage.getAllCompanies({ search: companyData.nombreEmpresa });
+          const exists = existingCompanies.companies.find(c => c.nombreEmpresa === companyData.nombreEmpresa);
+          
+          if (!exists) {
+            await storage.createCompany(companyData);
+            results.companies++;
+            console.log(`✅ Empresa creada: ${companyData.nombreEmpresa}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error creando empresa ${companyData.nombreEmpresa}:`, error);
+          results.errors.push(`Empresa ${companyData.nombreEmpresa}: ${error}`);
+        }
+      }
+
+      // 5. Crear tags
+      for (const tagData of SEED_DATA.tags) {
+        try {
+          const existingTags = await storage.getAllTags();
+          const exists = existingTags.find(t => t.nombre === tagData.nombre);
+          
+          if (!exists) {
+            await storage.createTag(tagData);
+            results.tags++;
+            console.log(`✅ Tag creado: ${tagData.nombre}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error creando tag ${tagData.nombre}:`, error);
+          results.errors.push(`Tag ${tagData.nombre}: ${error}`);
+        }
+      }
+
+      // 6. Crear certificados
+      for (const certData of SEED_DATA.certificates) {
+        try {
+          const existingCerts = await storage.getAllCertificates();
+          const exists = existingCerts.find(c => c.nombre === certData.nombre);
+          
+          if (!exists) {
+            await storage.createCertificate(certData);
+            results.certificates++;
+            console.log(`✅ Certificado creado: ${certData.nombre}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error creando certificado ${certData.nombre}:`, error);
+          results.errors.push(`Certificado ${certData.nombre}: ${error}`);
+        }
+      }
+
+      console.log("🎉 Seeding completado exitosamente!");
+      console.log("📊 Resultados:", results);
+
+      res.json({
+        success: true,
+        message: "Base de datos poblada exitosamente",
+        results
+      });
+
+    } catch (error) {
+      console.error("💥 Error fatal durante seeding:", error);
+      res.status(500).json({ 
+        success: false,
+        error: "Failed to seed database",
+        details: error
+      });
+    }
+  });
+
   // Servir archivos estáticos desde la carpeta uploads
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   
