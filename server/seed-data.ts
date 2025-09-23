@@ -181,7 +181,7 @@ export const SEED_DATA = {
       redesSociales: [],
       catalogoDigitalUrl: null,
       videosUrls: [],
-      membershipTypeId: 3,
+      membershipTypeId: 1,
       sitioWeb: "https://www.productosjumbo.com",
       certificateIds: [],
       tagIds: null,
@@ -213,7 +213,7 @@ export const SEED_DATA = {
       redesSociales: [],
       catalogoDigitalUrl: "",
       videosUrls: [],
-      membershipTypeId: 2,
+      membershipTypeId: 1,
       sitioWeb: "https://anpr.org.mx/",
       certificateIds: [],
       tagIds: null,
@@ -245,7 +245,7 @@ export const SEED_DATA = {
       redesSociales: [],
       catalogoDigitalUrl: "",
       videosUrls: [],
-      membershipTypeId: 2,
+      membershipTypeId: 1,
       sitioWeb: "",
       certificateIds: [],
       tagIds: [],
@@ -284,7 +284,7 @@ export const SEED_DATA = {
   // CERTIFICADOS
   certificates: [
     {
-      nombre: "ISO 9001",
+      nombreCertificado: "ISO 9001",
       descripcion: "Certificación de calidad internacional",
       imagenUrl: null,
       fechaEmision: "2024-01-01",
@@ -296,7 +296,7 @@ export const SEED_DATA = {
       creadoPorAdmin: true
     },
     {
-      nombre: "Certificado ANPR",
+      nombreCertificado: "Certificado ANPR",
       descripcion: "Certificación oficial de ANPR México",
       imagenUrl: null,
       fechaEmision: "2024-01-01",

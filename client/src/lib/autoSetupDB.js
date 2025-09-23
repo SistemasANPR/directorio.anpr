@@ -17,7 +17,7 @@ const setupProductionDatabase = async () => {
         console.log('🚀 Verificando configuración de base de datos en producción...');
         
         // 1. Verificar el estado actual de la base de datos
-        const statusResponse = await fetch('/api/admin/seed/status', {
+        const statusResponse = await fetch('/api/seed/status', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -70,7 +70,7 @@ const setupProductionDatabase = async () => {
             document.body.appendChild(loadingDiv);
             
             // 3. Ejecutar seeding
-            const seedResponse = await fetch('/api/admin/seed', {
+            const seedResponse = await fetch('/api/seed', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

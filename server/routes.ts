@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================================
   
   // Endpoint para verificar estado de la base de datos
-  app.get("/api/admin/seed/status", async (req, res) => {
+  app.get("/api/seed/status", async (req, res) => {
     try {
       const [membershipTypes, companies, categories, users] = await Promise.all([
         storage.getAllMembershipTypes(),
@@ -147,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Endpoint para realizar seeding automático
-  app.post("/api/admin/seed", async (req, res) => {
+  app.post("/api/seed", async (req, res) => {
     try {
       const seedToken = req.headers['x-seed-token'];
       const expectedToken = process.env.SEED_TOKEN || 'anpr_seed_2025';
