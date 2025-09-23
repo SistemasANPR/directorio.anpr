@@ -57,6 +57,33 @@ import { db } from "./db";
 import { eq, like, sql, and, or, asc } from "drizzle-orm";
 import nodemailer from "nodemailer";
 
+// Helper function to normalize company data
+function normalizeCompanyData(company: any) {
+  // Parse ubicacionGeografica if it's a string
+  if (typeof company.ubicacionGeografica === 'string') {
+    try {
+      company.ubicacionGeografica = JSON.parse(company.ubicacionGeografica);
+    } catch (error) {
+      console.error('Error parsing ubicacionGeografica:', error);
+      company.ubicacionGeografica = null;
+    }
+  }
+  
+  // Ensure lat and lng are numbers if they exist
+  if (company.ubicacionGeografica && typeof company.ubicacionGeografica === 'object') {
+    const { lat, lng, ...rest } = company.ubicacionGeografica;
+    if (lat !== undefined && lng !== undefined) {
+      company.ubicacionGeografica = {
+        lat: Number(lat),
+        lng: Number(lng),
+        ...rest
+      };
+    }
+  }
+  
+  return company;
+}
+
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
@@ -291,8 +318,10 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
+    const normalizedCompany = normalizeCompanyData(company);
+    
     return {
-      ...company,
+      ...normalizedCompany,
       membershipType: membershipType || undefined,
       user: user || undefined,
       categories: companyCategories,
@@ -405,8 +434,10 @@ export class DatabaseStorage implements IStorage {
           }
         }
 
+        const normalizedCompany = normalizeCompanyData(company);
+        
         return {
-          ...company,
+          ...normalizedCompany,
           membershipType: membershipType || undefined,
           user: user || undefined,
           categories: companyCategories,
