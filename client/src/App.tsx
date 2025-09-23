@@ -29,6 +29,7 @@ import Directory from "@/pages/Directory";
 import MembershipCheckout from "@/pages/MembershipCheckout";
 import RepresentativeRegister from "@/pages/RepresentativeRegister";
 import RepresentativeLogin from "@/pages/RepresentativeLogin";
+import AdminRegister from "@/pages/AdminRegister";
 import RepresentativeDashboard from "@/pages/RepresentativeDashboardComplete";
 import RegisterAndPay from "@/pages/RegisterAndPay";
 import RegistroExitoso from "@/pages/RegistroExitoso";
@@ -92,6 +93,10 @@ function Router() {
     <div>
       <Route path="/login">
         <Login />
+      </Route>
+
+      <Route path="/admin-register">
+        <AdminRegister />
       </Route>
       
       <Route path="/dashboard">

@@ -240,17 +240,32 @@ export default function Login() {
           </Form>
 
           {/* Link inferior para crear cuenta */}
-          <div className="text-center text-sm">
-            <span className="text-gray-600">¿No tienes cuenta? </span>
-            <button
-              type="button"
-              onClick={() => window.location.href = "/planes#elige-tu-plan"}
-              className="text-blue-600 hover:text-blue-800 hover:underline"
-              disabled={isLoading}
-              data-testid="link-signup"
-            >
-              Crea aquí
-            </button>
+          <div className="text-center text-sm space-y-2">
+            <div>
+              <span className="text-gray-600">¿No tienes cuenta? </span>
+              <button
+                type="button"
+                onClick={() => window.location.href = "/planes#elige-tu-plan"}
+                className="text-blue-600 hover:text-blue-800 hover:underline"
+                disabled={isLoading}
+                data-testid="link-signup"
+              >
+                Crea aquí
+              </button>
+            </div>
+            
+            {/* Enlace discreto para administradores */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setLocation("/admin-register")}
+                className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
+                disabled={isLoading}
+                data-testid="link-admin-register"
+              >
+                Acceso de administrador
+              </button>
+            </div>
           </div>
         </CardContent>
       </Card>
