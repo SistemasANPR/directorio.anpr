@@ -6,7 +6,7 @@ import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { createUserWithEmail } from "@/lib/auth";
+import { createUserWithEmail, signInWithEmail } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -50,27 +50,68 @@ export default function AdminRegister() {
         throw new Error("Clave de administrador incorrecta");
       }
 
-      // First create Firebase account
-      const firebaseUser = await createUserWithEmail(data.email, data.password);
+      let firebaseUser;
       
-      // Then create user in our database with admin role
-      const response = await apiRequest("POST", "/api/users", {
-        firebaseUid: firebaseUser.uid,
-        email: data.email,
-        displayName: data.nombre,
-        photoURL: "",
-        role: "admin",
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        autoRenewal: false
+      try {
+        // Try to create new Firebase account
+        firebaseUser = await createUserWithEmail(data.email, data.password);
+      } catch (error: any) {
+        if (error.code === "auth/email-already-in-use") {
+          // If email already exists, try to sign in to verify password
+          try {
+            firebaseUser = await signInWithEmail(data.email, data.password, false);
+          } catch (signInError: any) {
+            if (signInError.code === "auth/wrong-password") {
+              throw new Error("El email ya existe pero la contraseña es incorrecta");
+            } else if (signInError.code === "auth/user-not-found") {
+              throw new Error("Usuario no encontrado");
+            }
+            throw signInError;
+          }
+        } else {
+          throw error;
+        }
+      }
+      
+      // Check if user already exists in our database
+      const existingUserResponse = await fetch(`/api/users/firebase/${firebaseUser.uid}`, {
+        credentials: "include",
       });
-      
-      return response.json();
+
+      if (existingUserResponse.ok) {
+        // User exists, update to admin role
+        const existingUser = await existingUserResponse.json();
+        
+        if (existingUser.role === "admin") {
+          throw new Error("Esta cuenta ya tiene permisos de administrador");
+        }
+
+        // Update user to admin role
+        const updateResponse = await apiRequest("PUT", `/api/users/${existingUser.id}`, {
+          role: "admin"
+        });
+        
+        return updateResponse.json();
+      } else {
+        // User doesn't exist in our database, create new one with admin role
+        const response = await apiRequest("POST", "/api/users", {
+          firebaseUid: firebaseUser.uid,
+          email: data.email,
+          displayName: data.nombre,
+          photoURL: "",
+          role: "admin",
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          autoRenewal: false
+        });
+        
+        return response.json();
+      }
     },
-    onSuccess: () => {
+    onSuccess: (result, variables) => {
       toast({
-        title: "Cuenta de administrador creada exitosamente",
-        description: "Ya puedes iniciar sesión con tus credenciales.",
+        title: "¡Permisos de administrador asignados exitosamente!",
+        description: "Ya puedes iniciar sesión con tus credenciales de administrador.",
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
