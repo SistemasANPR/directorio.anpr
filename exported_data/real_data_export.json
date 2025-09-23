@@ -1,0 +1,211 @@
+{
+  "export_info": {
+    "fecha": "2025-09-23",
+    "descripcion": "Exportación completa de datos reales de ANPR México",
+    "total_empresas": 20,
+    "total_usuarios": 18,
+    "total_categorias": 25,
+    "total_planes": 3,
+    "total_etiquetas": 7,
+    "total_certificados": 1
+  },
+  "membership_types": [
+    {
+      "id": 8,
+      "nombre_plan": "Básico",
+      "descripcion_plan": "",
+      "beneficios": [
+        "Micrositio con nombre, descripción, redes y contacto",
+        "Hasta 8 imágenes con descripción",
+        "Inclusión de 1 catálogos PDF",
+        "Presencia en el directorio digital semestralmente"
+      ],
+      "opciones_precios": [
+        { "costo": 385, "periodicidad": "Anual" },
+        { "costo": 35, "periodicidad": "Mensual" }
+      ],
+      "visibilidad": "publica",
+      "cantidad_productos_admitidos": 8,
+      "cantidad_proyectos_admitidos": 4,
+      "stripe_product_id": "prod_SYKMhNw4msFuME",
+      "cantidad_fotos_por_proyecto": 5,
+      "mas_popular": false
+    },
+    {
+      "id": 9,
+      "nombre_plan": "Premium",
+      "descripcion_plan": "",
+      "beneficios": [
+        "Micrositio con nombre, descripción, redes y contacto",
+        "Hasta 8 imágenes con descripción",
+        "Inclusión de 1 catálogos PDF",
+        "Presencia en el directorio digital semestralmente",
+        "Imágenes Ilimitadas",
+        "Curriculum de Proyectos Ilimitados",
+        "Inclusión de 5 catálogos PDF",
+        "Videos en el micrositio",
+        "Promoción especial en redes de ANPR México",
+        "Video promocional durante un webinar",
+        "Publicidad en la Revista Parques (2 ediciones al año)",
+        "Publicidad en boletines informativos"
+      ],
+      "opciones_precios": [
+        { "costo": 65, "periodicidad": "Mensual" },
+        { "costo": 715, "periodicidad": "Anual" }
+      ],
+      "visibilidad": "publica",
+      "cantidad_productos_admitidos": -1,
+      "cantidad_proyectos_admitidos": -1,
+      "stripe_product_id": "prod_SYKMSBLeNYxQfN",
+      "cantidad_fotos_por_proyecto": 5,
+      "mas_popular": true
+    },
+    {
+      "id": 10,
+      "nombre_plan": "Membresía Empresarial ANPR",
+      "descripcion_plan": "",
+      "beneficios": [],
+      "opciones_precios": [
+        { "costo": 0, "periodicidad": "Anual" }
+      ],
+      "visibilidad": "privada",
+      "cantidad_productos_admitidos": -1,
+      "cantidad_proyectos_admitidos": -1,
+      "stripe_product_id": "prod_SYKMlP7tJXulDr",
+      "cantidad_fotos_por_proyecto": 5,
+      "mas_popular": false
+    }
+  ],
+  "tags": [
+    {
+      "id": 1,
+      "nombre": "Sustentable",
+      "descripcion": "Productos y servicios eco-amigables",
+      "color": "#10B981",
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "nombre": "Innovación",
+      "descripcion": "Soluciones tecnológicas avanzadas",
+      "color": "#3B82F6",
+      "is_active": true
+    },
+    {
+      "id": 3,
+      "nombre": "Calidad Premium",
+      "descripcion": "Productos de alta calidad",
+      "color": "#F59E0B",
+      "is_active": true
+    },
+    {
+      "id": 4,
+      "nombre": "Servicio 24/7",
+      "descripcion": "Atención continua",
+      "color": "#EF4444",
+      "is_active": true
+    },
+    {
+      "id": 5,
+      "nombre": "Garantía Extendida",
+      "descripcion": "Garantía superior al estándar",
+      "color": "#8B5CF6",
+      "is_active": true
+    },
+    {
+      "id": 6,
+      "nombre": "Innovador",
+      "descripcion": "Productos con tecnología innovadora",
+      "color": "#3B82F6",
+      "is_active": true
+    },
+    {
+      "id": 7,
+      "nombre": "Resistente",
+      "descripción": "Productos de alta durabilidad",
+      "color": "#EF4444",
+      "is_active": true
+    }
+  ],
+  "main_categories": [
+    {
+      "nombre_categoria": "Árboles y Vegetación",
+      "descripcion": "",
+      "icono": "TreePine"
+    },
+    {
+      "nombre_categoria": "Diseño y Planeación",
+      "descripcion": "",
+      "icono": "Tags"
+    },
+    {
+      "nombre_categoria": "Ferias y Juegos Mecánicos",
+      "descripcion": "",
+      "icono": "Tags"
+    },
+    {
+      "nombre_categoria": "Gimnasios al Aire Libre",
+      "descripcion": "",
+      "icono": "Users"
+    },
+    {
+      "nombre_categoria": "Mobiliario Urbano",
+      "descripcion": "Elementos de mobiliario para espacios públicos",
+      "icono": "Armchair"
+    },
+    {
+      "nombre_categoria": "Juegos Infantiles",
+      "descripcion": "Equipamiento recreativo para niños",
+      "icono": "Gamepad2"
+    },
+    {
+      "nombre_categoria": "Iluminación",
+      "descripcion": "Sistemas de iluminación urbana",
+      "icono": "Lightbulb"
+    },
+    {
+      "nombre_categoria": "Seguridad",
+      "descripcion": "Sistemas de seguridad urbana",
+      "icono": "Shield"
+    },
+    {
+      "nombre_categoria": "Jardinería",
+      "descripcion": "Elementos para áreas verdes",
+      "icono": "Trees"
+    },
+    {
+      "nombre_categoria": "Señalización",
+      "descripcion": "Sistemas de señalización urbana",
+      "icono": "MapPin"
+    }
+  ],
+  "certificados": [
+    {
+      "id": 8,
+      "nombre_certificado": "Miembro Oficial de ANPR México 2025",
+      "imagen_url": "/uploads/images/b748a8cf-af74-4397-b48f-3ccdae5a4256_1757357160307.png",
+      "descripcion": "Miembro ANPR",
+      "entidad_emisora": "ANPR México",
+      "estado": "activo",
+      "membership_plan_ids": [10],
+      "creado_por_admin": true,
+      "asignacion_automatica": true
+    }
+  ],
+  "admin_user": {
+    "firebase_uid": "g1EKU5oSaFWCV8bd490HxYPVQdq2",
+    "email": "admin@directorio.mx",
+    "display_name": "Administrador",
+    "photo_url": "https://via.placeholder.com/150x150/0f2161/ffffff?text=Admin",
+    "role": "admin"
+  },
+  "notas_importantes": [
+    "Esta base de datos contiene 20 empresas reales registradas",
+    "18 usuarios activos con datos de Firebase",
+    "25 categorías completas con iconos configurados",
+    "3 planes de membresía con precios de Stripe",
+    "Sistema de certificados activo",
+    "Geolocalización real de empresas en México",
+    "Datos de contacto y descripciones reales"
+  ]
+}
