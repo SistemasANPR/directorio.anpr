@@ -237,8 +237,10 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         style={{ 
           minHeight: '400px',
           height: '400px',
+          width: '100%',
           position: 'relative',
-          zIndex: 1
+          zIndex: 1,
+          display: 'block'
         }}
       />
     </div>
