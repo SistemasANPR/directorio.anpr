@@ -59,10 +59,14 @@ import nodemailer from "nodemailer";
 
 // Helper function to normalize company data
 function normalizeCompanyData(company: any) {
+  console.log(`🔧 Normalizing company ${company.id} (${company.nombreEmpresa})`);
+  console.log(`   Original ubicacionGeografica:`, company.ubicacionGeografica, typeof company.ubicacionGeografica);
+  
   // Parse ubicacionGeografica if it's a string
   if (typeof company.ubicacionGeografica === 'string') {
     try {
       company.ubicacionGeografica = JSON.parse(company.ubicacionGeografica);
+      console.log(`   Parsed to:`, company.ubicacionGeografica);
     } catch (error) {
       console.error('Error parsing ubicacionGeografica:', error);
       company.ubicacionGeografica = null;
@@ -72,12 +76,18 @@ function normalizeCompanyData(company: any) {
   // Ensure lat and lng are numbers if they exist
   if (company.ubicacionGeografica && typeof company.ubicacionGeografica === 'object') {
     const { lat, lng, ...rest } = company.ubicacionGeografica;
+    console.log(`   Extracted lat:${lat} (${typeof lat}), lng:${lng} (${typeof lng})`);
+    
     if (lat !== undefined && lng !== undefined) {
       company.ubicacionGeografica = {
         lat: Number(lat),
         lng: Number(lng),
         ...rest
       };
+      console.log(`   Final normalized:`, company.ubicacionGeografica);
+    } else {
+      console.log(`   Missing lat or lng, setting to null`);
+      company.ubicacionGeografica = null;
     }
   }
   
@@ -446,6 +456,11 @@ export class DatabaseStorage implements IStorage {
         };
       })
     );
+
+    console.log("📤 Returning companies data:", {
+      count: enrichedCompanies.length,
+      firstCompanyLocation: enrichedCompanies[0]?.ubicacionGeografica || 'none'
+    });
 
     return {
       companies: enrichedCompanies,
