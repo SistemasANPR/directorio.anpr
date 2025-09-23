@@ -148,6 +148,16 @@ export const SEED_DATA = {
       autoRenewal: false
     },
     {
+      firebaseUid: "sistemas_anpr_admin",
+      email: "sistemas.anpr@gmail.com",
+      displayName: "Sistemas ANPR",
+      photoURL: null,
+      role: "admin",
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      autoRenewal: false
+    },
+    {
       firebaseUid: "pending_1758232475849_gabo43211@gmail.com",
       email: "gabo43211@gmail.com",
       displayName: "Gabriel Andrade",
