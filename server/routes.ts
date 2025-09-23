@@ -288,6 +288,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🚀 ENDPOINT PARA FORZAR SEEDING (sin verificar si está vacía)
+  app.post("/api/seed/force", async (req, res) => {
+    const authHeader = req.headers['x-seed-token'];
+    if (authHeader !== 'anpr_seed_2025') {
+      return res.status(401).json({ error: 'Token no válido' });
+    }
+
+    try {
+      console.log('🌱 FORZANDO seeding automático de base de datos...');
+      const results = {
+        membershipTypes: 0,
+        categories: 0,
+        users: 0,
+        companies: 0,
+        tags: 0,
+        certificates: 0,
+        errors: []
+      };
+
+      // Poblar planes de membresía
+      for (const plan of SEED_DATA.membershipTypes) {
+        try {
+          await storage.createMembershipType(plan);
+          results.membershipTypes++;
+          console.log(`✅ Plan creado: ${plan.nombrePlan}`);
+        } catch (error) {
+          console.log(`❌ Error creando plan ${plan.nombrePlan}:`, error);
+          results.errors.push(`Plan ${plan.nombrePlan}: ${error.message}`);
+        }
+      }
+
+      // Poblar categorías
+      for (const category of SEED_DATA.categories) {
+        try {
+          await storage.createCategory(category);
+          results.categories++;
+          console.log(`✅ Categoría creada: ${category.nombreCategoria}`);
+        } catch (error) {
+          console.log(`❌ Error creando categoría ${category.nombreCategoria}:`, error);
+          results.errors.push(`Categoría ${category.nombreCategoria}: ${error.message}`);
+        }
+      }
+
+      // Poblar etiquetas
+      for (const tag of SEED_DATA.tags) {
+        try {
+          await storage.createTag(tag);
+          results.tags++;
+          console.log(`✅ Tag creado: ${tag.nombre}`);
+        } catch (error) {
+          console.log(`❌ Error creando tag ${tag.nombre}:`, error);
+          results.errors.push(`Tag ${tag.nombre}: ${error.message}`);
+        }
+      }
+
+      // Poblar usuarios
+      for (const user of SEED_DATA.users) {
+        try {
+          await storage.createUser(user);
+          results.users++;
+          console.log(`✅ Usuario creado: ${user.email}`);
+        } catch (error) {
+          console.log(`❌ Error creando usuario ${user.email}:`, error);
+          results.errors.push(`Usuario ${user.email}: ${error.message}`);
+        }
+      }
+
+      // Poblar empresas
+      for (const company of SEED_DATA.companies) {
+        try {
+          await storage.createCompany(company);
+          results.companies++;
+          console.log(`✅ Empresa creada: ${company.nombreEmpresa}`);
+        } catch (error) {
+          console.log(`❌ Error creando empresa ${company.nombreEmpresa}:`, error);
+          results.errors.push(`Empresa ${company.nombreEmpresa}: ${error.message}`);
+        }
+      }
+
+      // Poblar certificados
+      for (const cert of SEED_DATA.certificates) {
+        try {
+          await storage.createCertificate(cert);
+          results.certificates++;
+          console.log(`✅ Certificado creado: ${cert.nombreCertificado}`);
+        } catch (error) {
+          console.log(`❌ Error creando certificado ${cert.nombreCertificado}:`, error);
+          results.errors.push(`Certificado ${cert.nombreCertificado}: ${error.message}`);
+        }
+      }
+
+      console.log('🎉 Seeding FORZADO completado exitosamente!');
+      console.log('📊 Resultados:', results);
+
+      res.json({
+        success: true,
+        message: "Base de datos poblada FORZADAMENTE",
+        results: results
+      });
+    } catch (error) {
+      console.error('❌ Error durante seeding forzado:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Servir archivos estáticos desde la carpeta uploads
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   

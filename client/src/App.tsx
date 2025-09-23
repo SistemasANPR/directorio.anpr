@@ -44,6 +44,7 @@ import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
 import NotFound from "@/pages/not-found";
+import ForceSeeding from "@/pages/ForceSeeding";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isAdmin } = useAuth();
@@ -257,6 +258,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <FrontendConfiguration />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/implementar-bd">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <ForceSeeding />
           </AppLayout>
         </ProtectedRoute>
       </Route>
