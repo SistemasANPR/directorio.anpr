@@ -30,6 +30,7 @@ import MembershipCheckout from "@/pages/MembershipCheckout";
 import RepresentativeRegister from "@/pages/RepresentativeRegister";
 import RepresentativeLogin from "@/pages/RepresentativeLogin";
 import AdminRegister from "@/pages/AdminRegister";
+import TestAdminRegister from "@/pages/TestAdminRegister";
 import RepresentativeDashboard from "@/pages/RepresentativeDashboardComplete";
 import RegisterAndPay from "@/pages/RegisterAndPay";
 import RegistroExitoso from "@/pages/RegistroExitoso";
@@ -97,6 +98,10 @@ function Router() {
 
       <Route path="/admin-register">
         <AdminRegister />
+      </Route>
+
+      <Route path="/test-admin-register">
+        <TestAdminRegister />
       </Route>
       
       <Route path="/dashboard">

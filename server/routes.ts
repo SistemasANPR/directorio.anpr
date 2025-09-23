@@ -3186,6 +3186,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin registration endpoint - simplified without Firebase
+  app.post("/api/register-admin", async (req, res) => {
+    try {
+      const { email, password, displayName } = req.body;
+      console.log("Admin registration attempt for:", email);
+
+      if (!email || !password || !displayName) {
+        return res.status(400).json({ error: "Email, password, and name are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      
+      if (existingUser) {
+        // If user exists, update to admin role
+        if (existingUser.role === "admin") {
+          return res.status(400).json({ error: "Esta cuenta ya tiene permisos de administrador" });
+        }
+        
+        // Update existing user to admin
+        const updatedUser = await storage.updateUser(existingUser.id, { role: "admin" });
+        console.log("Updated existing user to admin:", updatedUser?.id);
+        
+        res.json({ 
+          success: true,
+          message: "Permisos de administrador asignados exitosamente",
+          user: { 
+            id: updatedUser!.id, 
+            email: updatedUser!.email, 
+            displayName: updatedUser!.displayName,
+            role: updatedUser!.role,
+            roleId: 1,
+            firebaseUid: updatedUser!.firebaseUid
+          }
+        });
+      } else {
+        // Create new admin user with temporary firebaseUid
+        const tempFirebaseUid = `temp_admin_${Date.now()}_${email}`;
+        
+        const newUser = await storage.createUser({
+          firebaseUid: tempFirebaseUid,
+          email: email,
+          displayName: displayName,
+          photoURL: "",
+          role: "admin",
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          autoRenewal: false
+        });
+        
+        console.log("Created new admin user:", newUser.id);
+        
+        res.json({ 
+          success: true,
+          message: "Cuenta de administrador creada exitosamente",
+          user: { 
+            id: newUser.id, 
+            email: newUser.email, 
+            displayName: newUser.displayName,
+            role: newUser.role,
+            roleId: 1,
+            firebaseUid: newUser.firebaseUid
+          }
+        });
+      }
+    } catch (error: any) {
+      console.error("Error in admin registration:", error);
+      res.status(500).json({ error: "Failed to create admin account" });
+    }
+  });
+
   // Auto-renewal toggle endpoint
   app.patch("/api/users/:userId/auto-renewal", async (req, res) => {
     try {

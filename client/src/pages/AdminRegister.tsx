@@ -3,10 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { createUserWithEmail, signInWithEmail } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,7 +15,6 @@ const registerSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
   confirmPassword: z.string(),
-  adminKey: z.string().min(1, "La clave de administrador es requerida"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Las contraseñas no coinciden",
   path: ["confirmPassword"],
@@ -29,7 +25,6 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export default function AdminRegister() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<RegisterFormData>({
@@ -39,100 +34,47 @@ export default function AdminRegister() {
       email: "",
       password: "",
       confirmPassword: "",
-      adminKey: "",
-    },
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterFormData) => {
-      // Verify admin key first
-      if (data.adminKey !== "ANPR_ADMIN_2025") {
-        throw new Error("Clave de administrador incorrecta");
-      }
-
-      let firebaseUser;
-      
-      try {
-        // Try to create new Firebase account
-        firebaseUser = await createUserWithEmail(data.email, data.password);
-      } catch (error: any) {
-        if (error.code === "auth/email-already-in-use") {
-          // If email already exists, try to sign in to verify password
-          try {
-            firebaseUser = await signInWithEmail(data.email, data.password, false);
-          } catch (signInError: any) {
-            if (signInError.code === "auth/wrong-password") {
-              throw new Error("El email ya existe pero la contraseña es incorrecta");
-            } else if (signInError.code === "auth/user-not-found") {
-              throw new Error("Usuario no encontrado");
-            }
-            throw signInError;
-          }
-        } else {
-          throw error;
-        }
-      }
-      
-      // Check if user already exists in our database
-      const existingUserResponse = await fetch(`/api/users/firebase/${firebaseUser.uid}`, {
-        credentials: "include",
-      });
-
-      if (existingUserResponse.ok) {
-        // User exists, update to admin role
-        const existingUser = await existingUserResponse.json();
-        
-        if (existingUser.role === "admin") {
-          throw new Error("Esta cuenta ya tiene permisos de administrador");
-        }
-
-        // Update user to admin role
-        const updateResponse = await apiRequest("PUT", `/api/users/${existingUser.id}`, {
-          role: "admin"
-        });
-        
-        return updateResponse.json();
-      } else {
-        // User doesn't exist in our database, create new one with admin role
-        const response = await apiRequest("POST", "/api/users", {
-          firebaseUid: firebaseUser.uid,
-          email: data.email,
-          displayName: data.nombre,
-          photoURL: "",
-          role: "admin",
-          stripeCustomerId: null,
-          stripeSubscriptionId: null,
-          autoRenewal: false
-        });
-        
-        return response.json();
-      }
-    },
-    onSuccess: (result, variables) => {
-      toast({
-        title: "¡Permisos de administrador asignados exitosamente!",
-        description: "Ya puedes iniciar sesión con tus credenciales de administrador.",
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      // Redirect to login page
-      setTimeout(() => setLocation("/login"), 2000);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error al crear cuenta",
-        description: error.message || "Ha ocurrido un error inesperado",
-        variant: "destructive",
-      });
     },
   });
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      await registerMutation.mutateAsync(data);
-    } catch (error) {
-      // Error handling is done in the mutation
+      const response = await fetch('/api/register-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          displayName: data.nombre
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Store user data for session management (like the temp login system)
+        localStorage.setItem('tempUser', JSON.stringify(result.user));
+        
+        toast({
+          title: "¡Cuenta de administrador creada exitosamente!",
+          description: result.message || "Ya puedes iniciar sesión con tus credenciales.",
+        });
+        
+        // Redirect to login page
+        setTimeout(() => setLocation("/login"), 2000);
+      } else {
+        throw new Error(result.error || "Error al crear cuenta de administrador");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error al crear cuenta",
+        description: error.message || "Ha ocurrido un error inesperado",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -252,30 +194,6 @@ export default function AdminRegister() {
                             className="pl-10 h-12 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md"
                             {...field} 
                             data-testid="input-confirm-password"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Campo Clave de Administrador */}
-                <FormField
-                  control={form.control}
-                  name="adminKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700">Clave de administrador</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Shield className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password" 
-                            placeholder="Clave secreta de administrador" 
-                            className="pl-10 h-12 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 rounded-md"
-                            {...field} 
-                            data-testid="input-admin-key"
                           />
                         </div>
                       </FormControl>
