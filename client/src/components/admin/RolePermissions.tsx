@@ -102,6 +102,12 @@ const getPermissionColor = (permission: string) => {
   return "bg-gray-100 text-gray-800 hover:bg-gray-200";
 };
 
+// Función para limpiar HTML y mostrar solo texto
+const stripHtmlTags = (html: string) => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '').trim();
+};
+
 export default function RolePermissions() {
   const { data: roles = DEFAULT_ROLES, isLoading, error } = useQuery<Role[]>({
     queryKey: ['/api/roles'],
@@ -191,7 +197,7 @@ export default function RolePermissions() {
               </div>
               
               <CardDescription className="text-sm text-gray-600 mt-2">
-                {role.descripcion}
+                {stripHtmlTags(role.descripcion)}
               </CardDescription>
             </CardHeader>
 

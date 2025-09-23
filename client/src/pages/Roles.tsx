@@ -23,6 +23,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type RoleFormData = z.infer<typeof insertRoleSchema>;
 
+// Función para limpiar HTML y mostrar solo texto
+const stripHtmlTags = (html: string) => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '').trim();
+};
+
 // Lista de permisos disponibles
 const availablePermissions = [
   { id: "users.read", name: "Ver usuarios", category: "Usuarios", icon: Users },
@@ -390,7 +396,7 @@ export default function Roles() {
                     </Badge>
                   </div>
                   {role.descripcion && (
-                    <CardDescription>{role.descripcion}</CardDescription>
+                    <CardDescription>{stripHtmlTags(role.descripcion)}</CardDescription>
                   )}
                 </CardHeader>
                 <CardContent>
