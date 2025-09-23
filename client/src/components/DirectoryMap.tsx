@@ -84,12 +84,24 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         const defaultCenter: [number, number] = [19.4326, -99.1332];
         const defaultZoom = 6;
 
-        // Crear el mapa
-        const map = L.map(mapRef.current).setView(defaultCenter, defaultZoom);
+        // Crear el mapa con configuración mejorada
+        const map = L.map(mapRef.current, {
+          zoomControl: true,
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          boxZoom: true,
+          keyboard: true,
+          dragging: true,
+          touchZoom: true,
+          preferCanvas: false
+        }).setView(defaultCenter, defaultZoom);
 
-        // Agregar capa de tiles de OpenStreetMap
+        // Agregar capa de tiles de OpenStreetMap con configuración optimizada
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19,
+          minZoom: 3,
+          crossOrigin: true
         }).addTo(map);
 
         // Crear grupo de marcadores para ajustar el zoom automáticamente
