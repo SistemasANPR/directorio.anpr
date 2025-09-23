@@ -11,12 +11,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Edit, Plus, Shield, Users, Settings, FileText, BarChart, Eye } from "lucide-react";
+import { Trash2, Edit, Plus, Shield, Users, Settings, FileText, BarChart, Eye, UserCheck, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertRoleSchema, type Role, type InsertRole } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 import RolePermissions from "@/components/admin/RolePermissions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +49,40 @@ const availablePermissions = [
   { id: "statistics.read", name: "Ver estadísticas", category: "Estadísticas", icon: BarChart },
 ];
 
+// Función para obtener el icono del rol
+const getRoleIcon = (role: string) => {
+  switch (role?.toLowerCase()) {
+    case 'admin':
+    case 'administrador':
+      return <Shield className="h-4 w-4 text-blue-600" />;
+    case 'representante':
+      return <UserCheck className="h-4 w-4 text-green-600" />;
+    case 'user':
+    case 'usuario':
+      return <User className="h-4 w-4 text-gray-600" />;
+    default:
+      return <User className="h-4 w-4 text-gray-600" />;
+  }
+};
+
+// Función para obtener el nombre del rol en español
+const getRoleName = (role: string, roleId?: number) => {
+  if (roleId === 1) return "Administrador";
+  if (roleId === 2) return "Representante";
+  if (roleId === 3) return "Usuario";
+  
+  switch (role?.toLowerCase()) {
+    case 'admin':
+      return "Administrador";
+    case 'representante':
+      return "Representante";
+    case 'user':
+      return "Usuario";
+    default:
+      return role || "Usuario";
+  }
+};
+
 export default function Roles() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -56,6 +91,7 @@ export default function Roles() {
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const form = useForm<RoleFormData>({
     resolver: zodResolver(insertRoleSchema),
@@ -221,6 +257,18 @@ export default function Roles() {
       <div>
         <h1 className="text-3xl font-bold">Roles del Sistema</h1>
         <p className="text-gray-600">Gestiona los roles y permisos de los usuarios</p>
+        
+        {/* Mostrar rol actual del usuario */}
+        {user && (
+          <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2">
+              {getRoleIcon(user.role)}
+              <span className="text-sm font-medium text-blue-800">
+                Tu rol actual: <span className="font-semibold">{getRoleName(user.role, (user as any)?.roleId)}</span>
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="permissions" className="w-full">

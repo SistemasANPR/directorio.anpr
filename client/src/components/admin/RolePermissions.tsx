@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { User, Shield, UserCheck, Eye, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Role {
   id: number;
@@ -92,6 +93,40 @@ const getRoleIcon = (nombre: string) => {
   }
 };
 
+// Función para obtener el icono del rol del usuario actual
+const getCurrentUserRoleIcon = (role: string) => {
+  switch (role?.toLowerCase()) {
+    case 'admin':
+    case 'administrador':
+      return <Shield className="h-4 w-4 text-blue-600" />;
+    case 'representante':
+      return <UserCheck className="h-4 w-4 text-green-600" />;
+    case 'user':
+    case 'usuario':
+      return <User className="h-4 w-4 text-gray-600" />;
+    default:
+      return <User className="h-4 w-4 text-gray-600" />;
+  }
+};
+
+// Función para obtener el nombre del rol en español
+const getCurrentUserRoleName = (role: string, roleId?: number) => {
+  if (roleId === 1) return "Administrador";
+  if (roleId === 2) return "Representante";
+  if (roleId === 3) return "Usuario";
+  
+  switch (role?.toLowerCase()) {
+    case 'admin':
+      return "Administrador";
+    case 'representante':
+      return "Representante";
+    case 'user':
+      return "Usuario";
+    default:
+      return role || "Usuario";
+  }
+};
+
 const getPermissionColor = (permission: string) => {
   if (permission.includes('gestionar') || permission.includes('configurar')) {
     return "bg-blue-100 text-blue-800 hover:bg-blue-200";
@@ -109,6 +144,7 @@ const stripHtmlTags = (html: string) => {
 };
 
 export default function RolePermissions() {
+  const { user } = useAuth();
   const { data: roles = DEFAULT_ROLES, isLoading, error } = useQuery<Role[]>({
     queryKey: ['/api/roles'],
     enabled: true,
@@ -158,6 +194,18 @@ export default function RolePermissions() {
           <p className="text-gray-600 mt-1">
             Gestiona los roles y permisos de usuarios en el sistema
           </p>
+          
+          {/* Mostrar rol actual del usuario */}
+          {user && (
+            <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2">
+                {getCurrentUserRoleIcon(user.role)}
+                <span className="text-sm font-medium text-blue-800">
+                  Tu rol actual: <span className="font-semibold">{getCurrentUserRoleName(user.role, (user as any)?.roleId)}</span>
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
