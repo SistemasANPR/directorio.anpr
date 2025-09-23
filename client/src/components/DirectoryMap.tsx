@@ -23,8 +23,15 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   // Filtrar empresas que tienen ubicación geográfica válida
   const companiesWithLocation = companies.filter(company => {
     try {
+      // Log para debug
+      console.log(`Processing company ${company.id} (${company.nombreEmpresa}):`, {
+        ubicacionGeografica: company.ubicacionGeografica,
+        type: typeof company.ubicacionGeografica
+      });
+      
       // Verificar que ubicacionGeografica existe y no es null/undefined
       if (!company.ubicacionGeografica) {
+        console.log(`Company ${company.nombreEmpresa} has no ubicacionGeografica`);
         return false;
       }
       
@@ -36,28 +43,44 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         if (company.ubicacionGeografica.trim() === '' || 
             company.ubicacionGeografica.trim() === '""' || 
             company.ubicacionGeografica.trim() === "''") {
+          console.log(`Company ${company.nombreEmpresa} has empty string ubicacionGeografica`);
           return false;
         }
         
         try {
           ubicacion = JSON.parse(company.ubicacionGeografica);
-        } catch {
+          console.log(`Parsed ubicacion for ${company.nombreEmpresa}:`, ubicacion);
+        } catch (parseError) {
+          console.log(`Failed to parse ubicacionGeografica for ${company.nombreEmpresa}:`, parseError);
           return false;
         }
       } else if (typeof company.ubicacionGeografica === 'object') {
         ubicacion = company.ubicacionGeografica;
+        console.log(`Object ubicacion for ${company.nombreEmpresa}:`, ubicacion);
       } else {
+        console.log(`Invalid ubicacionGeografica type for ${company.nombreEmpresa}:`, typeof company.ubicacionGeografica);
         return false;
       }
       
       // Verificar que tiene propiedades lat y lng válidas
-      return ubicacion && 
+      const isValid = ubicacion && 
              typeof ubicacion.lat === 'number' && 
              typeof ubicacion.lng === 'number' && 
              !isNaN(ubicacion.lat) && 
              !isNaN(ubicacion.lng) &&
              ubicacion.lat !== 0 && 
              ubicacion.lng !== 0;
+             
+      console.log(`Company ${company.nombreEmpresa} validation result:`, {
+        hasUbicacion: !!ubicacion,
+        lat: ubicacion?.lat,
+        lng: ubicacion?.lng,
+        latType: typeof ubicacion?.lat,
+        lngType: typeof ubicacion?.lng,
+        isValid
+      });
+      
+      return isValid;
     } catch (error) {
       console.warn(`Error filtering company ${company.id} (${company.nombreEmpresa}):`, error);
       return false;
