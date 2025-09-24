@@ -26,6 +26,11 @@ export default function CompanyLocationMap({
 }: CompanyLocationMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  
+  // Debug logging
+  console.log(`🗺️ CompanyLocationMap (${nombreEmpresa}) received ubicacionGeografica:`, ubicacionGeografica);
+  console.log(`🗺️ Type of ubicacionGeografica:`, typeof ubicacionGeografica);
+  console.log(`🗺️ direccionFisica:`, direccionFisica);
 
   // Función para geocodificar ciudades usando Nominatim
   const geocodeCity = async (city: string): Promise<{ lat: number; lng: number; display_name: string } | null> => {
