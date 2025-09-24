@@ -23,15 +23,8 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   // Filtrar empresas que tienen ubicación geográfica válida
   const companiesWithLocation = companies.filter(company => {
     try {
-      console.log(`🔍 Checking company ${company.id} (${company.nombreEmpresa}):`, {
-        hasLocation: !!company.ubicacionGeografica,
-        locationType: typeof company.ubicacionGeografica,
-        locationValue: company.ubicacionGeografica
-      });
-
       // Verificar que ubicacionGeografica existe y no es null/undefined
       if (!company.ubicacionGeografica) {
-        console.log(`❌ Company ${company.id}: No location data`);
         return false;
       }
       
@@ -54,7 +47,6 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
             ubicacion = parsed;
           }
         } catch (e) {
-          console.log(`❌ Company ${company.id}: Error parsing location string:`, e);
           return false;
         }
       }
@@ -67,14 +59,11 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
           !isNaN(ubicacion.lng) &&
           ubicacion.lat !== 0 && 
           ubicacion.lng !== 0) {
-        console.log(`✅ Company ${company.id}: Valid location [${ubicacion.lat}, ${ubicacion.lng}]`);
         return true;
       }
       
-      console.log(`❌ Company ${company.id}: Invalid coordinates:`, ubicacion);
       return false;
     } catch (error) {
-      console.log(`❌ Company ${company.id}: Error in filter:`, error);
       return false;
     }
   });
