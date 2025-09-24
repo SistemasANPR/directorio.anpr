@@ -42,6 +42,7 @@ import FrontendConfiguration from "@/pages/FrontendConfiguration";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import WordPressMembershipTest from "@/pages/WordPressMembershipTest";
+import DatabaseMigration from "@/pages/DatabaseMigration";
 import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
@@ -276,6 +277,14 @@ function Router() {
         <ProtectedRoute requireAdmin>
           <AppLayout>
             <ForceSeeding />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/migracion-base-datos">
+        <ProtectedRoute requireAdmin>
+          <AppLayout>
+            <DatabaseMigration />
           </AppLayout>
         </ProtectedRoute>
       </Route>
