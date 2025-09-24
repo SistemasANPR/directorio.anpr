@@ -5060,11 +5060,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (importData.membershipTypes && Array.isArray(importData.membershipTypes)) {
         try {
           for (const membershipType of importData.membershipTypes) {
-            await storage.createMembershipType(membershipType);
-            importResults.membershipTypes++;
+            try {
+              await storage.createMembershipType(membershipType);
+              importResults.membershipTypes++;
+              console.log(`✅ Tipo de membresía creado: ${membershipType.nombrePlan}`);
+            } catch (error: any) {
+              if (error.message.includes('duplicate') || error.message.includes('unique')) {
+                console.log(`⚠️  Tipo de membresía ${membershipType.nombrePlan} ya existe, omitiendo...`);
+                continue;
+              }
+              console.log(`❌ Error creando tipo de membresía ${membershipType.nombrePlan}: ${error.message}`);
+              importResults.errors.push(`MembershipType ${membershipType.nombrePlan}: ${error.message}`);
+            }
           }
         } catch (error: any) {
-          importResults.errors.push(`Membership Types: ${error.message}`);
+          importResults.errors.push(`Membership Types general error: ${error.message}`);
         }
       }
 
@@ -5108,11 +5118,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (importData.users && Array.isArray(importData.users)) {
         try {
           for (const user of importData.users) {
-            await storage.createUser(user);
-            importResults.users++;
+            try {
+              // Verificar si el usuario ya existe por email
+              const existingUser = await storage.getUserByEmail(user.email);
+              if (existingUser) {
+                console.log(`⚠️  Usuario ${user.email} ya existe, omitiendo...`);
+                continue;
+              }
+              await storage.createUser(user);
+              importResults.users++;
+              console.log(`✅ Usuario creado: ${user.email}`);
+            } catch (error: any) {
+              console.log(`❌ Error creando usuario ${user.email}: ${error.message}`);
+              importResults.errors.push(`User ${user.email}: ${error.message}`);
+            }
           }
         } catch (error: any) {
-          importResults.errors.push(`Users: ${error.message}`);
+          importResults.errors.push(`Users general error: ${error.message}`);
         }
       }
 
@@ -5120,11 +5142,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (importData.companies && Array.isArray(importData.companies)) {
         try {
           for (const company of importData.companies) {
-            await storage.createCompany(company);
-            importResults.companies++;
+            try {
+              // Verificar si la empresa ya existe
+              const existingCompany = await storage.getCompany(company.id);
+              if (existingCompany) {
+                console.log(`⚠️  Empresa ${company.nombreEmpresa} ya existe, omitiendo...`);
+                continue;
+              }
+              await storage.createCompany(company);
+              importResults.companies++;
+              console.log(`✅ Empresa creada: ${company.nombreEmpresa}`);
+            } catch (error: any) {
+              console.log(`❌ Error creando empresa ${company.nombreEmpresa}: ${error.message}`);
+              importResults.errors.push(`Company ${company.nombreEmpresa}: ${error.message}`);
+            }
           }
         } catch (error: any) {
-          importResults.errors.push(`Companies: ${error.message}`);
+          importResults.errors.push(`Companies general error: ${error.message}`);
         }
       }
 
