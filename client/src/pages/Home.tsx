@@ -230,8 +230,8 @@ function TestimonialsSection() {
                 cursor: "pointer",
                 transition: "background-color 0.2s ease"
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = "#a8b814"}
-              onMouseLeave={(e) => e.target.style.backgroundColor = "#bcce16"}
+              onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = "#a8b814"}
+              onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = "#bcce16"}
               >
                 Ver Más Reseñas
               </button>
