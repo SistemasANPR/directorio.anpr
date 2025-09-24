@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { Link } from "wouter";
 import * as LucideIcons from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 // Función para limpiar HTML tags
 function stripHtml(html: string): string {
@@ -346,6 +347,7 @@ function CompanyCard({ company }: { company: any }) {
 }
 
 export default function Home() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -869,6 +871,188 @@ export default function Home() {
               Regístrate como empresa
             </button>
           </Link>
+        </div>
+      </div>
+
+      {/* Sección de Migración de Datos */}
+      <div style={{ 
+        padding: "2rem", 
+        backgroundColor: "#f8fafc",
+        borderTop: "1px solid #e5e7eb"
+      }}>
+        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+          <h3 style={{
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+            marginBottom: "1rem",
+            fontFamily: "'Montserrat', sans-serif",
+            color: "#0f2161"
+          }}>
+            Migración de Datos
+          </h3>
+          
+          <p style={{
+            fontSize: "0.9rem",
+            lineHeight: "1.4",
+            marginBottom: "1.5rem",
+            color: "#6b7280"
+          }}>
+            Herramientas para exportar e importar todos los datos del sistema
+          </p>
+
+          <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+            {/* Botón Exportar */}
+            <button 
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/data/export');
+                  if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'anpr-data-export.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    toast({
+                      title: "Exportación exitosa",
+                      description: "Los datos se han descargado correctamente",
+                    });
+                  } else {
+                    throw new Error('Error en la exportación');
+                  }
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "No se pudieron exportar los datos",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              style={{
+                backgroundColor: "#10b981",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                padding: "0.75rem 1.5rem",
+                fontSize: "0.9rem",
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "background-color 0.2s ease",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#059669";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#10b981";
+              }}>
+              <LucideIcons.Download size={16} />
+              Exportar Datos
+            </button>
+
+            {/* Botón Importar */}
+            <label style={{
+              backgroundColor: "#3b82f6",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "0.75rem 1.5rem",
+              fontSize: "0.9rem",
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "background-color 0.2s ease",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#2563eb";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#3b82f6";
+            }}>
+              <LucideIcons.Upload size={16} />
+              Importar Datos
+              <input
+                type="file"
+                accept=".json"
+                style={{ display: "none" }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    
+                    const response = await fetch('/api/data/import', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(data),
+                    });
+
+                    if (response.ok) {
+                      const result = await response.json();
+                      toast({
+                        title: "Importación exitosa",
+                        description: `Datos importados: ${result.results.companies} empresas, ${result.results.users} usuarios`,
+                      });
+                      // Refresh the page to see the new data
+                      window.location.reload();
+                    } else {
+                      throw new Error('Error en la importación');
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "No se pudieron importar los datos. Verifica que el archivo sea válido.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+              />
+            </label>
+          </div>
+
+          <div style={{
+            backgroundColor: "#fef3c7",
+            border: "1px solid #f59e0b",
+            borderRadius: "8px",
+            padding: "1rem",
+            marginTop: "1.5rem",
+            textAlign: "left"
+          }}>
+            <p style={{ 
+              fontSize: "0.8rem", 
+              color: "#92400e",
+              margin: "0 0 0.5rem 0",
+              fontWeight: "600"
+            }}>
+              ⚠️ Instrucciones de Uso:
+            </p>
+            <ol style={{ 
+              fontSize: "0.75rem", 
+              color: "#92400e",
+              margin: "0",
+              paddingLeft: "1.2rem",
+              lineHeight: "1.4"
+            }}>
+              <li>Usa "Exportar Datos" en <strong>desarrollo</strong> para descargar todos los datos</li>
+              <li>Ve a la <strong>aplicación publicada</strong> e inicia sesión como administrador</li>
+              <li>Usa "Importar Datos" en la aplicación publicada y selecciona el archivo descargado</li>
+            </ol>
+          </div>
         </div>
       </div>
     </div>
