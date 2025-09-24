@@ -31,13 +31,17 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
       // Como el servidor normaliza los datos como objetos, verificar directamente
       if (typeof company.ubicacionGeografica === 'object' && 
           company.ubicacionGeografica !== null &&
-          typeof company.ubicacionGeografica.lat === 'number' && 
-          typeof company.ubicacionGeografica.lng === 'number' && 
-          !isNaN(company.ubicacionGeografica.lat) && 
-          !isNaN(company.ubicacionGeografica.lng) &&
-          company.ubicacionGeografica.lat !== 0 && 
-          company.ubicacionGeografica.lng !== 0) {
-        return true;
+          'lat' in company.ubicacionGeografica &&
+          'lng' in company.ubicacionGeografica) {
+        const ubicacion = company.ubicacionGeografica as { lat: number; lng: number };
+        if (typeof ubicacion.lat === 'number' && 
+            typeof ubicacion.lng === 'number' && 
+            !isNaN(ubicacion.lat) && 
+            !isNaN(ubicacion.lng) &&
+            ubicacion.lat !== 0 && 
+            ubicacion.lng !== 0) {
+          return true;
+        }
       }
       
       // Si aún es string, intentar parsearlo
@@ -47,21 +51,21 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
           company.ubicacionGeografica.trim() !== "''") {
         try {
           const ubicacion = JSON.parse(company.ubicacionGeografica);
-          return ubicacion && 
+          const isValid = ubicacion && 
                  typeof ubicacion.lat === 'number' && 
                  typeof ubicacion.lng === 'number' && 
                  !isNaN(ubicacion.lat) && 
                  !isNaN(ubicacion.lng) &&
                  ubicacion.lat !== 0 && 
                  ubicacion.lng !== 0;
-        } catch {
+          return isValid;
+        } catch (e) {
           return false;
         }
       }
       
       return false;
     } catch (error) {
-      console.warn(`Error filtering company ${company.id}:`, error);
       return false;
     }
   });
