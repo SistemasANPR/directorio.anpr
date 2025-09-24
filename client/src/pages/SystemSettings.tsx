@@ -45,7 +45,8 @@ import {
   Phone,
   Upload,
   RefreshCw,
-  X
+  X,
+  Download
 } from "lucide-react";
 import { SiFacebook, SiX, SiInstagram, SiYoutube, SiLinkedin, SiWhatsapp, SiTiktok, SiTelegram } from "react-icons/si";
 import Swal from "sweetalert2";
@@ -856,6 +857,126 @@ export default function SystemSettings() {
               </CardContent>
             </Card>
           )}
+
+          {/* Migración de Datos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5" />
+                Migración de Datos
+              </CardTitle>
+              <CardDescription>
+                Herramientas para exportar datos de desarrollo e importar a la aplicación publicada
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Exportar Datos */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">1. Exportar Datos (Desarrollo)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Descarga todos los datos de desarrollo (empresas, usuarios, categorías, etc.)
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/data/export');
+                        if (response.ok) {
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'anpr-data-export.json';
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(url);
+                          toast({
+                            title: "Exportación exitosa",
+                            description: "Los datos se han descargado correctamente",
+                          });
+                        } else {
+                          throw new Error('Error en la exportación');
+                        }
+                      } catch (error) {
+                        toast({
+                          title: "Error",
+                          description: "No se pudieron exportar los datos",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar Datos
+                  </Button>
+                </div>
+
+                {/* Importar Datos */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">2. Importar Datos (Producción)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Sube el archivo exportado a la aplicación publicada
+                  </p>
+                  <Input
+                    type="file"
+                    accept=".json"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      try {
+                        const text = await file.text();
+                        const data = JSON.parse(text);
+                        
+                        const response = await fetch('/api/data/import', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify(data),
+                        });
+
+                        if (response.ok) {
+                          const result = await response.json();
+                          toast({
+                            title: "Importación exitosa",
+                            description: `Datos importados: ${result.results.companies} empresas, ${result.results.users} usuarios`,
+                          });
+                          // Refresh the page to see the new data
+                          window.location.reload();
+                        } else {
+                          throw new Error('Error en la importación');
+                        }
+                      } catch (error) {
+                        toast({
+                          title: "Error",
+                          description: "No se pudieron importar los datos. Verifica que el archivo sea válido.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Solo archivos .json exportados desde esta herramienta
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h5 className="font-medium text-yellow-800 mb-2">⚠️ Instrucciones de Uso</h5>
+                <ol className="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
+                  <li>Usa "Exportar Datos" en tu <strong>entorno de desarrollo</strong> para descargar todos los datos</li>
+                  <li>Ve a tu <strong>aplicación publicada</strong> e inicia sesión como administrador</li>
+                  <li>Navega a Configuración del Sistema → Migración de Datos</li>
+                  <li>Usa "Importar Datos" y selecciona el archivo descargado</li>
+                </ol>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Acciones */}
           <div className="flex justify-end gap-4">
