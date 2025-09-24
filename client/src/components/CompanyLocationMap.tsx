@@ -27,11 +27,6 @@ export default function CompanyLocationMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   
-  // Debug logging
-  console.log(`🗺️ CompanyLocationMap (${nombreEmpresa}) received ubicacionGeografica:`, ubicacionGeografica);
-  console.log(`🗺️ Type of ubicacionGeografica:`, typeof ubicacionGeografica);
-  console.log(`🗺️ direccionFisica:`, direccionFisica);
-  
   // Normalizar ubicacionGeografica (igual que en DirectoryMap)
   const normalizedUbicacion = (() => {
     if (!ubicacionGeografica) return null;
@@ -45,7 +40,6 @@ export default function CompanyLocationMap({
         !isNaN(ubicacionGeografica.lng) &&
         ubicacionGeografica.lat !== 0 && 
         ubicacionGeografica.lng !== 0) {
-      console.log(`✅ CompanyLocationMap: Using valid object coordinates:`, ubicacionGeografica);
       return ubicacionGeografica;
     }
     
@@ -63,19 +57,15 @@ export default function CompanyLocationMap({
             !isNaN(parsed.lng) &&
             parsed.lat !== 0 && 
             parsed.lng !== 0) {
-          console.log(`✅ CompanyLocationMap: Using parsed coordinates:`, parsed);
           return parsed;
         }
       } catch (error) {
-        console.warn(`❌ CompanyLocationMap: Error parsing ubicacionGeografica:`, error);
+        console.warn('Error parsing location data:', error);
       }
     }
     
-    console.log(`❌ CompanyLocationMap: Invalid or unusable ubicacionGeografica:`, ubicacionGeografica);
     return null;
   })();
-  
-  console.log(`🗺️ CompanyLocationMap normalized ubicacion:`, normalizedUbicacion);
 
   // Función para geocodificar ciudades usando Nominatim
   const geocodeCity = async (city: string): Promise<{ lat: number; lng: number; display_name: string } | null> => {
