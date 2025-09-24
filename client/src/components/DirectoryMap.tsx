@@ -23,49 +23,58 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   // Filtrar empresas que tienen ubicación geográfica válida
   const companiesWithLocation = companies.filter(company => {
     try {
+      console.log(`🔍 Checking company ${company.id} (${company.nombreEmpresa}):`, {
+        hasLocation: !!company.ubicacionGeografica,
+        locationType: typeof company.ubicacionGeografica,
+        locationValue: company.ubicacionGeografica
+      });
+
       // Verificar que ubicacionGeografica existe y no es null/undefined
       if (!company.ubicacionGeografica) {
+        console.log(`❌ Company ${company.id}: No location data`);
         return false;
       }
       
-      // Como el servidor normaliza los datos como objetos, verificar directamente
+      let ubicacion: { lat: number; lng: number } | null = null;
+      
+      // Si es un objeto, usarlo directamente
       if (typeof company.ubicacionGeografica === 'object' && 
-          company.ubicacionGeografica !== null &&
-          'lat' in company.ubicacionGeografica &&
-          'lng' in company.ubicacionGeografica) {
-        const ubicacion = company.ubicacionGeografica as { lat: number; lng: number };
-        if (typeof ubicacion.lat === 'number' && 
-            typeof ubicacion.lng === 'number' && 
-            !isNaN(ubicacion.lat) && 
-            !isNaN(ubicacion.lng) &&
-            ubicacion.lat !== 0 && 
-            ubicacion.lng !== 0) {
-          return true;
+          company.ubicacionGeografica !== null) {
+        if ('lat' in company.ubicacionGeografica && 'lng' in company.ubicacionGeografica) {
+          ubicacion = company.ubicacionGeografica as { lat: number; lng: number };
         }
       }
       
-      // Si aún es string, intentar parsearlo
-      if (typeof company.ubicacionGeografica === 'string' &&
-          company.ubicacionGeografica.trim() !== '' && 
-          company.ubicacionGeografica.trim() !== '""' && 
-          company.ubicacionGeografica.trim() !== "''") {
+      // Si es string, intentar parsearlo
+      if (!ubicacion && typeof company.ubicacionGeografica === 'string' &&
+          company.ubicacionGeografica.trim() !== '') {
         try {
-          const ubicacion = JSON.parse(company.ubicacionGeografica);
-          const isValid = ubicacion && 
-                 typeof ubicacion.lat === 'number' && 
-                 typeof ubicacion.lng === 'number' && 
-                 !isNaN(ubicacion.lat) && 
-                 !isNaN(ubicacion.lng) &&
-                 ubicacion.lat !== 0 && 
-                 ubicacion.lng !== 0;
-          return isValid;
+          const parsed = JSON.parse(company.ubicacionGeografica);
+          if (parsed && 'lat' in parsed && 'lng' in parsed) {
+            ubicacion = parsed;
+          }
         } catch (e) {
+          console.log(`❌ Company ${company.id}: Error parsing location string:`, e);
           return false;
         }
       }
       
+      // Validar que las coordenadas sean válidas
+      if (ubicacion && 
+          typeof ubicacion.lat === 'number' && 
+          typeof ubicacion.lng === 'number' && 
+          !isNaN(ubicacion.lat) && 
+          !isNaN(ubicacion.lng) &&
+          ubicacion.lat !== 0 && 
+          ubicacion.lng !== 0) {
+        console.log(`✅ Company ${company.id}: Valid location [${ubicacion.lat}, ${ubicacion.lng}]`);
+        return true;
+      }
+      
+      console.log(`❌ Company ${company.id}: Invalid coordinates:`, ubicacion);
       return false;
     } catch (error) {
+      console.log(`❌ Company ${company.id}: Error in filter:`, error);
       return false;
     }
   });
