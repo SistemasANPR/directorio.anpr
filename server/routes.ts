@@ -3,12 +3,11 @@ import express from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { db } from "./db";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema, insertFrontendConfigurationSchema, users, companies, categories, opinions, membershipPayments, projects, certificates } from "@shared/schema";
+import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema, insertFrontendConfigurationSchema } from "@shared/schema";
 import { z } from "zod";
 import { SEED_DATA } from "./seed-data";
 
@@ -5293,139 +5292,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error cambiando plan:", error);
       res.status(500).json({ error: error.message || "Error interno del servidor" });
-    }
-  });
-
-  // ==========================================
-  // ENDPOINTS DE MIGRACIÓN DE BASE DE DATOS
-  // ==========================================
-  
-  // Exportar todos los datos de la base de datos actual
-  app.get("/api/database/export", async (req, res) => {
-    try {
-      console.log("🔄 Iniciando exportación completa de base de datos...");
-      
-      // Exportar todas las tablas principales
-      const [companiesData, usersData, membershipTypes, categoriesData, opinionsData, membershipPaymentsData, projectsData, certificatesData] = await Promise.all([
-        storage.getAllCompanies({ limit: 1000, includeInactive: true }),
-        db.select().from(users),
-        storage.getAllMembershipTypes(),
-        db.select().from(categories),
-        db.select().from(opinions),
-        db.select().from(membershipPayments),
-        db.select().from(projects),
-        db.select().from(certificates)
-      ]);
-
-      const exportData = {
-        timestamp: new Date().toISOString(),
-        environment: process.env.REPLIT_DEPLOYMENT ? 'production' : 'development',
-        tables: {
-          companies: companiesData.companies || [],
-          users: usersData,
-          membershipTypes: membershipTypes,
-          categories: categoriesData,
-          opinions: opinionsData,
-          membershipPayments: membershipPaymentsData,
-          projects: projectsData,
-          certificates: certificatesData
-        },
-        counts: {
-          companies: companiesData.companies?.length || 0,
-          users: usersData.length,
-          membershipTypes: membershipTypes.length,
-          categories: categoriesData.length,
-          opinions: opinionsData.length,
-          membershipPayments: membershipPaymentsData.length,
-          projects: projectsData.length,
-          certificates: certificatesData.length
-        }
-      };
-
-      console.log("✅ Exportación completada:", exportData.counts);
-      res.json(exportData);
-    } catch (error) {
-      console.error("❌ Error exportando base de datos:", error);
-      res.status(500).json({ error: "Error exportando base de datos", details: error.message });
-    }
-  });
-
-  // Importar datos a la base de datos actual (con opción de limpiar primero)
-  app.post("/api/database/import", async (req, res) => {
-    try {
-      const { data, clearFirst = false, onlyTables = null } = req.body;
-      
-      if (!data || !data.tables) {
-        return res.status(400).json({ error: "Datos de importación inválidos" });
-      }
-
-      console.log("🔄 Iniciando importación de base de datos...");
-      console.log("Limpiar primero:", clearFirst);
-      console.log("Solo tablas:", onlyTables);
-
-      const results = {};
-
-      // Si se solicita limpiar primero
-      if (clearFirst) {
-        console.log("🗑️ Limpiando base de datos actual...");
-        await db.delete(projects);
-        await db.delete(opinions);
-        await db.delete(membershipPayments);
-        await db.delete(companies);
-        // No limpiar users, membershipTypes, categories, certificates ya que son configuración base
-        console.log("✅ Base de datos limpiada");
-      }
-
-      // Importar datos tabla por tabla
-      const tablesToImport = onlyTables || ['companies', 'opinions', 'membershipPayments', 'projects'];
-
-      for (const tableName of tablesToImport) {
-        if (!data.tables[tableName] || data.tables[tableName].length === 0) {
-          console.log(`⏭️ Saltando ${tableName} - no hay datos`);
-          continue;
-        }
-
-        console.log(`📥 Importando ${tableName}...`);
-        
-        try {
-          switch (tableName) {
-            case 'companies':
-              if (data.tables.companies.length > 0) {
-                await db.insert(companies).values(data.tables.companies);
-                results.companies = data.tables.companies.length;
-              }
-              break;
-            case 'opinions':
-              if (data.tables.opinions.length > 0) {
-                await db.insert(opinions).values(data.tables.opinions);
-                results.opinions = data.tables.opinions.length;
-              }
-              break;
-            case 'membershipPayments':
-              if (data.tables.membershipPayments.length > 0) {
-                await db.insert(membershipPayments).values(data.tables.membershipPayments);
-                results.membershipPayments = data.tables.membershipPayments.length;
-              }
-              break;
-            case 'projects':
-              if (data.tables.projects.length > 0) {
-                await db.insert(projects).values(data.tables.projects);
-                results.projects = data.tables.projects.length;
-              }
-              break;
-          }
-          console.log(`✅ ${tableName} importado exitosamente`);
-        } catch (error) {
-          console.error(`❌ Error importando ${tableName}:`, error);
-          results[tableName + '_error'] = error.message;
-        }
-      }
-
-      console.log("✅ Importación completada:", results);
-      res.json({ success: true, results });
-    } catch (error) {
-      console.error("❌ Error importando base de datos:", error);
-      res.status(500).json({ error: "Error importando base de datos", details: error.message });
     }
   });
 

@@ -26,46 +26,6 @@ export default function CompanyLocationMap({
 }: CompanyLocationMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-  
-  // Normalizar ubicacionGeografica (igual que en DirectoryMap)
-  const normalizedUbicacion = (() => {
-    if (!ubicacionGeografica) return null;
-    
-    // Si ya es un objeto con lat y lng válidos, usarlo directamente
-    if (typeof ubicacionGeografica === 'object' && 
-        ubicacionGeografica !== null &&
-        typeof ubicacionGeografica.lat === 'number' && 
-        typeof ubicacionGeografica.lng === 'number' && 
-        !isNaN(ubicacionGeografica.lat) && 
-        !isNaN(ubicacionGeografica.lng) &&
-        ubicacionGeografica.lat !== 0 && 
-        ubicacionGeografica.lng !== 0) {
-      return ubicacionGeografica;
-    }
-    
-    // Si es string, intentar parsearlo
-    if (typeof ubicacionGeografica === 'string' &&
-        ubicacionGeografica.trim() !== '' && 
-        ubicacionGeografica.trim() !== '""' && 
-        ubicacionGeografica.trim() !== "''") {
-      try {
-        const parsed = JSON.parse(ubicacionGeografica);
-        if (parsed && 
-            typeof parsed.lat === 'number' && 
-            typeof parsed.lng === 'number' && 
-            !isNaN(parsed.lat) && 
-            !isNaN(parsed.lng) &&
-            parsed.lat !== 0 && 
-            parsed.lng !== 0) {
-          return parsed;
-        }
-      } catch (error) {
-        console.warn('Error parsing location data:', error);
-      }
-    }
-    
-    return null;
-  })();
 
   // Función para geocodificar ciudades usando Nominatim
   const geocodeCity = async (city: string): Promise<{ lat: number; lng: number; display_name: string } | null> => {
@@ -100,12 +60,12 @@ export default function CompanyLocationMap({
       const locations = [];
       
       // Agregar ubicación principal si existe
-      if (normalizedUbicacion?.lat && normalizedUbicacion?.lng) {
+      if (ubicacionGeografica?.lat && ubicacionGeografica?.lng) {
         locations.push({
-          lat: normalizedUbicacion.lat,
-          lng: normalizedUbicacion.lng,
+          lat: ubicacionGeografica.lat,
+          lng: ubicacionGeografica.lng,
           name: 'Oficina Principal',
-          address: direccionFisica || normalizedUbicacion.address || '',
+          address: direccionFisica || ubicacionGeografica.address || '',
           isMain: true
         });
       }
@@ -221,9 +181,9 @@ export default function CompanyLocationMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [normalizedUbicacion, direccionFisica, nombreEmpresa, ciudadesPresencia]);
+  }, [ubicacionGeografica, direccionFisica, nombreEmpresa, ciudadesPresencia]);
 
-  if (!normalizedUbicacion?.lat || !normalizedUbicacion?.lng) {
+  if (!ubicacionGeografica?.lat || !ubicacionGeografica?.lng) {
     return (
       <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
         <div className="text-center text-gray-500">

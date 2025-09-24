@@ -101,7 +101,6 @@ export default function Directory() {
   });
 
   const companies = companiesData?.companies || [];
-  
   const filteredCompanies = companies.filter((company: CompanyWithDetails) => {
     const matchesSearch = company.nombreEmpresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (company.descripcionEmpresa && company.descripcionEmpresa.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -116,7 +115,6 @@ export default function Directory() {
     
     return matchesSearch && matchesCategory && matchesState;
   });
-  
 
   // Unique states from companies (temporarily disabled)
   // const allStates = companies.flatMap((company: CompanyWithDetails) => 

@@ -20,8 +20,7 @@ import {
   Settings,
   Globe,
   Mail,
-  CreditCard,
-  Database
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -153,11 +152,6 @@ const navigationItems: NavigationItem[] = [
       {
         name: "Prueba Membresías WordPress",
         href: "/wordpress-membership-test",
-        requireAdmin: true,
-      },
-      {
-        name: "Migración de Base de Datos",
-        href: "/migracion-base-datos",
         requireAdmin: true,
       },
     ],

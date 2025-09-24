@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     checkAuth();
   }, []);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || (user as any)?.roleId === 1 || (typeof user?.role === 'object' && (user?.role as any)?.nombre === "admin");
 
   const impersonateCompany = (company: any) => {
     if (isAdmin) {

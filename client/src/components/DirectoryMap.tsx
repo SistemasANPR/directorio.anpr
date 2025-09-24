@@ -28,42 +28,40 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         return false;
       }
       
-      let ubicacion: { lat: number; lng: number } | null = null;
-      
-      // Si es un objeto, usarlo directamente
+      // Como el servidor normaliza los datos como objetos, verificar directamente
       if (typeof company.ubicacionGeografica === 'object' && 
-          company.ubicacionGeografica !== null) {
-        if ('lat' in company.ubicacionGeografica && 'lng' in company.ubicacionGeografica) {
-          ubicacion = company.ubicacionGeografica as { lat: number; lng: number };
-        }
+          company.ubicacionGeografica !== null &&
+          typeof company.ubicacionGeografica.lat === 'number' && 
+          typeof company.ubicacionGeografica.lng === 'number' && 
+          !isNaN(company.ubicacionGeografica.lat) && 
+          !isNaN(company.ubicacionGeografica.lng) &&
+          company.ubicacionGeografica.lat !== 0 && 
+          company.ubicacionGeografica.lng !== 0) {
+        return true;
       }
       
-      // Si es string, intentar parsearlo
-      if (!ubicacion && typeof company.ubicacionGeografica === 'string' &&
-          company.ubicacionGeografica.trim() !== '') {
+      // Si aún es string, intentar parsearlo
+      if (typeof company.ubicacionGeografica === 'string' &&
+          company.ubicacionGeografica.trim() !== '' && 
+          company.ubicacionGeografica.trim() !== '""' && 
+          company.ubicacionGeografica.trim() !== "''") {
         try {
-          const parsed = JSON.parse(company.ubicacionGeografica);
-          if (parsed && 'lat' in parsed && 'lng' in parsed) {
-            ubicacion = parsed;
-          }
-        } catch (e) {
+          const ubicacion = JSON.parse(company.ubicacionGeografica);
+          return ubicacion && 
+                 typeof ubicacion.lat === 'number' && 
+                 typeof ubicacion.lng === 'number' && 
+                 !isNaN(ubicacion.lat) && 
+                 !isNaN(ubicacion.lng) &&
+                 ubicacion.lat !== 0 && 
+                 ubicacion.lng !== 0;
+        } catch {
           return false;
         }
       }
       
-      // Validar que las coordenadas sean válidas
-      if (ubicacion && 
-          typeof ubicacion.lat === 'number' && 
-          typeof ubicacion.lng === 'number' && 
-          !isNaN(ubicacion.lat) && 
-          !isNaN(ubicacion.lng) &&
-          ubicacion.lat !== 0 && 
-          ubicacion.lng !== 0) {
-        return true;
-      }
-      
       return false;
     } catch (error) {
+      console.warn(`Error filtering company ${company.id}:`, error);
       return false;
     }
   });

@@ -28,7 +28,6 @@ import {
   Phone,
   MapPin
 } from "lucide-react";
-import MapLocationPicker from "@/components/MapLocationPicker";
 
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('VITE_STRIPE_PUBLIC_KEY no está configurada');
@@ -55,20 +54,10 @@ const companySchema = z.object({
   direccionFisica: z.string().min(10, "La dirección es requerida"),
   descripcionEmpresa: z.string().min(20, "La descripción debe tener al menos 20 caracteres"),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
-  ubicacionGeografica: z.any().optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
 type CompanyFormData = z.infer<typeof companySchema>;
-
-interface LocationInfo {
-  lat: number;
-  lng: number;
-  address: string;
-  country?: string;
-  state?: string;
-  city?: string;
-}
 
 interface MembershipType {
   id: number;
@@ -159,7 +148,6 @@ export default function RegisterAndPay() {
   const [selectedPeriod, setSelectedPeriod] = useState<"mensual" | "anual">("anual");
   const [clientSecret, setClientSecret] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(null);
 
   // Detectar si viene con un plan preseleccionado
   const urlParams = new URLSearchParams(window.location.search);
@@ -185,7 +173,6 @@ export default function RegisterAndPay() {
       direccionFisica: "",
       descripcionEmpresa: "",
       sitioWeb: "",
-      ubicacionGeografica: null,
     },
   });
 
@@ -522,61 +509,6 @@ export default function RegisterAndPay() {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Sección Informativa de Ubicación Automática */}
-              <div className="w-full">
-                <div className="flex items-center gap-2 mb-4">
-                  <MapPin className="h-5 w-5" />
-                  <h3 className="text-lg font-semibold text-primary">Confirmación de Ubicación Automática</h3>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-800">Ubicación Automática</span>
-                  </div>
-                  <p className="text-sm text-blue-700">
-                    La ubicación se actualiza automáticamente cuando escribes la dirección física. El mapa te muestra dónde
-                    se agregará la empresa para confirmación visual.
-                  </p>
-                </div>
-              </div>
-
-              {/* Ubicación Geográfica - Solo Mapa */}
-              <FormField
-                control={companyForm.control}
-                name="ubicacionGeografica"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Mapa de Confirmación</FormLabel>
-                    <FormControl>
-                      <div className="h-96 w-full">
-                        <MapLocationPicker
-                          ciudad="México"
-                          direccionFisica={companyForm.watch("direccionFisica")}
-                          onLocationSelect={(location: LocationInfo) => {
-                            setSelectedLocation(location);
-                            field.onChange(location);
-                            
-                            if (location.country && location.state && location.city) {
-                              console.log('Ubicación geocodificada:', location);
-                            }
-                          }}
-                          initialLocation={selectedLocation}
-                        />
-                      </div>
-                    </FormControl>
-                    {field.value && (
-                      <div className="text-xs text-gray-600 mt-2">
-                        📍 Ubicación seleccionada: {field.value.lat?.toFixed(6)}, {field.value.lng?.toFixed(6)}
-                        {field.value.address && (
-                          <span className="block mt-1">📍 {field.value.address}</span>
-                        )}
-                      </div>
-                    )}
                     <FormMessage />
                   </FormItem>
                 )}
