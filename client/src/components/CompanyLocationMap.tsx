@@ -103,24 +103,12 @@ export default function CompanyLocationMap({
         return;
       }
 
-      // Crear el mapa con configuración mejorada
-      const map = L.map(mapRef.current, {
-        zoomControl: true,
-        scrollWheelZoom: true,
-        doubleClickZoom: true,
-        boxZoom: true,
-        keyboard: true,
-        dragging: true,
-        touchZoom: true,
-        preferCanvas: false
-      });
+      // Crear el mapa
+      const map = L.map(mapRef.current);
 
-      // Agregar capa de tiles de OpenStreetMap con configuración optimizada
+      // Agregar capa de tiles de OpenStreetMap
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-        minZoom: 3,
-        crossOrigin: true
+        attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
       // Crear marcadores para todas las ubicaciones

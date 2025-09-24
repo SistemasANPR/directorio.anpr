@@ -11,24 +11,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Edit, Plus, Shield, Users, Settings, FileText, BarChart, Eye, UserCheck, User } from "lucide-react";
+import { Trash2, Edit, Plus, Shield, Users, Settings, FileText, BarChart } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertRoleSchema, type Role, type InsertRole } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
-import RolePermissions from "@/components/admin/RolePermissions";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type RoleFormData = z.infer<typeof insertRoleSchema>;
-
-// Función para limpiar HTML y mostrar solo texto
-const stripHtmlTags = (html: string) => {
-  if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').trim();
-};
 
 // Lista de permisos disponibles
 const availablePermissions = [
@@ -49,40 +40,6 @@ const availablePermissions = [
   { id: "statistics.read", name: "Ver estadísticas", category: "Estadísticas", icon: BarChart },
 ];
 
-// Función para obtener el icono del rol
-const getRoleIcon = (role: string) => {
-  switch (role?.toLowerCase()) {
-    case 'admin':
-    case 'administrador':
-      return <Shield className="h-4 w-4 text-blue-600" />;
-    case 'representante':
-      return <UserCheck className="h-4 w-4 text-green-600" />;
-    case 'user':
-    case 'usuario':
-      return <User className="h-4 w-4 text-gray-600" />;
-    default:
-      return <User className="h-4 w-4 text-gray-600" />;
-  }
-};
-
-// Función para obtener el nombre del rol en español
-const getRoleName = (role: string, roleId?: number) => {
-  if (roleId === 1) return "Administrador";
-  if (roleId === 2) return "Representante";
-  if (roleId === 3) return "Usuario";
-  
-  switch (role?.toLowerCase()) {
-    case 'admin':
-      return "Administrador";
-    case 'representante':
-      return "Representante";
-    case 'user':
-      return "Usuario";
-    default:
-      return role || "Usuario";
-  }
-};
-
 export default function Roles() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -91,7 +48,6 @@ export default function Roles() {
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   const form = useForm<RoleFormData>({
     resolver: zodResolver(insertRoleSchema),
@@ -254,284 +210,372 @@ export default function Roles() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Roles del Sistema</h1>
-        <p className="text-gray-600">Gestiona los roles y permisos de los usuarios</p>
-        
-        {/* Mostrar rol actual del usuario */}
-        {user && (
-          <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2">
-              {getRoleIcon(user.role)}
-              <span className="text-sm font-medium text-blue-800">
-                Tu rol actual: <span className="font-semibold">{getRoleName(user.role, (user as any)?.roleId)}</span>
-              </span>
-            </div>
-          </div>
-        )}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Roles del Sistema</h1>
+          <p className="text-gray-600">Gestiona los roles y permisos de los usuarios</p>
+        </div>
+        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Crear Rol
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Crear Nuevo Rol</DialogTitle>
+              <DialogDescription>
+                Define un nuevo rol con sus permisos correspondientes
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="nombre"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre del Rol</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: Administrador" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="estado"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona el estado" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="activo">Activo</SelectItem>
+                            <SelectItem value="inactivo">Inactivo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="descripcion"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descripción</FormLabel>
+                      <FormControl>
+                        <RichTextEditor
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          placeholder="Describe las responsabilidades de este rol..."
+                          height={150}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="permisos"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Permisos</FormLabel>
+                      <div className="space-y-4">
+                        {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                          <div key={category} className="border rounded-lg p-4">
+                            <h4 className="font-medium text-sm text-gray-700 mb-3">{category}</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {permissions.map((permission) => {
+                                const Icon = permission.icon;
+                                return (
+                                  <div key={permission.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={permission.id}
+                                      checked={field.value?.includes(permission.id)}
+                                      onCheckedChange={(checked) => {
+                                        const currentPermissions = field.value || [];
+                                        if (checked) {
+                                          field.onChange([...currentPermissions, permission.id]);
+                                        } else {
+                                          field.onChange(currentPermissions.filter(p => p !== permission.id));
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={permission.id}
+                                      className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                      <Icon className="h-4 w-4" />
+                                      {permission.name}
+                                    </label>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    {createMutation.isPending ? "Creando..." : "Crear Rol"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <Tabs defaultValue="permissions" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="permissions" className="flex items-center gap-2" data-testid="tab-permissions">
-            <Eye className="h-4 w-4" />
-            Ver Permisos
-          </TabsTrigger>
-          <TabsTrigger value="management" className="flex items-center gap-2" data-testid="tab-management">
-            <Settings className="h-4 w-4" />
-            Gestionar Roles
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="permissions" className="space-y-4">
-          <RolePermissions />
-        </TabsContent>
-
-        <TabsContent value="management" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">Gestión de Roles</h2>
-              <p className="text-gray-600">Crear, editar y eliminar roles del sistema</p>
-            </div>
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2" data-testid="button-create-role">
-                  <Plus className="h-4 w-4" />
-                  Crear Rol
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Crear Nuevo Rol</DialogTitle>
-                  <DialogDescription>
-                    Define un nuevo rol con sus permisos correspondientes
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="nombre"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nombre del Rol</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ej: Administrador" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="estado"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estado</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecciona el estado" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="activo">Activo</SelectItem>
-                                <SelectItem value="inactivo">Inactivo</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="descripcion"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descripción</FormLabel>
-                          <FormControl>
-                            <RichTextEditor
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              placeholder="Describe las responsabilidades de este rol..."
-                              height={150}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="permisos"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Permisos</FormLabel>
-                          <div className="space-y-4">
-                            {Object.entries(groupedPermissions).map(([category, permissions]) => (
-                              <div key={category} className="border rounded-lg p-4">
-                                <h4 className="font-medium text-sm text-gray-700 mb-3">{category}</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                  {permissions.map((permission) => {
-                                    const Icon = permission.icon;
-                                    return (
-                                      <div key={permission.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={permission.id}
-                                          checked={(field.value as string[])?.includes(permission.id)}
-                                          onCheckedChange={(checked) => {
-                                            const currentPermissions = (field.value as string[]) || [];
-                                            if (checked) {
-                                              field.onChange([...currentPermissions, permission.id]);
-                                            } else {
-                                              field.onChange(currentPermissions.filter(p => p !== permission.id));
-                                            }
-                                          }}
-                                        />
-                                        <label
-                                          htmlFor={permission.id}
-                                          className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                        >
-                                          <Icon className="h-4 w-4" />
-                                          {permission.name}
-                                        </label>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <DialogFooter>
-                      <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                        Cancelar
-                      </Button>
-                      <Button type="submit" disabled={createMutation.isPending}>
-                        {createMutation.isPending ? "Creando..." : "Crear Rol"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(roles as Role[])?.map((role: Role) => (
-              <Card key={role.id} className="hover:shadow-md transition-shadow" data-testid={`card-role-${role.id}`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="h-5 w-5" />
-                      {role.nombre}
-                      {role.esRolSistema && (
-                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                          Sistema
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <Badge variant={role.estado === "activo" ? "default" : "secondary"}>
-                      {role.estado}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {roles?.map((role: Role) => (
+          <Card key={role.id} className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  {role.nombre}
+                  {role.esRolSistema && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      Sistema
                     </Badge>
-                  </div>
-                  {role.descripcion && (
-                    <CardDescription>{stripHtmlTags(role.descripcion)}</CardDescription>
                   )}
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        Permisos ({((role.permisos as string[]) || []).length})
-                      </h4>
-                      <div className="flex flex-wrap gap-1">
-                        {((role.permisos as string[]) || []).slice(0, 3).map((permiso) => {
-                          const permission = availablePermissions.find(p => p.id === permiso);
-                          return (
-                            <Badge key={permiso} variant="outline" className="text-xs">
-                              {permission?.name || permiso}
-                            </Badge>
-                          );
-                        })}
-                        {((role.permisos as string[]) || []).length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{((role.permisos as string[]) || []).length - 3} más
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(role)}
-                        className="flex-1"
-                        disabled={role.esRolSistema}
-                        data-testid={`button-edit-${role.id}`}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        {role.esRolSistema ? "Solo lectura" : "Editar"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(role)}
-                        className={role.esRolSistema ? "text-gray-400" : "text-red-600 hover:text-red-700"}
-                        disabled={role.esRolSistema}
-                        title={role.esRolSistema ? "No se pueden eliminar roles del sistema" : "Eliminar rol"}
-                        data-testid={`button-delete-${role.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                </CardTitle>
+                <Badge variant={role.estado === "activo" ? "default" : "secondary"}>
+                  {role.estado}
+                </Badge>
+              </div>
+              {role.descripcion && (
+                <CardDescription>{role.descripcion}</CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    Permisos ({(role.permisos as string[])?.length || 0})
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    {((role.permisos as string[]) || []).slice(0, 3).map((permiso) => {
+                      const permission = availablePermissions.find(p => p.id === permiso);
+                      return (
+                        <Badge key={permiso} variant="outline" className="text-xs">
+                          {permission?.name || permiso}
+                        </Badge>
+                      );
+                    })}
+                    {((role.permisos as string[]) || []).length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{((role.permisos as string[]) || []).length - 3} más
+                      </Badge>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+                
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(role)}
+                    className="flex-1"
+                    disabled={role.esRolSistema}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    {role.esRolSistema ? "Solo lectura" : "Editar"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(role)}
+                    className={role.esRolSistema ? "text-gray-400" : "text-red-600 hover:text-red-700"}
+                    disabled={role.esRolSistema}
+                    title={role.esRolSistema ? "No se pueden eliminar roles del sistema" : "Eliminar rol"}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          {/* Delete Confirmation Modal */}
-          <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Confirmar eliminación</DialogTitle>
-                <DialogDescription>
-                  ¿Estás seguro de que deseas eliminar el rol "{roleToDelete?.nombre}"? 
-                  Esta acción no se puede deshacer.
-                </DialogDescription>
-              </DialogHeader>
+      {/* Modal de edición */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Rol</DialogTitle>
+            <DialogDescription>
+              Modifica la información y permisos del rol
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="nombre"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre del Rol</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ej: Administrador" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="estado"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estado</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona el estado" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="activo">Activo</SelectItem>
+                          <SelectItem value="inactivo">Inactivo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={editForm.control}
+                name="descripcion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción</FormLabel>
+                    <FormControl>
+                      <RichTextEditor
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder="Describe las responsabilidades de este rol..."
+                        height={150}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="permisos"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Permisos</FormLabel>
+                    <div className="space-y-4">
+                      {Object.entries(groupedPermissions).map(([category, permissions]) => (
+                        <div key={category} className="border rounded-lg p-4">
+                          <h4 className="font-medium text-sm text-gray-700 mb-3">{category}</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {permissions.map((permission) => {
+                              const Icon = permission.icon;
+                              return (
+                                <div key={permission.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`edit-${permission.id}`}
+                                    checked={field.value?.includes(permission.id)}
+                                    onCheckedChange={(checked) => {
+                                      const currentPermissions = field.value || [];
+                                      if (checked) {
+                                        field.onChange([...currentPermissions, permission.id]);
+                                      } else {
+                                        field.onChange(currentPermissions.filter(p => p !== permission.id));
+                                      }
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor={`edit-${permission.id}`}
+                                    className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                  >
+                                    <Icon className="h-4 w-4" />
+                                    {permission.name}
+                                  </label>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsDeleteModalOpen(false);
-                    setRoleToDelete(null);
-                  }}
-                >
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
                   Cancelar
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={confirmDelete}
-                  disabled={deleteMutation.isPending}
-                >
-                  {deleteMutation.isPending ? "Eliminando..." : "Eliminar"}
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? "Actualizando..." : "Actualizar Rol"}
                 </Button>
               </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </TabsContent>
-      </Tabs>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar eliminación</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar el rol "{roleToDelete?.nombre}"? 
+              Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setRoleToDelete(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Eliminando..." : "Eliminar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

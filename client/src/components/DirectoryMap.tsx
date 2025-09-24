@@ -28,40 +28,38 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         return false;
       }
       
-      // Como el servidor normaliza los datos como objetos, verificar directamente
-      if (typeof company.ubicacionGeografica === 'object' && 
-          company.ubicacionGeografica !== null &&
-          typeof company.ubicacionGeografica.lat === 'number' && 
-          typeof company.ubicacionGeografica.lng === 'number' && 
-          !isNaN(company.ubicacionGeografica.lat) && 
-          !isNaN(company.ubicacionGeografica.lng) &&
-          company.ubicacionGeografica.lat !== 0 && 
-          company.ubicacionGeografica.lng !== 0) {
-        return true;
-      }
+      let ubicacion;
       
-      // Si aún es string, intentar parsearlo
-      if (typeof company.ubicacionGeografica === 'string' &&
-          company.ubicacionGeografica.trim() !== '' && 
-          company.ubicacionGeografica.trim() !== '""' && 
-          company.ubicacionGeografica.trim() !== "''") {
+      // Si es string, intentar parsearlo como JSON
+      if (typeof company.ubicacionGeografica === 'string') {
+        // Ignorar strings vacíos o que solo contengan comillas
+        if (company.ubicacionGeografica.trim() === '' || 
+            company.ubicacionGeografica.trim() === '""' || 
+            company.ubicacionGeografica.trim() === "''") {
+          return false;
+        }
+        
         try {
-          const ubicacion = JSON.parse(company.ubicacionGeografica);
-          return ubicacion && 
-                 typeof ubicacion.lat === 'number' && 
-                 typeof ubicacion.lng === 'number' && 
-                 !isNaN(ubicacion.lat) && 
-                 !isNaN(ubicacion.lng) &&
-                 ubicacion.lat !== 0 && 
-                 ubicacion.lng !== 0;
+          ubicacion = JSON.parse(company.ubicacionGeografica);
         } catch {
           return false;
         }
+      } else if (typeof company.ubicacionGeografica === 'object') {
+        ubicacion = company.ubicacionGeografica;
+      } else {
+        return false;
       }
       
-      return false;
+      // Verificar que tiene propiedades lat y lng válidas
+      return ubicacion && 
+             typeof ubicacion.lat === 'number' && 
+             typeof ubicacion.lng === 'number' && 
+             !isNaN(ubicacion.lat) && 
+             !isNaN(ubicacion.lng) &&
+             ubicacion.lat !== 0 && 
+             ubicacion.lng !== 0;
     } catch (error) {
-      console.warn(`Error filtering company ${company.id}:`, error);
+      console.warn(`Error filtering company ${company.id} (${company.nombreEmpresa}):`, error);
       return false;
     }
   });
@@ -86,24 +84,12 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         const defaultCenter: [number, number] = [19.4326, -99.1332];
         const defaultZoom = 6;
 
-        // Crear el mapa con configuración mejorada
-        const map = L.map(mapRef.current, {
-          zoomControl: true,
-          scrollWheelZoom: true,
-          doubleClickZoom: true,
-          boxZoom: true,
-          keyboard: true,
-          dragging: true,
-          touchZoom: true,
-          preferCanvas: false
-        }).setView(defaultCenter, defaultZoom);
+        // Crear el mapa
+        const map = L.map(mapRef.current).setView(defaultCenter, defaultZoom);
 
-        // Agregar capa de tiles de OpenStreetMap con configuración optimizada
+        // Agregar capa de tiles de OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19,
-          minZoom: 3,
-          crossOrigin: true
+          attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
         // Crear grupo de marcadores para ajustar el zoom automáticamente
@@ -237,10 +223,8 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         style={{ 
           minHeight: '400px',
           height: '400px',
-          width: '100%',
           position: 'relative',
-          zIndex: 1,
-          display: 'block'
+          zIndex: 1
         }}
       />
     </div>
