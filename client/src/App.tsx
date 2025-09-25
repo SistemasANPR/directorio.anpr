@@ -27,7 +27,6 @@ import CompanyDetails from "@/pages/CompanyDetails";
 import PublicMemberships from "@/pages/PublicMemberships";
 import Directory from "@/pages/Directory";
 import MembershipCheckout from "@/pages/MembershipCheckout";
-import RepresentativeRegister from "@/pages/RepresentativeRegister";
 import RepresentativeLogin from "@/pages/RepresentativeLogin";
 import RepresentativeDashboard from "@/pages/RepresentativeDashboardComplete";
 import RegisterAndPay from "@/pages/RegisterAndPay";
@@ -286,11 +285,6 @@ function Router() {
         </PublicLayout>
       </Route>
       
-      <Route path="/registro-representante">
-        <PublicLayout>
-          <RepresentativeRegister />
-        </PublicLayout>
-      </Route>
       
       <Route path="/registro-y-pago">
         <PublicLayout>
