@@ -10,9 +10,11 @@ interface AuthContextType {
   isAdmin: boolean;
   impersonatedCompany: any | null;
   isImpersonating: boolean;
+  requirePasswordChange: boolean;
   impersonateCompany: (company: any) => void;
   stopImpersonation: () => void;
   signOut: () => void;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,6 +95,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsImpersonating(false);
   };
 
+  const refreshUser = () => {
+    // Force refresh of user data
+    const tempUserData = localStorage.getItem('tempUser');
+    if (tempUserData) {
+      const tempUser = JSON.parse(tempUserData);
+      setUser(tempUser);
+    }
+  };
+
   const signOut = () => {
     // Clear temporary user data
     localStorage.removeItem('tempUser');
@@ -104,6 +115,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Check if user requires password change
+  const requirePasswordChange = (user as any)?.requirePasswordChange || false;
+
   const value = {
     firebaseUser,
     user,
@@ -111,9 +125,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAdmin,
     impersonatedCompany,
     isImpersonating,
+    requirePasswordChange,
     impersonateCompany,
     stopImpersonation,
     signOut,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

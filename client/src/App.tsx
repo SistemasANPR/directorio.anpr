@@ -44,6 +44,7 @@ import MainNavigation from "@/components/MainNavigation";
 import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
 import NotFound from "@/pages/not-found";
+import PasswordChangeWrapper from "@/components/PasswordChangeWrapper";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isAdmin } = useAuth();
@@ -344,10 +345,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <PasswordChangeWrapper>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </PasswordChangeWrapper>
       </AuthProvider>
     </QueryClientProvider>
   );
