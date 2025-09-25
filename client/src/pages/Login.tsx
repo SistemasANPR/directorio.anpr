@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building, Mail, Lock, Loader2, Phone, UserPlus } from "lucide-react";
-import { signInWithEmail, createUserWithEmail } from "@/lib/auth";
+import { Building, Mail, Lock, Loader2, Phone, UserPlus, KeyRound } from "lucide-react";
+import { signInWithEmail, createUserWithEmail, sendPasswordReset } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
@@ -25,13 +25,20 @@ const adminRegistrationSchema = z.object({
   phone: z.string().min(10, "El número de teléfono debe tener al menos 10 dígitos"),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+
 type LoginFormData = z.infer<typeof loginSchema>;
 type AdminRegistrationFormData = z.infer<typeof adminRegistrationSchema>;
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegisteringAdmin, setIsRegisteringAdmin] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -50,6 +57,13 @@ export default function Login() {
       email: "",
       password: "",
       phone: "",
+    },
+  });
+
+  const forgotPasswordForm = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -210,6 +224,41 @@ export default function Login() {
     }
   };
 
+  const onForgotPasswordSubmit = async (data: ForgotPasswordFormData) => {
+    setIsSendingReset(true);
+    try {
+      await sendPasswordReset(data.email);
+      
+      toast({
+        title: "Email enviado",
+        description: "Se ha enviado un enlace de recuperación a tu email. Revisa tu bandeja de entrada y spam.",
+      });
+
+      // Reset form and close dialog
+      forgotPasswordForm.reset();
+      setIsForgotPasswordOpen(false);
+
+    } catch (error: any) {
+      let errorMessage = "Ha ocurrido un error al enviar el email";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No existe una cuenta con este email";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Email inválido";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4" data-testid="login-page">
       <Card className="w-full max-w-md bg-white border border-gray-200 shadow-lg">
@@ -283,27 +332,40 @@ export default function Login() {
                 )}
               />
 
-              {/* Checkbox Recordar sesión */}
-              <FormField
-                control={form.control}
-                name="rememberMe"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-remember"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-sm text-gray-700">
-                        Recordar mi sesión
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
+              {/* Checkbox Recordar sesión y enlace olvidé contraseña */}
+              <div className="flex items-center justify-between">
+                <FormField
+                  control={form.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-remember"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm text-gray-700">
+                          Recordar mi sesión
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Enlace de recuperación de contraseña */}
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                  disabled={isLoading}
+                  data-testid="link-forgot-password"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
 
               {/* Botón Iniciar sesión */}
               <Button 
@@ -458,6 +520,71 @@ export default function Login() {
               </Dialog>
             </div>
           </div>
+
+          {/* Modal de recuperación de contraseña */}
+          <Dialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <KeyRound className="h-5 w-5" />
+                  Recuperar contraseña
+                </DialogTitle>
+                <DialogDescription>
+                  Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <Form {...forgotPasswordForm}>
+                <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
+                  {/* Campo Email */}
+                  <FormField
+                    control={forgotPasswordForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Email</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input 
+                              type="email" 
+                              placeholder="tu@email.com" 
+                              className="pl-10 h-11 bg-gray-50 border-gray-300"
+                              {...field} 
+                              data-testid="forgot-password-input-email"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Botones de acción */}
+                  <div className="flex flex-col gap-2 pt-2">
+                    <Button 
+                      type="submit" 
+                      className="w-full h-11 bg-[#1e40af] text-white hover:bg-[#1d4ed8]" 
+                      disabled={isSendingReset}
+                      data-testid="forgot-password-button-submit"
+                    >
+                      {isSendingReset && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Enviar enlace de recuperación
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsForgotPasswordOpen(false)}
+                      disabled={isSendingReset}
+                      data-testid="forgot-password-button-cancel"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>
