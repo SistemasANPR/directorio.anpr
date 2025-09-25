@@ -332,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Current user API endpoints
-  app.get("/api/users/me", async (req, res) => {
+  app.get("/api/users/me", async (req: any, res) => {
     try {
       const currentUser = req.user;
       if (!currentUser) {
@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/users/me", async (req, res) => {
+  app.patch("/api/users/me", async (req: any, res) => {
     try {
       const currentUser = req.user;
       if (!currentUser) {
