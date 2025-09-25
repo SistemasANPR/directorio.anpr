@@ -268,6 +268,12 @@ function Router() {
         </PublicLayout>
       </Route>
       
+      <Route path="/directorio/empresas/:id">
+        <PublicLayout>
+          <CompanyDetails />
+        </PublicLayout>
+      </Route>
+      
       <Route path="/checkout/:companyId/:membershipTypeId">
         <PublicLayout>
           <MembershipCheckout />
