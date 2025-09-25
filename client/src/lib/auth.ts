@@ -6,7 +6,6 @@ import {
   setPersistence,
   browserSessionPersistence,
   browserLocalPersistence,
-  sendPasswordResetEmail,
   User as FirebaseUser
 } from "firebase/auth";
 import { auth } from "./firebase";
@@ -90,16 +89,10 @@ export const signInWithFirebase = async (email: string, password: string, isRegi
   }
 };
 
-// Send password reset email
-export const sendPasswordReset = async (email: string): Promise<void> => {
-  await sendPasswordResetEmail(auth, email);
-};
-
 // Hook for authentication (simplified)
 export const useAuth = () => {
   return {
     signInWithFirebase,
     signOut: signOutUser,
-    sendPasswordReset,
   };
 };
