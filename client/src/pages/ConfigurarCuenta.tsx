@@ -14,14 +14,11 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, Camera, Save, User, Mail, Shield } from "lucide-react";
 import { Link } from "wouter";
 
-// Schema para validación del formulario
+// Schema para validación del formulario - solo campos básicos
 const accountSchema = z.object({
   displayName: z.string().min(1, "El nombre es requerido").max(100, "El nombre es muy largo"),
   email: z.string().email("Email inválido"),
   photoURL: z.string().url("URL inválida").optional().or(z.literal("")),
-  role: z.enum(["admin", "representante", "user"]).optional(),
-  requirePasswordChange: z.boolean().optional(),
-  autoRenewal: z.boolean().optional(),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -31,11 +28,8 @@ export default function ConfigurarCuenta() {
   const { user, isAdmin, refreshUser } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
 
-  // Query para obtener datos actuales del usuario
-  const { data: userData, isLoading } = useQuery({
-    queryKey: ["/api/users/me"],
-    enabled: !!user,
-  });
+  // No necesitamos query adicional, usamos datos del contexto
+  const isLoading = false;
 
   // Mutation para actualizar cuenta
   const updateAccountMutation = useMutation({
@@ -63,25 +57,19 @@ export default function ConfigurarCuenta() {
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
-      displayName: (userData as any)?.displayName || user?.displayName || "",
-      email: (userData as any)?.email || user?.email || "",
-      photoURL: (userData as any)?.photoURL || user?.photoURL || "",
-      role: (userData as any)?.role || user?.role || "user",
-      requirePasswordChange: (userData as any)?.requirePasswordChange || false,
-      autoRenewal: (userData as any)?.autoRenewal || false,
+      displayName: user?.displayName || "",
+      email: user?.email || "",
+      photoURL: user?.photoURL || "",
     },
   });
 
-  // Reset form when data loads
+  // Reset form when user data loads
   useState(() => {
-    if (userData) {
+    if (user) {
       form.reset({
-        displayName: (userData as any).displayName || "",
-        email: (userData as any).email || "",
-        photoURL: (userData as any).photoURL || "",
-        role: (userData as any).role || "user",
-        requirePasswordChange: (userData as any).requirePasswordChange || false,
-        autoRenewal: (userData as any).autoRenewal || false,
+        displayName: user.displayName || "",
+        email: user.email || "",
+        photoURL: user.photoURL || "",
       });
     }
   });
@@ -324,7 +312,7 @@ export default function ConfigurarCuenta() {
               <div>
                 <label className="text-sm font-medium text-gray-700">Fecha de Creación</label>
                 <p className="text-sm text-gray-900 mt-1">
-                  {(userData as any)?.createdAt ? new Date((userData as any).createdAt).toLocaleDateString('es-ES', {
+                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

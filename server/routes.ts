@@ -363,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         displayName: z.string().min(1).max(100).optional(),
         photoURL: z.string().url().optional().or(z.literal("")),
         email: z.string().email().optional(),
-      });
+      }).partial();
       
       const validatedData = updateSchema.parse(req.body);
       
