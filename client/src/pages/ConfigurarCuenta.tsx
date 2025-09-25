@@ -19,6 +19,9 @@ const accountSchema = z.object({
   displayName: z.string().min(1, "El nombre es requerido").max(100, "El nombre es muy largo"),
   email: z.string().email("Email inválido"),
   photoURL: z.string().url("URL inválida").optional().or(z.literal("")),
+  role: z.enum(["admin", "representante", "user"]).optional(),
+  requirePasswordChange: z.boolean().optional(),
+  autoRenewal: z.boolean().optional(),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -63,6 +66,9 @@ export default function ConfigurarCuenta() {
       displayName: (userData as any)?.displayName || user?.displayName || "",
       email: (userData as any)?.email || user?.email || "",
       photoURL: (userData as any)?.photoURL || user?.photoURL || "",
+      role: (userData as any)?.role || user?.role || "user",
+      requirePasswordChange: (userData as any)?.requirePasswordChange || false,
+      autoRenewal: (userData as any)?.autoRenewal || false,
     },
   });
 
@@ -73,6 +79,9 @@ export default function ConfigurarCuenta() {
         displayName: (userData as any).displayName || "",
         email: (userData as any).email || "",
         photoURL: (userData as any).photoURL || "",
+        role: (userData as any).role || "user",
+        requirePasswordChange: (userData as any).requirePasswordChange || false,
+        autoRenewal: (userData as any).autoRenewal || false,
       });
     }
   });
