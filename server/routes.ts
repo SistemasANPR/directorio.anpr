@@ -2860,7 +2860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Temporary login endpoint for newly registered users
+  // Temporary login endpoint for newly registered users and admin accounts
   app.post("/api/login-temp", async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -2872,20 +2872,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Find user by email
       const user = await storage.getUserByEmail(email);
-      console.log("Found user:", user ? { id: user.id, email: user.email, firebaseUid: user.firebaseUid } : null);
+      console.log("Found user:", user ? { id: user.id, email: user.email, firebaseUid: user.firebaseUid, role: user.role } : null);
       
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Check if this is a temporary user (not yet migrated to Firebase)
-      if (!user.firebaseUid.startsWith('temp_') && !user.firebaseUid.startsWith('pending_')) {
-        console.log("User has Firebase UID:", user.firebaseUid);
+      // Check if this is a temporary user (not yet migrated to Firebase) or admin with temp password
+      const isTempUser = user.firebaseUid.startsWith('temp_') || user.firebaseUid.startsWith('pending_');
+      const hasTemporaryPassword = user.tempPassword !== null;
+
+      if (!isTempUser && !hasTemporaryPassword) {
+        console.log("User has Firebase UID and no temp password:", user.firebaseUid);
         return res.status(401).json({ error: "Please use Firebase login" });
       }
 
-      // For temp users, skip password validation for now (in production, use proper hashing)
-      console.log("Login successful for temp user:", user.id);
+      // For users with temporary passwords (like admin accounts), validate password
+      if (hasTemporaryPassword) {
+        if (user.tempPassword !== password) {
+          console.log("Invalid temporary password for user:", user.id);
+          return res.status(401).json({ error: "Invalid credentials" });
+        }
+      }
+
+      console.log("Login successful for temp/admin user:", user.id);
       
       // Convert role string to roleId for consistency
       let roleId = 2; // Default to representative role
@@ -2900,7 +2910,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           displayName: user.displayName,
           role: user.role,
           roleId: roleId,
-          firebaseUid: user.firebaseUid
+          firebaseUid: user.firebaseUid,
+          requirePasswordChange: user.requirePasswordChange || false
         }
       });
     } catch (error: any) {
