@@ -2884,7 +2884,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Please use Firebase login" });
       }
 
-      // For temp users, skip password validation for now (in production, use proper hashing)
+      // Validate password for admin account and specific admin credentials
+      if (user.email === 'sistemas@anpr.org.mx' && password !== 'sistemas123456789') {
+        console.log("Invalid password for admin account");
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
       console.log("Login successful for temp user:", user.id);
       
       // Convert role string to roleId for consistency
