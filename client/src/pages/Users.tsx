@@ -190,6 +190,8 @@ export default function Users() {
       });
       if (!response.ok) throw new Error("Failed to fetch companies");
       const data = await response.json();
+      console.log("Debug - Companies loaded for dropdown:", data.companies?.length, "empresas");
+      console.log("Debug - Companies names:", data.companies?.map((c: any) => c.nombreEmpresa));
       return data.companies || [];
     },
   });
