@@ -30,13 +30,14 @@ export default function CompanyDetails() {
   const [selectedProject, setSelectedProject] = useState<ProjectWithDetails | null>(null);
   const [, setLocation] = useLocation();
 
-  const { data: company, isLoading } = useQuery({
+  const { data: company, isLoading, isError, error } = useQuery({
     queryKey: ["/api/companies", id],
     queryFn: async () => {
       const response = await fetch(`/api/companies/${id}`);
       if (!response.ok) throw new Error("Company not found");
       return response.json();
     },
+    retry: false, // Don't retry on error
   });
 
 
@@ -133,13 +134,14 @@ export default function CompanyDetails() {
     );
   }
 
-  if (!company) {
+  if (isError || !company) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Empresa no encontrada</h1>
-          <Link href="/">
-            <Button>Volver al inicio</Button>
+          <p className="text-gray-600 mb-4">La empresa que buscas no existe o ha sido eliminada.</p>
+          <Link href="/directorio">
+            <Button>Volver al directorio</Button>
           </Link>
         </div>
       </div>
