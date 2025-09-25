@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Building, Mail, Lock, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Building, Mail, Lock, Loader2, Phone, UserPlus } from "lucide-react";
 import { signInWithEmail, createUserWithEmail } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,10 +19,19 @@ const loginSchema = z.object({
   rememberMe: z.boolean().default(false),
 });
 
+const adminRegistrationSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  phone: z.string().min(10, "El número de teléfono debe tener al menos 10 dígitos"),
+});
+
 type LoginFormData = z.infer<typeof loginSchema>;
+type AdminRegistrationFormData = z.infer<typeof adminRegistrationSchema>;
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegisteringAdmin, setIsRegisteringAdmin] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -31,6 +41,15 @@ export default function Login() {
       email: "",
       password: "",
       rememberMe: false,
+    },
+  });
+
+  const adminForm = useForm<AdminRegistrationFormData>({
+    resolver: zodResolver(adminRegistrationSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      phone: "",
     },
   });
 
@@ -128,6 +147,66 @@ export default function Login() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const onAdminSubmit = async (data: AdminRegistrationFormData) => {
+    setIsRegisteringAdmin(true);
+    try {
+      // First create the user in Firebase
+      const firebaseUser = await createUserWithEmail(data.email, data.password);
+      
+      // Then create the user in our database with admin role
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          firebaseUid: firebaseUser.uid,
+          email: data.email,
+          displayName: data.email.split('@')[0], // Use email prefix as display name
+          role: "admin",
+          photoURL: null,
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Error al crear cuenta de administrador");
+      }
+
+      toast({
+        title: "Cuenta creada exitosamente",
+        description: "La cuenta de administrador ha sido creada. Ahora puedes iniciar sesión.",
+      });
+
+      // Reset form and close dialog
+      adminForm.reset();
+      setIsDialogOpen(false);
+
+    } catch (error: any) {
+      let errorMessage = "Ha ocurrido un error al crear la cuenta";
+      
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "Ya existe una cuenta con este email";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "La contraseña es muy débil";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Email inválido";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsRegisteringAdmin(false);
     }
   };
 
@@ -239,18 +318,145 @@ export default function Login() {
             </form>
           </Form>
 
-          {/* Link inferior para crear cuenta */}
-          <div className="text-center text-sm">
-            <span className="text-gray-600">¿No tienes cuenta? </span>
-            <button
-              type="button"
-              onClick={() => window.location.href = "/planes#elige-tu-plan"}
-              className="text-blue-600 hover:text-blue-800 hover:underline"
-              disabled={isLoading}
-              data-testid="link-signup"
-            >
-              Crea aquí
-            </button>
+          {/* Links inferiores para crear cuenta */}
+          <div className="text-center text-sm space-y-2">
+            <div>
+              <span className="text-gray-600">¿No tienes cuenta? </span>
+              <button
+                type="button"
+                onClick={() => window.location.href = "/planes#elige-tu-plan"}
+                className="text-blue-600 hover:text-blue-800 hover:underline"
+                disabled={isLoading}
+                data-testid="link-signup"
+              >
+                Crea aquí
+              </button>
+            </div>
+            
+            {/* Enlace discreto para crear cuenta de administrador */}
+            <div className="pt-1">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-xs text-gray-400 hover:text-gray-600 underline-offset-4 hover:underline"
+                    disabled={isLoading}
+                    data-testid="link-admin-registration"
+                  >
+                    Registro de administrador
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <UserPlus className="h-5 w-5" />
+                      Crear cuenta de administrador
+                    </DialogTitle>
+                    <DialogDescription>
+                      Ingresa la información básica para crear una nueva cuenta de administrador.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...adminForm}>
+                    <form onSubmit={adminForm.handleSubmit(onAdminSubmit)} className="space-y-4">
+                      {/* Campo Email */}
+                      <FormField
+                        control={adminForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">Email</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                <Input 
+                                  type="email" 
+                                  placeholder="admin@ejemplo.com" 
+                                  className="pl-10 h-11 bg-gray-50 border-gray-300"
+                                  {...field} 
+                                  data-testid="admin-input-email"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Campo Contraseña */}
+                      <FormField
+                        control={adminForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">Contraseña</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                <Input 
+                                  type="password" 
+                                  placeholder="••••••••" 
+                                  className="pl-10 h-11 bg-gray-50 border-gray-300"
+                                  {...field} 
+                                  data-testid="admin-input-password"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Campo Teléfono */}
+                      <FormField
+                        control={adminForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">Número de teléfono</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                <Input 
+                                  type="tel" 
+                                  placeholder="+52 777 123 4567" 
+                                  className="pl-10 h-11 bg-gray-50 border-gray-300"
+                                  {...field} 
+                                  data-testid="admin-input-phone"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Botones de acción */}
+                      <div className="flex flex-col gap-2 pt-2">
+                        <Button 
+                          type="submit" 
+                          className="w-full h-11 bg-[#1e40af] text-white hover:bg-[#1d4ed8]" 
+                          disabled={isRegisteringAdmin}
+                          data-testid="admin-button-submit"
+                        >
+                          {isRegisteringAdmin && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Crear cuenta de administrador
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsDialogOpen(false)}
+                          disabled={isRegisteringAdmin}
+                          data-testid="admin-button-cancel"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardContent>
       </Card>
