@@ -6,13 +6,26 @@ import {
   CreditCard, 
   User, 
   Menu, 
-  X
+  X,
+  ChevronDown,
+  Settings,
+  LogOut
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function MainNavigation() {
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const navigationItems = [
     { href: "/", label: "Inicio", icon: Home },
@@ -59,14 +72,52 @@ export default function MainNavigation() {
             })}
           </div>
 
-          {/* Login */}
+          {/* User Menu / Login */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/login">
-              <Button size="sm">
-                <User className="h-4 w-4 mr-2" />
-                Acceder
-              </Button>
-            </Link>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2 px-3 py-2">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage 
+                        src={user.photoURL || undefined} 
+                        alt={user.displayName || user.email || 'Usuario'}
+                      />
+                      <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">
+                        {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-gray-700">
+                      {user.displayName || user.email}
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <Link href="/representative-dashboard">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Dashboard Representante
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={signOut}
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/login">
+                <Button size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Acceder
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -108,14 +159,64 @@ export default function MainNavigation() {
                 );
               })}
               
-              {/* Mobile Login */}
+              {/* Mobile User Menu / Login */}
               <div className="border-t pt-3 mt-3 space-y-2">
-                <Link href="/login">
-                  <Button size="sm" className="w-full justify-start" onClick={() => setIsMenuOpen(false)}>
-                    <User className="h-4 w-4 mr-2" />
-                    Acceder
-                  </Button>
-                </Link>
+                {user ? (
+                  <>
+                    {/* User Info */}
+                    <div className="flex items-center space-x-3 px-3 py-2">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage 
+                          src={user.photoURL || undefined} 
+                          alt={user.displayName || user.email || 'Usuario'}
+                        />
+                        <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">
+                          {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {user.displayName || user.email}
+                        </p>
+                        <p className="text-xs text-gray-500">Representante</p>
+                      </div>
+                    </div>
+                    
+                    {/* Dashboard Link */}
+                    <Link href="/representative-dashboard">
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="w-full justify-start" 
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Dashboard Representante
+                      </Button>
+                    </Link>
+                    
+                    {/* Logout */}
+                    <Button 
+                      size="sm"
+                      variant="ghost" 
+                      className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
+                      onClick={() => {
+                        signOut();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Cerrar Sesión
+                    </Button>
+                  </>
+                ) : (
+                  <Link href="/login">
+                    <Button size="sm" className="w-full justify-start" onClick={() => setIsMenuOpen(false)}>
+                      <User className="h-4 w-4 mr-2" />
+                      Acceder
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
