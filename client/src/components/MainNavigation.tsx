@@ -25,7 +25,7 @@ import {
 export default function MainNavigation() {
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
 
   const navigationItems = [
     { href: "/", label: "Inicio", icon: Home },
@@ -94,10 +94,10 @@ export default function MainNavigation() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <Link href="/representative-dashboard">
+                  <Link href={isAdmin ? "/dashboard" : "/representative-dashboard"}>
                     <DropdownMenuItem className="cursor-pointer">
                       <Settings className="h-4 w-4 mr-2" />
-                      Dashboard Representante
+                      {isAdmin ? "Dashboard Administrador" : "Dashboard Representante"}
                     </DropdownMenuItem>
                   </Link>
                   <DropdownMenuSeparator />
@@ -178,12 +178,12 @@ export default function MainNavigation() {
                         <p className="text-sm font-medium text-gray-900">
                           {user.displayName || user.email}
                         </p>
-                        <p className="text-xs text-gray-500">Representante</p>
+                        <p className="text-xs text-gray-500">{isAdmin ? "Administrador" : "Representante"}</p>
                       </div>
                     </div>
                     
                     {/* Dashboard Link */}
-                    <Link href="/representative-dashboard">
+                    <Link href={isAdmin ? "/dashboard" : "/representative-dashboard"}>
                       <Button 
                         size="sm" 
                         variant="ghost"
@@ -191,7 +191,7 @@ export default function MainNavigation() {
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <Settings className="h-4 w-4 mr-2" />
-                        Dashboard Representante
+                        {isAdmin ? "Dashboard Administrador" : "Dashboard Representante"}
                       </Button>
                     </Link>
                     
