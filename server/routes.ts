@@ -331,6 +331,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Current user API endpoints
+  app.get("/api/users/me", async (req, res) => {
+    try {
+      const currentUser = req.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const user = await storage.getUser(currentUser.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  app.patch("/api/users/me", async (req, res) => {
+    try {
+      const currentUser = req.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      // Validate the update data (only allow certain fields to be updated)
+      const updateSchema = z.object({
+        displayName: z.string().min(1).max(100).optional(),
+        photoURL: z.string().url().optional().or(z.literal("")),
+        email: z.string().email().optional(),
+      });
+      
+      const validatedData = updateSchema.parse(req.body);
+      
+      const user = await storage.updateUser(currentUser.id, validatedData);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      console.error("Error updating current user:", error);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
   // Companies API
   app.get("/api/companies", async (req, res) => {
     try {

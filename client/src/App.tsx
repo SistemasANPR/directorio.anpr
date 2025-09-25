@@ -36,6 +36,7 @@ import PdfSettings from "@/pages/PdfSettings";
 import EmailConfigurationPage from "@/pages/EmailConfigurationPage";
 import StripeConfiguration from "@/pages/StripeConfiguration";
 import FrontendConfiguration from "@/pages/FrontendConfiguration";
+import ConfigurarCuenta from "@/pages/ConfigurarCuenta";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import WordPressMembershipTest from "@/pages/WordPressMembershipTest";
@@ -154,6 +155,12 @@ function Router() {
           <AppLayout>
             <Certificates />
           </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/configurar-cuenta">
+        <ProtectedRoute>
+          <ConfigurarCuenta />
         </ProtectedRoute>
       </Route>
       

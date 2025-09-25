@@ -37,10 +37,8 @@ export default function ConfigurarCuenta() {
   // Mutation para actualizar cuenta
   const updateAccountMutation = useMutation({
     mutationFn: async (data: AccountFormData) => {
-      return apiRequest("/api/users/me", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("PATCH", "/api/users/me", data);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -62,9 +60,9 @@ export default function ConfigurarCuenta() {
   const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
-      displayName: userData?.displayName || user?.displayName || "",
-      email: userData?.email || user?.email || "",
-      photoURL: userData?.photoURL || user?.photoURL || "",
+      displayName: (userData as any)?.displayName || user?.displayName || "",
+      email: (userData as any)?.email || user?.email || "",
+      photoURL: (userData as any)?.photoURL || user?.photoURL || "",
     },
   });
 
@@ -72,9 +70,9 @@ export default function ConfigurarCuenta() {
   useState(() => {
     if (userData) {
       form.reset({
-        displayName: userData.displayName || "",
-        email: userData.email || "",
-        photoURL: userData.photoURL || "",
+        displayName: (userData as any).displayName || "",
+        email: (userData as any).email || "",
+        photoURL: (userData as any).photoURL || "",
       });
     }
   });
@@ -317,7 +315,7 @@ export default function ConfigurarCuenta() {
               <div>
                 <label className="text-sm font-medium text-gray-700">Fecha de Creación</label>
                 <p className="text-sm text-gray-900 mt-1">
-                  {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('es-ES', {
+                  {(userData as any)?.createdAt ? new Date((userData as any).createdAt).toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
