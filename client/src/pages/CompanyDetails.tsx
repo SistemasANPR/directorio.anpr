@@ -305,7 +305,7 @@ export default function CompanyDetails() {
               <CardContent>
                 {galeria.length > 0 ? (
                   <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-                    {galeria.map((imagen, index) => (
+                    {galeria.map((imagen: string, index: number) => (
                       <div key={index} className="break-inside-avoid">
                         <img
                           src={imagen}
@@ -422,7 +422,7 @@ export default function CompanyDetails() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {videos.map((videoUrl, index) => (
+                    {videos.map((videoUrl: string, index: number) => (
                       <div key={index} className="aspect-video">
                         <iframe
                           src={videoUrl}
@@ -533,7 +533,7 @@ export default function CompanyDetails() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {representantes.map((rep, index) => (
+                    {representantes.map((rep: any, index: number) => (
                       <div key={index} className="p-4 border rounded-lg">
                         {typeof rep === 'object' && rep.telefono ? (
                           <div>
@@ -1235,11 +1235,11 @@ export default function CompanyDetails() {
               )}
 
               {/* Videos del proyecto */}
-              {selectedProject.videosUrls && selectedProject.videosUrls.length > 0 && (
+              {selectedProject.videoUrl && (
                 <div>
                   <h3 className="font-semibold mb-2">Videos del Proyecto</h3>
                   <div className="space-y-2">
-                    {selectedProject.videosUrls.map((videoUrl, index) => (
+                    {[selectedProject.videoUrl].map((videoUrl: string, index: number) => (
                       <Button
                         key={index}
                         variant="outline"
