@@ -184,6 +184,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Ruta para subir imagen de perfil (usado por configuración de cuenta)
+  app.post("/api/upload", uploadImage.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No se recibió ningún archivo" });
+      }
+      
+      const imageUrl = `/uploads/images/${req.file.filename}`;
+      res.json({ 
+        success: true, 
+        url: imageUrl, // El frontend espera 'url', no 'imageUrl'
+        filename: req.file.filename
+      });
+    } catch (error) {
+      console.error("Error al subir imagen de perfil:", error);
+      res.status(500).json({ error: "Error al procesar la imagen de perfil" });
+    }
+  });
+
   // Ruta para eliminar imagen
   app.delete("/api/delete-image/:filename", async (req, res) => {
     try {
