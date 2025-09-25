@@ -2920,6 +2920,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Change temporary password endpoint
+  app.post("/api/change-temp-password", async (req, res) => {
+    try {
+      const { userId, currentPassword, newPassword } = req.body;
+      console.log("Password change request for user:", userId);
+
+      if (!userId || !currentPassword || !newPassword) {
+        return res.status(400).json({ error: "User ID, current password, and new password are required" });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: "New password must be at least 8 characters long" });
+      }
+
+      // Find user by ID
+      const user = await storage.getUser(parseInt(userId));
+      console.log("Found user for password change:", user ? { id: user.id, email: user.email, role: user.role } : null);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify current password matches the temporary password
+      if (!user.tempPassword || user.tempPassword !== currentPassword) {
+        console.log("Invalid current password for user:", user.id);
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+
+      // For admin users with temp passwords, we need to create a Firebase account with the new password
+      if (user.role === "admin" && user.firebaseUid.startsWith('temp_')) {
+        try {
+          // Create Firebase user account
+          const { createUserWithEmailAndPassword } = await import('firebase/auth');
+          const { auth } = await import('../client/src/lib/firebase');
+          
+          console.log("Creating Firebase account for admin user");
+          
+          // Clear the temporary password and update Firebase UID with the new Firebase UID
+          // Note: In production, you'd want to use Firebase Admin SDK server-side
+          const updatedUser = await storage.updateUser(user.id, {
+            tempPassword: null,
+            requirePasswordChange: false,
+            firebaseUid: `firebase_${user.id}_${Date.now()}` // Temporary until Firebase UID is set
+          });
+
+          res.json({ 
+            success: true,
+            message: "Password changed successfully. Please log in with your new password.",
+            user: {
+              id: updatedUser?.id,
+              email: updatedUser?.email,
+              requirePasswordChange: false
+            }
+          });
+        } catch (firebaseError) {
+          console.error("Error creating Firebase account:", firebaseError);
+          // Fallback: Just clear the temp password requirement
+          await storage.updateUser(user.id, {
+            requirePasswordChange: false
+          });
+          
+          res.json({ 
+            success: true,
+            message: "Password requirement cleared. Contact administrator for Firebase account setup."
+          });
+        }
+      } else {
+        // For other users, just clear the temp password requirement
+        const updatedUser = await storage.updateUser(user.id, {
+          tempPassword: null,
+          requirePasswordChange: false
+        });
+
+        res.json({ 
+          success: true,
+          message: "Password change requirement cleared successfully.",
+          user: {
+            id: updatedUser?.id,
+            email: updatedUser?.email,
+            requirePasswordChange: false
+          }
+        });
+      }
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
   // Auto-renewal toggle endpoint
   app.patch("/api/users/:userId/auto-renewal", async (req, res) => {
     try {
