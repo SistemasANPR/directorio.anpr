@@ -10,6 +10,8 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   photoURL: text("photo_url"),
   role: text("role").notNull().default("user"), // "admin" or "user"
+  tempPassword: text("temp_password"), // Temporary password for admin accounts
+  requirePasswordChange: boolean("require_password_change").notNull().default(false),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   autoRenewal: boolean("auto_renewal").notNull().default(false),
