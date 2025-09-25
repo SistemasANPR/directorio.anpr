@@ -20,7 +20,9 @@ import {
   Settings,
   Globe,
   Mail,
-  CreditCard
+  CreditCard,
+  UserCog,
+  Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -114,6 +116,18 @@ const navigationItems: NavigationItem[] = [
     requireAdmin: true,
   },
   {
+    name: "Mi Cuenta",
+    href: "/configurar-cuenta",
+    icon: UserCog,
+    requireAdmin: false,
+  },
+  {
+    name: "Regresar al Menú",
+    href: "/",
+    icon: Home,
+    requireAdmin: false,
+  },
+  {
     name: "Configuración",
     href: "/configuracion",
     icon: Settings,
@@ -200,6 +214,18 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       name: "Ver Directorio",
       href: "/directorio",
       icon: Globe,
+      requireAdmin: false,
+    },
+    {
+      name: "Mi Cuenta",
+      href: "/configurar-cuenta",
+      icon: UserCog,
+      requireAdmin: false,
+    },
+    {
+      name: "Regresar al Menú",
+      href: "/",
+      icon: Home,
       requireAdmin: false,
     },
   ];

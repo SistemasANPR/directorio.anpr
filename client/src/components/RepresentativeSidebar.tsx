@@ -10,7 +10,9 @@ import {
   Crown,
   CreditCard,
   Briefcase,
-  MessageSquare
+  MessageSquare,
+  UserCog,
+  Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,7 +23,15 @@ interface RepresentativeSidebarProps {
   className?: string;
 }
 
-const representativeNavItems = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: any;
+  requireAdmin: boolean;
+  external?: boolean;
+}
+
+const representativeNavItems: NavItem[] = [
   {
     name: "Resumen",
     href: "/representative-dashboard?tab=overview",
@@ -63,6 +73,20 @@ const representativeNavItems = [
     href: "/representative-dashboard?tab=payments",
     icon: CreditCard,
     requireAdmin: false,
+  },
+  {
+    name: "Mi Cuenta",
+    href: "/configurar-cuenta",
+    icon: UserCog,
+    requireAdmin: false,
+    external: true,
+  },
+  {
+    name: "Regresar al Menú",
+    href: "/",
+    icon: Home,
+    requireAdmin: false,
+    external: true,
   },
 ];
 
@@ -168,7 +192,10 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                 }`}
                 onClick={() => {
-                  if (item.href.includes('/testimonials')) {
+                  if (item.external || item.href === '/' || item.href === '/configurar-cuenta') {
+                    // Handle external navigation for external links
+                    window.location.href = item.href;
+                  } else if (item.href.includes('/testimonials')) {
                     // Handle external navigation for testimonials
                     window.location.href = item.href;
                   } else {
