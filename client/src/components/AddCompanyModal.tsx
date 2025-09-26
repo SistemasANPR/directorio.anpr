@@ -966,9 +966,36 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                               onClick={() => {
                                 setSelectedWordPressUser(user);
                                 setWordPressUserSearch("");
-                                // Auto-llenar campos
+                                
+                                // Auto-llenar campos de contacto
                                 if (user.email) {
                                   form.setValue("email1", user.email);
+                                }
+                                
+                                // Auto-llenar nombre de empresa con el nombre del usuario
+                                if (user.name || user.first_name || user.username) {
+                                  const companyName = user.name || `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username;
+                                  form.setValue("nombreEmpresa", companyName);
+                                }
+                                
+                                // Auto-llenar teléfonos si están disponibles en el perfil
+                                if (user.phone || user.meta?.phone || user.meta?.billing_phone) {
+                                  const phoneNumber = user.phone || user.meta?.phone || user.meta?.billing_phone;
+                                  form.setValue("telefono1", phoneNumber);
+                                }
+                                
+                                // Auto-llenar sitio web si está disponible
+                                if (user.url || user.meta?.website || user.user_url) {
+                                  const websiteUrl = user.url || user.meta?.website || user.user_url;
+                                  if (websiteUrl && websiteUrl !== 'http://') {
+                                    form.setValue("sitioWeb", websiteUrl);
+                                  }
+                                }
+                                
+                                // Auto-llenar descripción si está disponible
+                                if (user.description || user.meta?.description) {
+                                  const description = user.description || user.meta?.description;
+                                  form.setValue("descripcionEmpresa", description);
                                 }
 
                                 // Auto-configurar campos de membresía
@@ -981,6 +1008,12 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                                 }
                                 form.setValue("membershipPeriodicidad", "anual");
                                 form.setValue("formaPago", "otro");
+                                
+                                // Mostrar notificación de auto-completado
+                                toast({
+                                  title: "✅ Usuario vinculado y datos completados",
+                                  description: "Se han llenado automáticamente los campos disponibles del usuario de WordPress y se creará su cuenta de representante con contraseña '12345678'.",
+                                });
                                 
                                 // Cargar transacciones del usuario seleccionado
                                 if (user.id) {
@@ -1054,7 +1087,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                               </div>
                             )}
                             <div className="text-xs text-green-700 font-medium mt-1">
-                              ✨ Campos auto-llenados: Email, Enlace a perfil profesional, y configuración de membresía (Empresarial/Anual/Otro)
+                              ✨ Campos auto-llenados: Nombre de empresa, Email, Teléfono, Sitio web, Descripción y configuración de membresía (Empresarial/Anual/Otro)
+                            </div>
+                            <div className="text-xs text-blue-700 font-medium mt-1">
+                              🔑 Se creará cuenta de representante con contraseña por defecto: <span className="font-mono bg-blue-200 px-1 rounded">12345678</span>
                             </div>
                             <div className="pt-2">
                               <Button
