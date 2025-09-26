@@ -117,9 +117,9 @@ export default function CertificateTable({ certificates, onEdit, onDelete }: Cer
                 </div>
               </TableCell>
               <TableCell className="py-4 px-4">
-                <Badge className={getVisibilityBadgeColor(certificate.estado)}>
+                <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getVisibilityBadgeColor(certificate.estado)}`}>
                   {certificate.estado?.charAt(0).toUpperCase() + certificate.estado?.slice(1) || "Activo"}
-                </Badge>
+                </div>
               </TableCell>
               {isAdmin && (
                 <TableCell className="py-4 px-4">

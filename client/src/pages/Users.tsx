@@ -463,9 +463,9 @@ export default function Users() {
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge className={getRoleBadgeColor(user.role)}>
+                        <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getRoleBadgeColor(user.role)}`}>
                           {getRoleDisplayName(user.role)}
-                        </Badge>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {new Date(user.createdAt).toLocaleDateString('es-ES')}
@@ -582,9 +582,9 @@ export default function Users() {
                         <div className="flex flex-wrap gap-1">
                           {wpUser.roles && wpUser.roles.length > 0 ? (
                             wpUser.roles.map((role: string) => (
-                              <Badge key={role} variant="outline" className="text-xs">
+                              <div key={role} className="inline-flex items-center rounded-full border border-gray-300 px-2.5 py-0.5 text-xs font-semibold bg-white text-gray-700">
                                 {role}
-                              </Badge>
+                              </div>
                             ))
                           ) : (
                             <span className="text-gray-400 text-sm">Sin roles</span>

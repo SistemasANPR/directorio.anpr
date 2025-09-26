@@ -322,10 +322,10 @@ export default function Opinions() {
                           </CardDescription>
                         </div>
                       </div>
-                      <Badge className={getStatusColor(opinion.estado)}>
+                      <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(opinion.estado)}`}>
                         {getStatusIcon(opinion.estado)}
                         {opinion.estado}
-                      </Badge>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -392,10 +392,10 @@ export default function Opinions() {
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(opinion.estado)}>
+                    <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(opinion.estado)}`}>
                       {getStatusIcon(opinion.estado)}
                       {opinion.estado}
-                    </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -454,10 +454,10 @@ export default function Opinions() {
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(opinion.estado)}>
+                    <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(opinion.estado)}`}>
                       {getStatusIcon(opinion.estado)}
                       {opinion.estado}
-                    </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -525,10 +525,10 @@ export default function Opinions() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold">{selectedOpinion.nombre}</h3>
-                    <Badge className={getStatusColor(selectedOpinion.estado)}>
+                    <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(selectedOpinion.estado)}`}>
                       {getStatusIcon(selectedOpinion.estado)}
                       {selectedOpinion.estado}
-                    </Badge>
+                    </div>
                   </div>
                   <div className="text-sm text-gray-600 space-y-1">
                     <div className="flex items-center gap-2">

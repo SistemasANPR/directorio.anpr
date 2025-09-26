@@ -171,9 +171,7 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
                   )}
                 </TableCell>
                 <TableCell className="py-4 px-4 text-gray-600">
-                  {Array.isArray(company.ciudadesPresencia) && company.ciudadesPresencia.length > 0
-                    ? company.ciudadesPresencia[0]
-                    : "No especificada"}
+                  {"No especificada"}
                 </TableCell>
                 <TableCell className="py-4 px-4">
                   {company.membershipType && (
@@ -200,9 +198,9 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
                   )}
                 </TableCell>
                 <TableCell className="py-4 px-4">
-                  <Badge className="bg-green-100 text-green-800">
+                  <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800">
                     {company.estado === "activo" ? "Activo" : company.estado}
-                  </Badge>
+                  </div>
                 </TableCell>
                 <TableCell className="py-4 px-4">
                   <DropdownMenu>
