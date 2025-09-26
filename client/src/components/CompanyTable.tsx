@@ -177,9 +177,9 @@ export default function CompanyTable({ companies, onEdit, onDelete, onView, onIm
                 </TableCell>
                 <TableCell className="py-4 px-4">
                   {company.membershipType && (
-                    <Badge className={getMembershipBadgeColor(company.membershipType.nombrePlan)}>
+                    <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getMembershipBadgeColor(company.membershipType.nombrePlan)}`}>
                       {company.membershipType.nombrePlan}
-                    </Badge>
+                    </div>
                   )}
                 </TableCell>
                 <TableCell className="py-4 px-4">
