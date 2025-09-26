@@ -88,11 +88,11 @@ export default function ConfigurarCuenta() {
   const [currentPhotoURL, setCurrentPhotoURL] = useState("");
   
   // Actualizar la foto cuando cambie el usuario
-  useState(() => {
+  useEffect(() => {
     if (user?.photoURL) {
       setCurrentPhotoURL(user.photoURL);
     }
-  });
+  }, [user?.photoURL]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
