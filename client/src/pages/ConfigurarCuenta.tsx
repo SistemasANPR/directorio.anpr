@@ -36,12 +36,16 @@ export default function ConfigurarCuenta() {
       const response = await apiRequest("PATCH", "/api/users/me", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
       toast({
         title: "Cuenta actualizada",
         description: "Tu información de cuenta ha sido actualizada correctamente.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+      // Actualizar el estado local con los datos actualizados
+      if (updatedUser.photoURL) {
+        setCurrentPhotoURL(updatedUser.photoURL);
+      }
       refreshUser();
     },
     onError: (error: any) => {
@@ -81,7 +85,14 @@ export default function ConfigurarCuenta() {
   };
 
   // Estado para manejar la URL de la foto actual
-  const [currentPhotoURL, setCurrentPhotoURL] = useState(user?.photoURL || "");
+  const [currentPhotoURL, setCurrentPhotoURL] = useState("");
+  
+  // Actualizar la foto cuando cambie el usuario
+  useState(() => {
+    if (user?.photoURL) {
+      setCurrentPhotoURL(user.photoURL);
+    }
+  });
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
