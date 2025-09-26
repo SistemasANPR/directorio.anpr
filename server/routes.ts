@@ -757,6 +757,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
             
             existingUser = await storage.createUser(newUserData);
+            
+            // Log para indicar que se debe configurar la contraseña por defecto
+            console.log(`[WordPress User Creation] New representative account created for ${wordpressUser.email}`);
+            console.log(`[WordPress User Creation] Default password should be set to: 12345678`);
+            console.log(`[WordPress User Creation] Firebase UID: wp_${wordpressUser.id}_${Date.now()}`);
+            console.log(`[WordPress User Creation] User should change password after first login`);
+            
+            // TODO: Implementar creación automática en Firebase con contraseña por defecto
+            // await createFirebaseUserWithPassword(wordpressUser.email, '12345678');
           }
           
           userId = existingUser?.id || null;
@@ -855,7 +864,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
             
             existingUser = await storage.createUser(newUserData);
-            console.log(`Created new representative user from WordPress: ${existingUser.email}`);
+            
+            // Log para indicar que se debe configurar la contraseña por defecto
+            console.log(`[WordPress User Creation] New representative account created for ${wordpressUser.email}`);
+            console.log(`[WordPress User Creation] Default password should be set to: 12345678`);
+            console.log(`[WordPress User Creation] Firebase UID: wp_${wordpressUser.id}_${Date.now()}`);
+            console.log(`[WordPress User Creation] User should change password after first login`);
+            
+            // TODO: Implementar creación automática en Firebase con contraseña por defecto
+            // await createFirebaseUserWithPassword(wordpressUser.email, '12345678');
           } else if (existingUser && existingUser.role !== "representante" && existingUser.role !== "admin") {
             // Si existe pero no es representante ni admin, actualizarlo a representante
             const updatedUser = await storage.updateUser(existingUser.id, { role: "representante" });
