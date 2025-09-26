@@ -18,7 +18,6 @@ import { Link } from "wouter";
 const accountSchema = z.object({
   displayName: z.string().min(1, "El nombre es requerido").max(100, "El nombre es muy largo"),
   email: z.string().email("Email inválido"),
-  photoURL: z.string().url("URL inválida").optional().or(z.literal("")),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -59,7 +58,6 @@ export default function ConfigurarCuenta() {
     defaultValues: {
       displayName: user?.displayName || "",
       email: user?.email || "",
-      photoURL: user?.photoURL || "",
     },
   });
 
@@ -69,14 +67,21 @@ export default function ConfigurarCuenta() {
       form.reset({
         displayName: user.displayName || "",
         email: user.email || "",
-        photoURL: user.photoURL || "",
       });
     }
   });
 
   const onSubmit = (data: AccountFormData) => {
-    updateAccountMutation.mutate(data);
+    // Agregar la URL de la foto actual si existe
+    const submitData = {
+      ...data,
+      photoURL: currentPhotoURL || user?.photoURL || ""
+    };
+    updateAccountMutation.mutate(submitData);
   };
+
+  // Estado para manejar la URL de la foto actual
+  const [currentPhotoURL, setCurrentPhotoURL] = useState(user?.photoURL || "");
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -119,7 +124,7 @@ export default function ConfigurarCuenta() {
       }
 
       const result = await response.json();
-      form.setValue("photoURL", result.url);
+      setCurrentPhotoURL(result.url);
       
       toast({
         title: "Imagen subida",
@@ -182,7 +187,7 @@ export default function ConfigurarCuenta() {
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-20 h-20">
                     <AvatarImage 
-                      src={form.watch("photoURL") || user?.photoURL || ""} 
+                      src={currentPhotoURL || user?.photoURL || ""} 
                       alt="Foto de perfil" 
                     />
                     <AvatarFallback className="text-lg">
@@ -243,25 +248,6 @@ export default function ConfigurarCuenta() {
                           placeholder="correo@ejemplo.com"
                           {...field}
                           data-testid="input-email"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* URL de foto manual */}
-                <FormField
-                  control={form.control}
-                  name="photoURL"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL de Foto de Perfil (Opcional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="https://ejemplo.com/foto.jpg"
-                          {...field}
-                          data-testid="input-photo-url"
                         />
                       </FormControl>
                       <FormMessage />
