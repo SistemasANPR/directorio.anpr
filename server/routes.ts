@@ -380,7 +380,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the update data (only allow certain fields to be updated)
       const updateSchema = z.object({
         displayName: z.string().min(1).max(100).optional(),
-        photoURL: z.string().url().optional().or(z.literal("")),
+        photoURL: z.string().refine(
+          (val) => val === "" || val.startsWith("/") || z.string().url().safeParse(val).success,
+          { message: "photoURL must be a valid URL or a relative path starting with /" }
+        ).optional().or(z.literal("")),
         email: z.string().email().optional(),
       }).partial();
       
