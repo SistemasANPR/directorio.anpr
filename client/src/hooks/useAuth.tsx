@@ -14,7 +14,7 @@ interface AuthContextType {
   impersonateCompany: (company: any) => void;
   stopImpersonation: () => void;
   signOut: () => void;
-  refreshUser: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -95,12 +95,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsImpersonating(false);
   };
 
-  const refreshUser = () => {
-    // Force refresh of user data
+  const refreshUser = async () => {
+    // Force refresh of user data from database
     const tempUserData = localStorage.getItem('tempUser');
     if (tempUserData) {
       const tempUser = JSON.parse(tempUserData);
-      setUser(tempUser);
+      
+      // Fetch updated user data from API
+      try {
+        const response = await fetch(`/api/users/${tempUser.id}`, {
+          headers: {
+            'x-user-info': JSON.stringify(tempUser),
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const updatedUser = await response.json();
+          // Update localStorage with fresh data
+          localStorage.setItem('tempUser', JSON.stringify(updatedUser));
+          setUser(updatedUser);
+        } else {
+          // Fallback to localStorage if API fails
+          setUser(tempUser);
+        }
+      } catch (error) {
+        console.error('Error refreshing user data:', error);
+        // Fallback to localStorage if API fails
+        setUser(tempUser);
+      }
     }
   };
 

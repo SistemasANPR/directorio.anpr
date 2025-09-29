@@ -37,7 +37,7 @@ export default function ConfigurarCuenta() {
       const response = await apiRequest("PATCH", "/api/users/me", data);
       return response.json();
     },
-    onSuccess: (updatedUser) => {
+    onSuccess: async (updatedUser) => {
       toast({
         title: "Cuenta actualizada",
         description: "Tu información de cuenta ha sido actualizada correctamente.",
@@ -47,7 +47,8 @@ export default function ConfigurarCuenta() {
       if (updatedUser.photoURL) {
         setCurrentPhotoURL(updatedUser.photoURL);
       }
-      refreshUser();
+      // Actualizar la información del usuario en el contexto
+      await refreshUser();
     },
     onError: (error: any) => {
       toast({
