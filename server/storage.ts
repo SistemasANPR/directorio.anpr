@@ -1231,6 +1231,8 @@ export class DatabaseStorage implements IStorage {
           description: wpUser.description || '',
           url: wpUser.url || '',
           capabilities: wpUser.capabilities || {},
+          avatar_urls: wpUser.avatar_urls || {},
+          meta: wpUser.meta || {},
           source: 'wordpress'
         };
       });

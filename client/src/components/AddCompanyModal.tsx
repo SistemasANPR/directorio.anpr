@@ -1092,6 +1092,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                             <div className="text-xs text-blue-700 font-medium mt-1">
                               🔑 Se creará cuenta de representante con contraseña por defecto: <span className="font-mono bg-blue-200 px-1 rounded">12345678</span>
                             </div>
+                            {selectedWordPressUser.avatar_urls && (
+                              <div className="text-xs text-purple-700 font-medium mt-1">
+                                📸 Imagen de perfil de PeepSo será cargada automáticamente
+                              </div>
+                            )}
                             <div className="pt-2">
                               <Button
                                 type="button"

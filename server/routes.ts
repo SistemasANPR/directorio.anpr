@@ -764,6 +764,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`[WordPress User Creation] Firebase UID: wp_${wordpressUser.id}_${Date.now()}`);
             console.log(`[WordPress User Creation] User should change password after first login`);
             
+            // Descargar y guardar imagen de perfil de WordPress/PeepSo si está disponible
+            if (wordpressUser.avatar_urls) {
+              try {
+                const avatarUrl = wordpressUser.avatar_urls['96'] || wordpressUser.avatar_urls['48'] || wordpressUser.avatar_urls['24'];
+                if (avatarUrl) {
+                  console.log(`[WordPress User Creation] Downloading profile picture from: ${avatarUrl}`);
+                  const avatarResponse = await fetch(avatarUrl);
+                  if (avatarResponse.ok) {
+                    const avatarBuffer = await avatarResponse.arrayBuffer();
+                    const avatarFileName = `avatar_${existingUser.id}_${Date.now()}.jpg`;
+                    
+                    // Guardar imagen usando fs
+                    const fs = require('fs');
+                    const path = require('path');
+                    const uploadsDir = path.join(process.cwd(), 'uploads', 'images');
+                    if (!fs.existsSync(uploadsDir)) {
+                      fs.mkdirSync(uploadsDir, { recursive: true });
+                    }
+                    
+                    const avatarPath = path.join(uploadsDir, avatarFileName);
+                    fs.writeFileSync(avatarPath, Buffer.from(avatarBuffer));
+                    
+                    const avatarImageUrl = `/uploads/images/${avatarFileName}`;
+                    
+                    // Actualizar usuario con la URL de la imagen
+                    await storage.updateUser(existingUser.id, { photoURL: avatarImageUrl });
+                    console.log(`[WordPress User Creation] Profile picture saved: ${avatarImageUrl}`);
+                  }
+                }
+              } catch (avatarError) {
+                console.error(`[WordPress User Creation] Error downloading profile picture:`, avatarError);
+              }
+            }
+            
             // TODO: Implementar creación automática en Firebase con contraseña por defecto
             // await createFirebaseUserWithPassword(wordpressUser.email, '12345678');
           }
@@ -870,6 +904,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`[WordPress User Creation] Default password should be set to: 12345678`);
             console.log(`[WordPress User Creation] Firebase UID: wp_${wordpressUser.id}_${Date.now()}`);
             console.log(`[WordPress User Creation] User should change password after first login`);
+            
+            // Descargar y guardar imagen de perfil de WordPress/PeepSo si está disponible
+            if (wordpressUser.avatar_urls) {
+              try {
+                const avatarUrl = wordpressUser.avatar_urls['96'] || wordpressUser.avatar_urls['48'] || wordpressUser.avatar_urls['24'];
+                if (avatarUrl) {
+                  console.log(`[WordPress User Creation] Downloading profile picture from: ${avatarUrl}`);
+                  const avatarResponse = await fetch(avatarUrl);
+                  if (avatarResponse.ok) {
+                    const avatarBuffer = await avatarResponse.arrayBuffer();
+                    const avatarFileName = `avatar_${existingUser.id}_${Date.now()}.jpg`;
+                    
+                    // Guardar imagen usando fs
+                    const fs = require('fs');
+                    const path = require('path');
+                    const uploadsDir = path.join(process.cwd(), 'uploads', 'images');
+                    if (!fs.existsSync(uploadsDir)) {
+                      fs.mkdirSync(uploadsDir, { recursive: true });
+                    }
+                    
+                    const avatarPath = path.join(uploadsDir, avatarFileName);
+                    fs.writeFileSync(avatarPath, Buffer.from(avatarBuffer));
+                    
+                    const avatarImageUrl = `/uploads/images/${avatarFileName}`;
+                    
+                    // Actualizar usuario con la URL de la imagen
+                    await storage.updateUser(existingUser.id, { photoURL: avatarImageUrl });
+                    console.log(`[WordPress User Creation] Profile picture saved: ${avatarImageUrl}`);
+                  }
+                }
+              } catch (avatarError) {
+                console.error(`[WordPress User Creation] Error downloading profile picture:`, avatarError);
+              }
+            }
             
             // TODO: Implementar creación automática en Firebase con contraseña por defecto
             // await createFirebaseUserWithPassword(wordpressUser.email, '12345678');
