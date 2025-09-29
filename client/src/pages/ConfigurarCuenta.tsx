@@ -14,10 +14,11 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, Camera, Save, User, Mail, Shield } from "lucide-react";
 import { Link } from "wouter";
 
-// Schema para validación del formulario - solo campos básicos
+// Schema para validación del formulario - incluye photoURL
 const accountSchema = z.object({
   displayName: z.string().min(1, "El nombre es requerido").max(100, "El nombre es muy largo"),
   email: z.string().email("Email inválido"),
+  photoURL: z.string().optional(),
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -32,7 +33,7 @@ export default function ConfigurarCuenta() {
 
   // Mutation para actualizar cuenta
   const updateAccountMutation = useMutation({
-    mutationFn: async (data: AccountFormData) => {
+    mutationFn: async (data: AccountFormData & { photoURL?: string }) => {
       const response = await apiRequest("PATCH", "/api/users/me", data);
       return response.json();
     },
@@ -62,37 +63,35 @@ export default function ConfigurarCuenta() {
     defaultValues: {
       displayName: user?.displayName || "",
       email: user?.email || "",
+      photoURL: user?.photoURL || "",
     },
   });
 
-  // Reset form when user data loads
-  useState(() => {
+  // Estado para manejar la URL de la foto actual
+  const [currentPhotoURL, setCurrentPhotoURL] = useState("");
+
+  // Reset form when user data loads and update photo URL
+  useEffect(() => {
     if (user) {
       form.reset({
         displayName: user.displayName || "",
         email: user.email || "",
+        photoURL: user.photoURL || "",
       });
+      // También actualizar la URL de la foto actual
+      if (user.photoURL) {
+        setCurrentPhotoURL(user.photoURL);
+      }
     }
-  });
+  }, [user, form]);
 
   const onSubmit = (data: AccountFormData) => {
-    // Agregar la URL de la foto actual si existe
-    const submitData = {
+    // Usar la foto actual o la del usuario - ahora currentPhotoURL se actualizará correctamente
+    updateAccountMutation.mutate({
       ...data,
       photoURL: currentPhotoURL || user?.photoURL || ""
-    };
-    updateAccountMutation.mutate(submitData);
+    });
   };
-
-  // Estado para manejar la URL de la foto actual
-  const [currentPhotoURL, setCurrentPhotoURL] = useState("");
-  
-  // Actualizar la foto cuando cambie el usuario
-  useEffect(() => {
-    if (user?.photoURL) {
-      setCurrentPhotoURL(user.photoURL);
-    }
-  }, [user?.photoURL]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
