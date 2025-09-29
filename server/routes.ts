@@ -732,6 +732,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userId = null;
       let transactionExpirationDate = null;
 
+      // Debug logging para wordpressUser
+      console.log(`[Debug] wordpressUser received:`, wordpressUser);
+      console.log(`[Debug] wordpressUser type:`, typeof wordpressUser);
+      if (wordpressUser) {
+        console.log(`[Debug] wordpressUser.email:`, wordpressUser.email);
+        console.log(`[Debug] wordpressUser.username:`, wordpressUser.username);
+      }
+
       // Si se seleccionó un usuario de WordPress, crear/obtener usuario representante
       if (wordpressUser && wordpressUser.email && wordpressUser.username) {
         try {
