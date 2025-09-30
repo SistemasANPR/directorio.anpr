@@ -732,14 +732,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userId = null;
       let transactionExpirationDate = null;
 
-      // Debug logging para wordpressUser
-      console.log(`[Debug] wordpressUser received:`, wordpressUser);
-      console.log(`[Debug] wordpressUser type:`, typeof wordpressUser);
-      if (wordpressUser) {
-        console.log(`[Debug] wordpressUser.email:`, wordpressUser.email);
-        console.log(`[Debug] wordpressUser.username:`, wordpressUser.username);
-      }
-
       // Si se seleccionó un usuario de WordPress, crear/obtener usuario representante
       if (wordpressUser && wordpressUser.email && wordpressUser.username) {
         try {
@@ -761,16 +753,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               photoURL: null,
               stripeCustomerId: null,
               stripeSubscriptionId: null,
-              autoRenewal: false
+              autoRenewal: false,
+              tempPassword: "12345678",
+              requirePasswordChange: true
             };
             
             existingUser = await storage.createUser(newUserData);
             
-            // Log para indicar que se debe configurar la contraseña por defecto
             console.log(`[WordPress User Creation] New representative account created for ${wordpressUser.email}`);
-            console.log(`[WordPress User Creation] Default password should be set to: 12345678`);
-            console.log(`[WordPress User Creation] Firebase UID: wp_${wordpressUser.id}_${Date.now()}`);
-            console.log(`[WordPress User Creation] User should change password after first login`);
+            console.log(`[WordPress User Creation] Temporary password set: 12345678`);
+            console.log(`[WordPress User Creation] User must change password on first login`);
             
             // Descargar y guardar imagen de perfil de WordPress/PeepSo si está disponible
             if (wordpressUser.avatar_urls) {
