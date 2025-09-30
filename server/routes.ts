@@ -861,6 +861,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const company = await storage.createCompany(companyWithUser);
       
+      // Asignar certificados automáticamente si la empresa tiene un membershipTypeId
+      if (company.membershipTypeId) {
+        try {
+          const autoCertificates = await storage.getAutoCertificatesForMembership(company.membershipTypeId);
+          console.log(`[Auto-Certificate] Found ${autoCertificates.length} certificates for membership type ${company.membershipTypeId}`);
+          
+          for (const cert of autoCertificates) {
+            await storage.assignCertificateToCompany(company.id, cert.id, {
+              fechaObtencion: new Date().toISOString().split('T')[0],
+              asignadoPorAdmin: false,
+              observaciones: 'Asignado automáticamente al crear la empresa'
+            });
+            console.log(`[Auto-Certificate] Assigned certificate ${cert.nombreCertificado} (ID: ${cert.id}) to company ${company.id}`);
+          }
+        } catch (certError) {
+          console.error('[Auto-Certificate] Error assigning certificates:', certError);
+        }
+      }
+      
       // Si se creó un nuevo usuario, incluir su información en la respuesta
       if (newUserInfo) {
         res.status(201).json({
@@ -1028,6 +1047,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const company = await storage.createCompany(companyWithUser);
+      
+      // Asignar certificados automáticamente si la empresa tiene un membershipTypeId
+      if (company.membershipTypeId) {
+        try {
+          const autoCertificates = await storage.getAutoCertificatesForMembership(company.membershipTypeId);
+          console.log(`[Auto-Certificate] Found ${autoCertificates.length} certificates for membership type ${company.membershipTypeId}`);
+          
+          for (const cert of autoCertificates) {
+            await storage.assignCertificateToCompany(company.id, cert.id, {
+              fechaObtencion: new Date().toISOString().split('T')[0],
+              asignadoPorAdmin: false,
+              observaciones: 'Asignado automáticamente al crear la empresa'
+            });
+            console.log(`[Auto-Certificate] Assigned certificate ${cert.nombreCertificado} (ID: ${cert.id}) to company ${company.id}`);
+          }
+        } catch (certError) {
+          console.error('[Auto-Certificate] Error assigning certificates:', certError);
+        }
+      }
+      
       res.status(201).json(company);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1106,6 +1145,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const company = await storage.updateCompany(id, parsedData);
       if (!company) {
         return res.status(404).json({ error: "Company not found" });
+      }
+      
+      // Asignar certificados automáticamente si la empresa tiene un membershipTypeId
+      if (company.membershipTypeId) {
+        try {
+          const autoCertificates = await storage.getAutoCertificatesForMembership(company.membershipTypeId);
+          console.log(`[Auto-Certificate] Found ${autoCertificates.length} certificates for membership type ${company.membershipTypeId}`);
+          
+          // Obtener certificados actuales
+          const currentCertIds = (company.certificateIds as number[]) || [];
+          
+          for (const cert of autoCertificates) {
+            // Solo asignar si no está ya asignado
+            if (!currentCertIds.includes(cert.id)) {
+              await storage.assignCertificateToCompany(company.id, cert.id, {
+                fechaObtencion: new Date().toISOString().split('T')[0],
+                asignadoPorAdmin: false,
+                observaciones: 'Asignado automáticamente al actualizar la empresa'
+              });
+              console.log(`[Auto-Certificate] Assigned certificate ${cert.nombreCertificado} (ID: ${cert.id}) to company ${company.id}`);
+            }
+          }
+        } catch (certError) {
+          console.error('[Auto-Certificate] Error assigning certificates:', certError);
+        }
       }
       
       res.json(company);
@@ -1201,6 +1265,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!company) {
         return res.status(404).json({ error: "Company not found" });
       }
+      
+      // Asignar certificados automáticamente si la empresa tiene un membershipTypeId
+      if (company.membershipTypeId) {
+        try {
+          const autoCertificates = await storage.getAutoCertificatesForMembership(company.membershipTypeId);
+          console.log(`[Auto-Certificate] Found ${autoCertificates.length} certificates for membership type ${company.membershipTypeId}`);
+          
+          // Obtener certificados actuales
+          const currentCertIds = (company.certificateIds as number[]) || [];
+          
+          for (const cert of autoCertificates) {
+            // Solo asignar si no está ya asignado
+            if (!currentCertIds.includes(cert.id)) {
+              await storage.assignCertificateToCompany(company.id, cert.id, {
+                fechaObtencion: new Date().toISOString().split('T')[0],
+                asignadoPorAdmin: false,
+                observaciones: 'Asignado automáticamente al actualizar la empresa'
+              });
+              console.log(`[Auto-Certificate] Assigned certificate ${cert.nombreCertificado} (ID: ${cert.id}) to company ${company.id}`);
+            }
+          }
+        } catch (certError) {
+          console.error('[Auto-Certificate] Error assigning certificates:', certError);
+        }
+      }
+      
       res.json(company);
     } catch (error) {
       if (error instanceof z.ZodError) {
