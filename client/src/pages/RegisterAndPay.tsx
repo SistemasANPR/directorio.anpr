@@ -31,6 +31,7 @@ import {
   Upload
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import MapLocationPicker from "@/components/MapLocationPicker";
 
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('VITE_STRIPE_PUBLIC_KEY no está configurada');
@@ -58,6 +59,7 @@ const companySchema = z.object({
   direccionFisica: z.string().min(10, "La dirección es requerida"),
   descripcionEmpresa: z.string().min(20, "La descripción debe tener al menos 20 caracteres"),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
+  ubicacionGeografica: z.any().optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -154,6 +156,7 @@ export default function RegisterAndPay() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [ubicacionGeografica, setUbicacionGeografica] = useState<any>(null);
 
   // Detectar si viene con un plan preseleccionado
   const urlParams = new URLSearchParams(window.location.search);
@@ -358,7 +361,11 @@ export default function RegisterAndPay() {
   };
 
   const handleCompanySubmit = (data: CompanyFormData) => {
-    setCompanyData(data);
+    const companyDataWithLocation = {
+      ...data,
+      ubicacionGeografica: ubicacionGeografica || undefined,
+    };
+    setCompanyData(companyDataWithLocation);
     // Siempre ir al paso 3 para verificación del plan
     setCurrentStep(3);
   };
@@ -634,7 +641,7 @@ export default function RegisterAndPay() {
                     <FormLabel>Dirección Física</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Dirección completa de la empresa" 
+                        placeholder="Dirección completa de la empresa (calle, número, colonia, ciudad, estado, código postal...)" 
                         autoComplete="nope"
                         readOnly
                         onFocus={(e) => {
@@ -651,6 +658,35 @@ export default function RegisterAndPay() {
                   </FormItem>
                 )}
               />
+
+              {/* Sección de Confirmación de Ubicación Automática */}
+              <div className="space-y-4 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-blue-900 dark:text-blue-100">Ubicación Automática</h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                      La ubicación se actualiza automáticamente cuando escribes la dirección física. El mapa te muestra dónde se agregará la empresa para confirmación visual.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mapa de Confirmación */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Mapa de Confirmación</h4>
+                  <div className="w-full h-96 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <MapLocationPicker
+                      ciudad="México"
+                      onLocationSelect={(location) => {
+                        setUbicacionGeografica(location);
+                        companyForm.setValue('ubicacionGeografica', location);
+                      }}
+                      initialLocation={ubicacionGeografica}
+                      direccionFisica={companyForm.watch('direccionFisica')}
+                    />
+                  </div>
+                </div>
+              </div>
 
               <FormField
                 control={companyForm.control}
