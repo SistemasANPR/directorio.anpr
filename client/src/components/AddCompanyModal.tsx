@@ -443,14 +443,40 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/companies"] });
       queryClient.invalidateQueries({ queryKey: ["/api/statistics"] });
-      toast({
-        title: "Éxito",
-        description: "Empresa registrada correctamente",
-      });
+      
+      // Si se creó un nuevo usuario desde WordPress, mostrar la contraseña temporal
+      if (data.newUserCreated) {
+        toast({
+          title: "Éxito - Usuario creado",
+          description: (
+            <div className="space-y-2">
+              <p>Empresa registrada correctamente</p>
+              <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+                <p className="font-semibold">Nuevo representante creado:</p>
+                <p className="text-sm">Email: {data.newUserCreated.email}</p>
+                <p className="text-sm">Nombre: {data.newUserCreated.displayName}</p>
+                <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                  Contraseña temporal: {data.newUserCreated.tempPassword}
+                </p>
+                <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">
+                  ⚠️ Guarda esta contraseña - el usuario deberá cambiarla en su primer inicio de sesión
+                </p>
+              </div>
+            </div>
+          ),
+          duration: 15000, // 15 segundos para dar tiempo a copiar la contraseña
+        });
+      } else {
+        toast({
+          title: "Éxito",
+          description: "Empresa registrada correctamente",
+        });
+      }
+      
       onOpenChange(false);
       form.reset();
       setLogoFile(null);

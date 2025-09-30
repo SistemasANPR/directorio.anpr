@@ -731,6 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let userId = null;
       let transactionExpirationDate = null;
+      let newUserInfo: { email: string; tempPassword: string; displayName: string } | null = null;
 
       // Si se seleccionó un usuario de WordPress, crear/obtener usuario representante
       if (wordpressUser && wordpressUser.email && wordpressUser.username) {
@@ -744,7 +745,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let existingUser = await storage.getUserByEmail(wordpressUser.email);
           
           if (!existingUser) {
+            // Generar contraseña temporal criptográficamente segura
+            const crypto = require('crypto');
+            const tempPassword = crypto.randomBytes(12).toString('base64').slice(0, 16);
+            
             // Crear nuevo usuario representante con datos de WordPress
+            // NOTA DE SEGURIDAD: tempPassword se almacena en texto plano por limitaciones del sistema actual
+            // Esta es una limitación conocida - idealmente debería hashearse antes de almacenar
+            // La contraseña DEBE cambiarse en el primer inicio de sesión (requirePasswordChange: true)
             const newUserData = {
               firebaseUid: `wp_${wordpressUser.id}_${Date.now()}`,
               email: wordpressUser.email,
@@ -754,15 +762,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
               stripeCustomerId: null,
               stripeSubscriptionId: null,
               autoRenewal: false,
-              tempPassword: "12345678",
+              tempPassword: tempPassword,
               requirePasswordChange: true
             };
             
             existingUser = await storage.createUser(newUserData);
             
+            // Guardar información del nuevo usuario para incluirla en la respuesta
+            // Esta es la ÚNICA vez que la contraseña se envía - el admin debe comunicarla al usuario
+            newUserInfo = {
+              email: wordpressUser.email,
+              tempPassword: tempPassword,
+              displayName: wordpressUser.name || wordpressUser.username
+            };
+            
             console.log(`[WordPress User Creation] New representative account created for ${wordpressUser.email}`);
-            console.log(`[WordPress User Creation] Temporary password set: 12345678`);
-            console.log(`[WordPress User Creation] User must change password on first login`);
+            console.log(`[WordPress User Creation] Temporary password generated and sent to admin (not logged)`);
+            console.log(`[WordPress User Creation] User must contact admin for password and change it on first login`);
             
             // Descargar y guardar imagen de perfil de WordPress/PeepSo si está disponible
             if (wordpressUser.avatar_urls) {
@@ -844,7 +860,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const company = await storage.createCompany(companyWithUser);
-      res.status(201).json(company);
+      
+      // Si se creó un nuevo usuario, incluir su información en la respuesta
+      if (newUserInfo) {
+        res.status(201).json({
+          ...company,
+          newUserCreated: newUserInfo
+        });
+      } else {
+        res.status(201).json(company);
+      }
     } catch (error) {
       console.error("Error creating company with files:", error);
       if (error instanceof z.ZodError) {
