@@ -110,6 +110,7 @@ export interface IStorage {
   // Certificates
   getCertificate(id: number): Promise<Certificate | undefined>;
   getAllCertificates(): Promise<Certificate[]>;
+  getAutoCertificatesForMembership(membershipTypeId: number): Promise<Certificate[]>;
   createCertificate(certificate: InsertCertificate): Promise<Certificate>;
   updateCertificate(id: number, certificate: Partial<InsertCertificate>): Promise<Certificate | undefined>;
   deleteCertificate(id: number): Promise<boolean>;
@@ -621,6 +622,16 @@ export class DatabaseStorage implements IStorage {
 
   async getAllCertificates(): Promise<Certificate[]> {
     return await db.select().from(certificates);
+  }
+
+  async getAutoCertificatesForMembership(membershipTypeId: number): Promise<Certificate[]> {
+    const allCertificates = await db.select().from(certificates)
+      .where(eq(certificates.asignacionAutomatica, true));
+    
+    return allCertificates.filter(cert => {
+      const planIds = cert.membershipPlanIds as number[] | null;
+      return planIds && planIds.includes(membershipTypeId);
+    });
   }
 
   async createCertificate(insertCertificate: InsertCertificate): Promise<Certificate> {
