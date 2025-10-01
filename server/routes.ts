@@ -1919,6 +1919,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if email exists
+  app.post("/api/check-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const existingUser = await storage.getUserByEmail(email);
+      
+      return res.json({ exists: !!existingUser });
+    } catch (error) {
+      console.error("Error checking email:", error);
+      res.status(500).json({ error: "Failed to check email" });
+    }
+  });
+
   // Stripe Payment Routes for Memberships
   app.post("/api/create-payment-intent", async (req, res) => {
     try {

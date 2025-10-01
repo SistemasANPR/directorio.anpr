@@ -266,8 +266,9 @@ export default function RegisterAndPay() {
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Error en el servidor: ${errorData}`);
+        const errorData = await response.json();
+        const errorMessage = errorData.userMessage || errorData.error || "Error al completar el registro";
+        throw new Error(errorMessage);
       }
 
       return response.json();
@@ -282,7 +283,7 @@ export default function RegisterAndPay() {
     onError: (error: any) => {
       console.error("Registration error:", error);
       toast({
-        title: "Error",
+        title: "Error en el Registro",
         description: error.message || "Error al completar el registro",
         variant: "destructive",
       });
@@ -355,9 +356,33 @@ export default function RegisterAndPay() {
     }
   };
 
-  const handleUserSubmit = (data: UserFormData) => {
-    setUserData(data);
-    setCurrentStep(2);
+  const handleUserSubmit = async (data: UserFormData) => {
+    try {
+      // Verificar si el correo ya está registrado
+      const checkResponse = await apiRequest("POST", "/api/check-email", {
+        email: data.email
+      });
+      
+      const checkData = await checkResponse.json();
+      
+      if (checkData.exists) {
+        toast({
+          title: "Correo Electrónico Ya Registrado",
+          description: "Ya existe una cuenta con este correo electrónico. Si ya tienes una cuenta, inicia sesión en lugar de registrarte nuevamente.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setUserData(data);
+      setCurrentStep(2);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "No se pudo verificar el correo electrónico. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCompanySubmit = (data: CompanyFormData) => {
