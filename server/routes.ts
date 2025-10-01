@@ -3027,6 +3027,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Log ubicacionGeografica for debugging
+      console.log("Complete Registration - ubicacionGeografica received:", companyData.ubicacionGeografica);
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
@@ -3044,7 +3047,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: 'representante', // Always assign representative role for paid users
       });
 
-      // Create company
+      // Create company with ubicacionGeografica
       const company = await storage.createCompany({
         nombreEmpresa: companyData.nombreEmpresa,
         email1: companyData.email1,
@@ -3052,6 +3055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         direccionFisica: companyData.direccionFisica,
         descripcionEmpresa: companyData.descripcionEmpresa,
         sitioWeb: companyData.sitioWeb,
+        ubicacionGeografica: companyData.ubicacionGeografica || null,
         membershipTypeId: membershipTypeId,
         membershipPeriodicidad: selectedPeriod,
         formaPago: "tarjeta",
