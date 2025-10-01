@@ -203,6 +203,92 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
             markerRef.current = marker;
           }
 
+          // Agregar evento de clic en el mapa para seleccionar ubicación manualmente
+          map.on('click', async (e: L.LeafletMouseEvent) => {
+            const { lat, lng } = e.latlng;
+            
+            // Activar indicador de geocodificación
+            setIsGeocoding(true);
+            
+            // Realizar geocodificación inversa para obtener la dirección
+            try {
+              const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=es`);
+              
+              if (!response.ok) {
+                throw new Error('Error en geocodificación inversa');
+              }
+              
+              const data = await response.json();
+              
+              const locationInfo = extractLocationInfoFromNominatim(data);
+              
+              const location: LocationInfo = {
+                lat,
+                lng,
+                address: data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+                country: locationInfo.country,
+                state: locationInfo.state,
+                city: locationInfo.city
+              };
+
+              // Remover marcador anterior
+              if (markerRef.current) {
+                map.removeLayer(markerRef.current);
+              }
+
+              // Crear nuevo marcador
+              const marker = L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(`📍 ${location.address}`)
+                .openPopup();
+              
+              markerRef.current = marker;
+
+              // Actualizar estado y notificar al padre
+              setSelectedLocation(location);
+              setManualCoords({
+                lat: lat.toString(),
+                lng: lng.toString(),
+                address: location.address
+              });
+              onLocationSelect(location);
+            } catch (error) {
+              console.error('Error en geocodificación inversa:', error);
+              
+              // Si falla, usar coordenadas
+              const location: LocationInfo = {
+                lat,
+                lng,
+                address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+              };
+
+              // Remover marcador anterior
+              if (markerRef.current) {
+                map.removeLayer(markerRef.current);
+              }
+
+              // Crear nuevo marcador
+              const marker = L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(`📍 ${location.address}`)
+                .openPopup();
+              
+              markerRef.current = marker;
+
+              // Actualizar estado y notificar al padre
+              setSelectedLocation(location);
+              setManualCoords({
+                lat: lat.toString(),
+                lng: lng.toString(),
+                address: location.address
+              });
+              onLocationSelect(location);
+            } finally {
+              // Desactivar indicador de geocodificación
+              setIsGeocoding(false);
+            }
+          });
+
           // Invalidar el tamaño del mapa después de la inicialización
           setTimeout(() => {
             if (mapInstanceRef.current) {
@@ -387,11 +473,47 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full space-y-2">
+      {selectedLocation && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-start gap-2">
+          <MapPin className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-green-900 dark:text-green-100">
+              Ubicación seleccionada
+            </p>
+            <p className="text-xs text-green-700 dark:text-green-300 mt-0.5 truncate">
+              {selectedLocation.address}
+            </p>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
+              Lat: {selectedLocation.lat.toFixed(6)}, Lng: {selectedLocation.lng.toFixed(6)}
+            </p>
+          </div>
+        </div>
+      )}
+      
+      {!selectedLocation && !isGeocoding && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 flex items-start gap-2">
+          <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            Haz clic en el mapa para seleccionar tu ubicación o espera a que se geocodifique automáticamente tu dirección
+          </p>
+        </div>
+      )}
+
+      {isGeocoding && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 flex items-start gap-2">
+          <div className="h-5 w-5 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            Geocodificando tu dirección...
+          </p>
+        </div>
+      )}
+      
       <div 
         ref={mapRef} 
-        className="w-full h-full border rounded-lg"
+        className="w-full h-full border rounded-lg cursor-crosshair"
         style={{ minHeight: '384px' }}
+        title="Haz clic en el mapa para seleccionar tu ubicación"
       />
     </div>
   );
