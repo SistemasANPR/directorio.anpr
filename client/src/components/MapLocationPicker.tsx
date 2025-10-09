@@ -197,9 +197,68 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
 
           // Agregar marcador si hay ubicación inicial
           if (selectedLocation) {
-            const marker = L.marker([selectedLocation.lat, selectedLocation.lng])
+            const marker = L.marker([selectedLocation.lat, selectedLocation.lng], { draggable: true })
               .addTo(map)
               .bindPopup(selectedLocation.address || `${selectedLocation.lat}, ${selectedLocation.lng}`);
+            
+            // Agregar evento de arrastre
+            marker.on('dragend', async (event: L.DragEndEvent) => {
+              const newPosition = event.target.getLatLng();
+              const newLat = newPosition.lat;
+              const newLng = newPosition.lng;
+              
+              setIsGeocoding(true);
+              
+              try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newLat}&lon=${newLng}&accept-language=es`);
+                
+                if (!response.ok) {
+                  throw new Error('Error en geocodificación inversa');
+                }
+                
+                const data = await response.json();
+                const locationInfo = extractLocationInfoFromNominatim(data);
+                
+                const newLocation: LocationInfo = {
+                  lat: newLat,
+                  lng: newLng,
+                  address: data.display_name || `${newLat.toFixed(6)}, ${newLng.toFixed(6)}`,
+                  country: locationInfo.country,
+                  state: locationInfo.state,
+                  city: locationInfo.city
+                };
+                
+                marker.setPopupContent(`📍 ${newLocation.address}`).openPopup();
+                
+                setSelectedLocation(newLocation);
+                setManualCoords({
+                  lat: newLat.toString(),
+                  lng: newLng.toString(),
+                  address: newLocation.address
+                });
+                onLocationSelect(newLocation);
+              } catch (error) {
+                console.error('Error en geocodificación inversa al arrastrar:', error);
+                const newLocation: LocationInfo = {
+                  lat: newLat,
+                  lng: newLng,
+                  address: `${newLat.toFixed(6)}, ${newLng.toFixed(6)}`
+                };
+                
+                marker.setPopupContent(`📍 ${newLocation.address}`).openPopup();
+                
+                setSelectedLocation(newLocation);
+                setManualCoords({
+                  lat: newLat.toString(),
+                  lng: newLng.toString(),
+                  address: newLocation.address
+                });
+                onLocationSelect(newLocation);
+              } finally {
+                setIsGeocoding(false);
+              }
+            });
+            
             markerRef.current = marker;
           }
 
@@ -236,11 +295,69 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
                 map.removeLayer(markerRef.current);
               }
 
-              // Crear nuevo marcador
-              const marker = L.marker([lat, lng])
+              // Crear nuevo marcador con opción de arrastre
+              const marker = L.marker([lat, lng], { draggable: true })
                 .addTo(map)
                 .bindPopup(`📍 ${location.address}`)
                 .openPopup();
+              
+              // Agregar evento de arrastre al marcador
+              marker.on('dragend', async (event: L.DragEndEvent) => {
+                const newPosition = event.target.getLatLng();
+                const newLat = newPosition.lat;
+                const newLng = newPosition.lng;
+                
+                setIsGeocoding(true);
+                
+                try {
+                  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newLat}&lon=${newLng}&accept-language=es`);
+                  
+                  if (!response.ok) {
+                    throw new Error('Error en geocodificación inversa');
+                  }
+                  
+                  const data = await response.json();
+                  const locationInfo = extractLocationInfoFromNominatim(data);
+                  
+                  const newLocation: LocationInfo = {
+                    lat: newLat,
+                    lng: newLng,
+                    address: data.display_name || `${newLat.toFixed(6)}, ${newLng.toFixed(6)}`,
+                    country: locationInfo.country,
+                    state: locationInfo.state,
+                    city: locationInfo.city
+                  };
+                  
+                  marker.setPopupContent(`📍 ${newLocation.address}`).openPopup();
+                  
+                  setSelectedLocation(newLocation);
+                  setManualCoords({
+                    lat: newLat.toString(),
+                    lng: newLng.toString(),
+                    address: newLocation.address
+                  });
+                  onLocationSelect(newLocation);
+                } catch (error) {
+                  console.error('Error en geocodificación inversa al arrastrar:', error);
+                  const newLocation: LocationInfo = {
+                    lat: newLat,
+                    lng: newLng,
+                    address: `${newLat.toFixed(6)}, ${newLng.toFixed(6)}`
+                  };
+                  
+                  marker.setPopupContent(`📍 ${newLocation.address}`).openPopup();
+                  
+                  setSelectedLocation(newLocation);
+                  setManualCoords({
+                    lat: newLat.toString(),
+                    lng: newLng.toString(),
+                    address: newLocation.address
+                  });
+                  onLocationSelect(newLocation);
+                } finally {
+                  setIsGeocoding(false);
+                }
+              });
               
               markerRef.current = marker;
 
@@ -267,11 +384,34 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
                 map.removeLayer(markerRef.current);
               }
 
-              // Crear nuevo marcador
-              const marker = L.marker([lat, lng])
+              // Crear nuevo marcador con opción de arrastre
+              const marker = L.marker([lat, lng], { draggable: true })
                 .addTo(map)
                 .bindPopup(`📍 ${location.address}`)
                 .openPopup();
+              
+              // Agregar evento de arrastre al marcador (simplificado para el caso de error)
+              marker.on('dragend', async (event: L.DragEndEvent) => {
+                const newPosition = event.target.getLatLng();
+                const newLat = newPosition.lat;
+                const newLng = newPosition.lng;
+                
+                const newLocation: LocationInfo = {
+                  lat: newLat,
+                  lng: newLng,
+                  address: `${newLat.toFixed(6)}, ${newLng.toFixed(6)}`
+                };
+                
+                marker.setPopupContent(`📍 ${newLocation.address}`).openPopup();
+                
+                setSelectedLocation(newLocation);
+                setManualCoords({
+                  lat: newLat.toString(),
+                  lng: newLng.toString(),
+                  address: newLocation.address
+                });
+                onLocationSelect(newLocation);
+              });
               
               markerRef.current = marker;
 
@@ -330,10 +470,68 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
         mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
-      // Crear nuevo marcador
-      const marker = L.marker([initialLocation.lat, initialLocation.lng])
+      // Crear nuevo marcador con opción de arrastre
+      const marker = L.marker([initialLocation.lat, initialLocation.lng], { draggable: true })
         .addTo(mapInstanceRef.current)
         .bindPopup(initialLocation.address || `${initialLocation.lat}, ${initialLocation.lng}`);
+      
+      // Agregar evento de arrastre
+      marker.on('dragend', async (event: L.DragEndEvent) => {
+        const newPosition = event.target.getLatLng();
+        const newLat = newPosition.lat;
+        const newLng = newPosition.lng;
+        
+        setIsGeocoding(true);
+        
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newLat}&lon=${newLng}&accept-language=es`);
+          
+          if (!response.ok) {
+            throw new Error('Error en geocodificación inversa');
+          }
+          
+          const data = await response.json();
+          const locationInfo = extractLocationInfoFromNominatim(data);
+          
+          const newLocation: LocationInfo = {
+            lat: newLat,
+            lng: newLng,
+            address: data.display_name || `${newLat.toFixed(6)}, ${newLng.toFixed(6)}`,
+            country: locationInfo.country,
+            state: locationInfo.state,
+            city: locationInfo.city
+          };
+          
+          marker.setPopupContent(`📍 ${newLocation.address}`).openPopup();
+          
+          setSelectedLocation(newLocation);
+          setManualCoords({
+            lat: newLat.toString(),
+            lng: newLng.toString(),
+            address: newLocation.address
+          });
+          onLocationSelect(newLocation);
+        } catch (error) {
+          console.error('Error en geocodificación inversa al arrastrar:', error);
+          const newLocation: LocationInfo = {
+            lat: newLat,
+            lng: newLng,
+            address: `${newLat.toFixed(6)}, ${newLng.toFixed(6)}`
+          };
+          
+          marker.setPopupContent(`📍 ${newLocation.address}`).openPopup();
+          
+          setSelectedLocation(newLocation);
+          setManualCoords({
+            lat: newLat.toString(),
+            lng: newLng.toString(),
+            address: newLocation.address
+          });
+          onLocationSelect(newLocation);
+        } finally {
+          setIsGeocoding(false);
+        }
+      });
       
       markerRef.current = marker;
       mapInstanceRef.current.setView([initialLocation.lat, initialLocation.lng], 15);

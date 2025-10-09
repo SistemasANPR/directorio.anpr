@@ -56,10 +56,11 @@ const companySchema = z.object({
   nombreEmpresa: z.string().min(2, "El nombre de la empresa es requerido"),
   email1: z.string().email("Email inválido"),
   telefono1: z.string().min(10, "Teléfono debe tener al menos 10 dígitos"),
-  direccionFisica: z.string().min(10, "La dirección es requerida"),
   descripcionEmpresa: z.string().min(20, "La descripción debe tener al menos 20 caracteres"),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
-  ubicacionGeografica: z.any().optional(),
+  ubicacionGeografica: z.any().refine((val) => val && val.lat && val.lng, {
+    message: "Debes seleccionar una ubicación en el mapa haciendo clic",
+  }),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -180,9 +181,9 @@ export default function RegisterAndPay() {
       nombreEmpresa: "",
       email1: "",
       telefono1: "",
-      direccionFisica: "",
       descripcionEmpresa: "",
       sitioWeb: "",
+      ubicacionGeografica: null,
     },
   });
 
@@ -193,10 +194,11 @@ export default function RegisterAndPay() {
         nombreEmpresa: "",
         email1: "",
         telefono1: "",
-        direccionFisica: "",
         descripcionEmpresa: "",
         sitioWeb: "",
+        ubicacionGeografica: null,
       });
+      setUbicacionGeografica(null);
     }
   }, [currentStep, companyForm]);
 
@@ -388,7 +390,8 @@ export default function RegisterAndPay() {
   const handleCompanySubmit = (data: CompanyFormData) => {
     const companyDataWithLocation = {
       ...data,
-      ubicacionGeografica: ubicacionGeografica || undefined,
+      direccionFisica: data.ubicacionGeografica?.address || "Ubicación seleccionada en el mapa",
+      ubicacionGeografica: data.ubicacionGeografica,
     };
     setCompanyData(companyDataWithLocation);
     // Siempre ir al paso 3 para verificación del plan
@@ -658,60 +661,57 @@ export default function RegisterAndPay() {
                 )}
               />
 
+              {/* Sección de Selección de Ubicación en Mapa */}
               <FormField
                 control={companyForm.control}
-                name="direccionFisica"
+                name="ubicacionGeografica"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Dirección Física</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5" />
+                      Ubicación de la Empresa
+                    </FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Dirección completa de la empresa (calle, número, colonia, ciudad, estado, código postal...)" 
-                        autoComplete="nope"
-                        readOnly
-                        onFocus={(e) => {
-                          e.target.removeAttribute('readonly');
-                          if (e.target.value && e.target.value !== '') {
-                            e.target.value = '';
-                            field.onChange('');
-                          }
-                        }}
-                        {...field}
-                      />
+                      <div className="space-y-4">
+                        {/* Instrucciones */}
+                        <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            📍 Haz clic en el mapa para seleccionar la ubicación exacta de tu empresa. Puedes mover el marcador haciendo clic en otra posición.
+                          </p>
+                        </div>
+
+                        {/* Mapa */}
+                        <div className="w-full h-96 rounded-lg overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+                          <MapLocationPicker
+                            ciudad="México"
+                            onLocationSelect={(location) => {
+                              setUbicacionGeografica(location);
+                              field.onChange(location);
+                            }}
+                            initialLocation={ubicacionGeografica}
+                          />
+                        </div>
+
+                        {/* Mostrar ubicación seleccionada */}
+                        {ubicacionGeografica && (
+                          <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
+                            <p className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">
+                              ✓ Ubicación seleccionada:
+                            </p>
+                            <p className="text-sm text-green-700 dark:text-green-300">
+                              {ubicacionGeografica.address || `${ubicacionGeografica.lat}, ${ubicacionGeografica.lng}`}
+                            </p>
+                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                              Coordenadas: {ubicacionGeografica.lat.toFixed(6)}, {ubicacionGeografica.lng.toFixed(6)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              {/* Sección de Confirmación de Ubicación Automática */}
-              <div className="space-y-4 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-blue-900 dark:text-blue-100">Ubicación Automática</h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                      La ubicación se actualiza automáticamente cuando escribes la dirección física. El mapa te muestra dónde se agregará la empresa para confirmación visual.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Mapa de Confirmación */}
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Mapa de Confirmación</h4>
-                  <div className="w-full h-96 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                    <MapLocationPicker
-                      ciudad="México"
-                      onLocationSelect={(location) => {
-                        setUbicacionGeografica(location);
-                        companyForm.setValue('ubicacionGeografica', location);
-                      }}
-                      initialLocation={ubicacionGeografica}
-                      direccionFisica={companyForm.watch('direccionFisica')}
-                    />
-                  </div>
-                </div>
-              </div>
 
               <FormField
                 control={companyForm.control}
