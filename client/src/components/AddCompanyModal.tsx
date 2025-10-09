@@ -1658,60 +1658,23 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 />
                 */}
 
-                {/* Dirección Física */}
-                <FormField
-                  control={form.control}
-                  name="direccionFisica"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Dirección Física
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Dirección completa de la empresa (calle, número, colonia, ciudad, estado, código postal...)"
-                          rows={3}
-                          autoComplete="street-address"
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Sección Informativa de Ubicación Automática */}
-                <div className="md:col-span-2">
-                  <div className="flex items-center gap-2 mb-4">
-                    <MapPin className="h-5 w-5" />
-                    <h3 className="text-lg font-semibold text-primary">Confirmación de Ubicación Automática</h3>
-                  </div>
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-blue-800">Ubicación Automática</span>
-                    </div>
-                    <p className="text-sm text-blue-700">
-                      La ubicación se actualiza automáticamente cuando escribes la dirección física. El mapa te muestra dónde
-                      se agregará la empresa para confirmación visual.
-                    </p>
-                  </div>
-                </div>
-
                 {/* Ubicación Geográfica - Solo Mapa */}
                 <FormField
                   control={form.control}
                   name="ubicacionGeografica"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Mapa de Confirmación</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        Ubicación de la Empresa
+                      </FormLabel>
+                      <FormDescription>
+                        Haz clic en el mapa o arrastra el marcador para seleccionar la ubicación exacta de tu empresa
+                      </FormDescription>
                       <FormControl>
                         <div className="h-96">
                           <MapLocationPicker
                             ciudad={"México"}
-                            direccionFisica={form.watch("direccionFisica")}
                             onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
                               field.onChange(location);
                               
