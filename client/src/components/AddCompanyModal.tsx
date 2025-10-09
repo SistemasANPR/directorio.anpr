@@ -1702,7 +1702,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 />
 
                 {/* Sección: Información de Membresía */}
-                <div className="md:col-span-2 space-y-6 p-6 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
+                <div className="md:col-span-2 mt-8 space-y-6 p-6 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
                   <div className="border-b border-amber-300 pb-4">
                     <h3 className="text-lg font-semibold text-amber-800 flex items-center gap-2">
                       <Crown className="h-5 w-5" />
