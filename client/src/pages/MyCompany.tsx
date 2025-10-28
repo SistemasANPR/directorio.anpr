@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Building, Award, MapPin, Phone, Mail, Globe, Calendar } from "lucide-react";
+import { Plus, Edit, Building, Award, MapPin, Phone, Mail, Globe, Calendar, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -19,6 +20,7 @@ import Swal from 'sweetalert2';
 export default function MyCompany() {
   const { user, impersonatedCompany } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddCertificateModalOpen, setIsAddCertificateModalOpen] = useState(false);
   const [isEditCertificateModalOpen, setIsEditCertificateModalOpen] = useState(false);
@@ -262,7 +264,18 @@ export default function MyCompany() {
               {/* Membership Information */}
               {companyData.membershipType && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-lg">Información de Membresía</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-lg">Información de Membresía</h3>
+                    <Button
+                      onClick={() => setLocation(`/empresa/${companyData.id}`)}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 hover:bg-[#bcce16] hover:text-black hover:border-[#bcce16] transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Ver en Directorio
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center space-x-3">
                       <Calendar className="h-5 w-5 text-gray-400" />
