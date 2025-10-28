@@ -159,6 +159,11 @@ export default function RegisterAndPay() {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [ubicacionGeografica, setUbicacionGeografica] = useState<any>(null);
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   // Detectar si viene con un plan preseleccionado
   const urlParams = new URLSearchParams(window.location.search);
   const preselectedPlanId = urlParams.get('plan');
