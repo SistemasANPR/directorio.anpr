@@ -203,7 +203,7 @@ export default function RegisterAndPay() {
   }, [currentStep, companyForm]);
 
   // Fetch membership types
-  const { data: memberships = [] } = useQuery<MembershipType[]>({
+  const { data: memberships = [], isLoading: isLoadingMemberships } = useQuery<MembershipType[]>({
     queryKey: ["/api/membership-types/public"],
   });
 
@@ -792,23 +792,30 @@ export default function RegisterAndPay() {
               <p className="text-gray-600">Confirma tu plan y elige la periodicidad de pago</p>
             </div>
 
-            <div className="flex gap-4 justify-center mb-6">
-              <Button
-                variant={selectedPeriod === "mensual" ? "default" : "outline"}
-                onClick={() => setSelectedPeriod("mensual")}
-              >
-                Mensual
-              </Button>
-              <Button
-                variant={selectedPeriod === "anual" ? "default" : "outline"}
-                onClick={() => setSelectedPeriod("anual")}
-                style={{ backgroundColor: selectedPeriod === "anual" ? '#bcce16' : undefined }}
-              >
-                Anual <Badge variant="secondary" className="ml-2">Ahorra 15%</Badge>
-              </Button>
-            </div>
+            {isLoadingMemberships ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin w-12 h-12 border-4 border-[#bcce16] border-t-transparent rounded-full mb-4"></div>
+                <p className="text-gray-600">Cargando planes de membresía...</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-4 justify-center mb-6">
+                  <Button
+                    variant={selectedPeriod === "mensual" ? "default" : "outline"}
+                    onClick={() => setSelectedPeriod("mensual")}
+                  >
+                    Mensual
+                  </Button>
+                  <Button
+                    variant={selectedPeriod === "anual" ? "default" : "outline"}
+                    onClick={() => setSelectedPeriod("anual")}
+                    style={{ backgroundColor: selectedPeriod === "anual" ? '#bcce16' : undefined }}
+                  >
+                    Anual <Badge variant="secondary" className="ml-2">Ahorra 15%</Badge>
+                  </Button>
+                </div>
 
-            {selectedMembership ? (
+                {selectedMembership ? (
               // Mostrar plan preseleccionado con verificación
               <div className="space-y-6">
                 <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
@@ -998,6 +1005,8 @@ export default function RegisterAndPay() {
                 </Button>
               )}
             </div>
+          </>
+        )}
           </div>
         );
 
