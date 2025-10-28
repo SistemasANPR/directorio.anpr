@@ -65,7 +65,7 @@ export default function Footer() {
                 <img src={iconInstagram} alt="Instagram" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
-                href="https://youtube.com/anprmexico" 
+                href="https://www.youtube.com/@anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
@@ -73,7 +73,7 @@ export default function Footer() {
                 <img src={iconYoutube} alt="YouTube" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
-                href="https://open.spotify.com/user/anprmexico" 
+                href="https://open.spotify.com/show/1JcWNAhee4bemwqSeTvbYx" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
@@ -81,7 +81,7 @@ export default function Footer() {
                 <img src={iconSpotify} alt="Spotify" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
-                href="https://wa.me/5299994440600" 
+                href="https://api.whatsapp.com/send?phone=529993530691&text=Hola,%20pueden%20proporcionarme%20m%C3%A1s%20informaci%C3%B3n" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
