@@ -89,12 +89,14 @@ function PaymentForm({
   clientSecret, 
   onSuccess, 
   onError, 
-  isProcessing 
+  isProcessing,
+  onGoBack
 }: { 
   clientSecret: string;
   onSuccess: () => void;
   onError: (error: string) => void;
   isProcessing: boolean;
+  onGoBack: () => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -133,14 +135,26 @@ function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
-      <Button 
-        type="submit" 
-        disabled={!stripe || isProcessing}
-        className="w-full"
-        style={{ backgroundColor: '#bcce16' }}
-      >
-        {isProcessing ? "Procesando..." : "Completar Pago"}
-      </Button>
+      
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button 
+          type="button"
+          variant="outline"
+          onClick={onGoBack}
+          className="w-full sm:w-auto"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver a Editar
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={!stripe || isProcessing}
+          className="w-full sm:flex-1"
+          style={{ backgroundColor: '#bcce16' }}
+        >
+          {isProcessing ? "Procesando..." : "Completar Pago"}
+        </Button>
+      </div>
     </form>
   );
 }
@@ -1032,6 +1046,7 @@ export default function RegisterAndPay() {
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentError}
                   isProcessing={isProcessing}
+                  onGoBack={() => setCurrentStep(3)}
                 />
               </Elements>
             ) : (
