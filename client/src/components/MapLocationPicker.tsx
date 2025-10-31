@@ -379,6 +379,12 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
                 address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
               };
 
+              // Verificar que el mapa existe antes de continuar
+              if (!map) {
+                console.error('El mapa no está inicializado');
+                return;
+              }
+
               // Remover marcador anterior
               if (markerRef.current) {
                 map.removeLayer(markerRef.current);
