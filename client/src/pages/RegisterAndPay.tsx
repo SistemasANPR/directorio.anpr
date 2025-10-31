@@ -614,10 +614,6 @@ export default function RegisterAndPay() {
                         readOnly
                         onFocus={(e) => {
                           e.target.removeAttribute('readonly');
-                          if (e.target.value && e.target.value !== '') {
-                            e.target.value = '';
-                            field.onChange('');
-                          }
                         }}
                         {...field}
                       />
@@ -641,10 +637,6 @@ export default function RegisterAndPay() {
                         readOnly
                         onFocus={(e) => {
                           e.target.removeAttribute('readonly');
-                          if (e.target.value && e.target.value !== '') {
-                            e.target.value = '';
-                            field.onChange('');
-                          }
                         }}
                         {...field}
                       />
@@ -667,10 +659,6 @@ export default function RegisterAndPay() {
                         readOnly
                         onFocus={(e) => {
                           e.target.removeAttribute('readonly');
-                          if (e.target.value && e.target.value !== '') {
-                            e.target.value = '';
-                            field.onChange('');
-                          }
                         }}
                         {...field}
                       />
@@ -746,10 +734,6 @@ export default function RegisterAndPay() {
                         readOnly
                         onFocus={(e) => {
                           e.target.removeAttribute('readonly');
-                          if (e.target.value && e.target.value !== '') {
-                            e.target.value = '';
-                            field.onChange('');
-                          }
                         }}
                         {...field}
                       />
@@ -772,10 +756,6 @@ export default function RegisterAndPay() {
                         readOnly
                         onFocus={(e) => {
                           e.target.removeAttribute('readonly');
-                          if (e.target.value && e.target.value !== '') {
-                            e.target.value = '';
-                            field.onChange('');
-                          }
                         }}
                         {...field}
                       />
