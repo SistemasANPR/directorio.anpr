@@ -299,7 +299,7 @@ function CompanyCard({ company }: { company: any }) {
                   height: "100%",
                   backgroundImage: `url(${company.logotipoUrl})`,
                   backgroundPosition: "center",
-                  backgroundSize: "contain",
+                  backgroundSize: "90px",
                   backgroundRepeat: "no-repeat",
                 }}
               />
