@@ -14,7 +14,8 @@ import {
   Building2, 
   Search, 
   ExternalLink,
-  Grid3X3
+  Grid3X3,
+  List
 } from "lucide-react";
 import DirectoryMap from "@/components/DirectoryMap";
 import type { CompanyWithDetails, Category } from "@/../../shared/schema";
@@ -23,6 +24,47 @@ import type { CompanyWithDetails, Category } from "@/../../shared/schema";
 const stripHtml = (html: string): string => {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return doc.body.textContent || "";
+};
+
+// Función para extraer el estado del address
+const extractStateFromAddress = (address: string | null | undefined): string | null => {
+  if (!address) return null;
+  
+  // Lista de estados de México
+  const mexicanStates = [
+    'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas',
+    'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México',
+    'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit',
+    'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí',
+    'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'
+  ];
+  
+  // Abreviaciones comunes
+  const stateAbbreviations: { [key: string]: string } = {
+    'Yuc.': 'Yucatán',
+    'Yuc': 'Yucatán',
+    'Q. Roo': 'Quintana Roo',
+    'QRoo': 'Quintana Roo',
+    'CDMX': 'Ciudad de México',
+    'Pue.': 'Puebla',
+    'Pue': 'Puebla'
+  };
+  
+  // Buscar abreviaciones
+  for (const [abbr, fullName] of Object.entries(stateAbbreviations)) {
+    if (address.includes(abbr)) {
+      return fullName;
+    }
+  }
+  
+  // Buscar nombres completos
+  for (const state of mexicanStates) {
+    if (address.includes(state)) {
+      return state;
+    }
+  }
+  
+  return null;
 };
 
 // Función para renderizar iconos de categorías
@@ -66,6 +108,7 @@ export default function Directory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Parse URL parameters and set initial filter states
   useEffect(() => {
@@ -100,6 +143,17 @@ export default function Directory() {
   });
 
   const companies = companiesData?.companies || [];
+  
+  // Extraer estados únicos de las direcciones de las empresas
+  const allStates = companies
+    .map((company: CompanyWithDetails) => {
+      const address = company.ubicacionGeografica?.address || company.direccionFisica;
+      return extractStateFromAddress(address);
+    })
+    .filter((state): state is string => state !== null);
+  
+  const states = Array.from(new Set(allStates)).sort();
+  
   const filteredCompanies = companies.filter((company: CompanyWithDetails) => {
     const matchesSearch = company.nombreEmpresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (company.descripcionEmpresa && company.descripcionEmpresa.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -108,18 +162,12 @@ export default function Directory() {
                            (company.categories && Array.isArray(company.categories) && 
                             company.categories.some((cat: any) => cat.id === parseInt(selectedCategory)));
     
-    const matchesState = true; // Temporarily disabled state filtering
-                        // (company.estadosPresencia && Array.isArray(company.estadosPresencia) && 
-                        //  company.estadosPresencia.includes(selectedState));
+    const address = company.ubicacionGeografica?.address || company.direccionFisica;
+    const companyState = extractStateFromAddress(address);
+    const matchesState = !selectedState || selectedState === "all" || companyState === selectedState;
     
     return matchesSearch && matchesCategory && matchesState;
   });
-
-  // Unique states from companies (temporarily disabled)
-  // const allStates = companies.flatMap((company: CompanyWithDetails) => 
-  //   Array.isArray(company.estadosPresencia) ? company.estadosPresencia : []
-  // );
-  const states: string[] = []; // Temporarily disabled state filtering
 
   if (companiesLoading) {
     return (
@@ -207,9 +255,22 @@ export default function Directory() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="default" size="sm">
-                <Grid3X3 className="h-4 w-4 mr-2" />
-                Lista
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+              >
+                {viewMode === "grid" ? (
+                  <>
+                    <List className="h-4 w-4 mr-2" />
+                    Lista
+                  </>
+                ) : (
+                  <>
+                    <Grid3X3 className="h-4 w-4 mr-2" />
+                    Cuadricular
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -237,91 +298,158 @@ export default function Directory() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCompanies.map((company: CompanyWithDetails) => (
-            <Card key={company.id} className="hover:shadow-lg transition-shadow group">
-              <CardHeader className="pb-4">
-                <div className="flex items-start space-x-4">
-                  {company.logotipoUrl ? (
-                    <img
-                      src={company.logotipoUrl}
-                      alt={`Logo de ${company.nombreEmpresa}`}
-                      className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                      <Building2 className="h-8 w-8 text-white" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {company.nombreEmpresa}
-                    </CardTitle>
-
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                {company.descripcionEmpresa && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {stripHtml(company.descripcionEmpresa)}
-                  </p>
-                )}
-                
-                <div className="space-y-2 mb-4">
-                  {company.telefono1 && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span>{company.telefono1}</span>
-                    </div>
-                  )}
-                  {company.email1 && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">{company.email1}</span>
-                    </div>
-                  )}
-                  {/* Temporarily disabled state display */}
-                  {false && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span>
-                        {/* {company.estadosPresencia.slice(0, 2).join(', ')} */}
-                        {/* {company.estadosPresencia.length > 2 && ` +${company.estadosPresencia.length - 2}`} */}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Iconos de categorías */}
-                {Array.isArray(company.categories) && company.categories.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {company.categories.slice(0, 4).map((category: Category) => (
-                      <div key={category.id} className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title={category.nombreCategoria}>
-                        <CategoryIcon category={category} />
+        {viewMode === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCompanies.map((company: CompanyWithDetails) => (
+              <Card key={company.id} className="hover:shadow-lg transition-shadow group">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start space-x-4">
+                    {company.logotipoUrl ? (
+                      <img
+                        src={company.logotipoUrl}
+                        alt={`Logo de ${company.nombreEmpresa}`}
+                        className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <Building2 className="h-8 w-8 text-white" />
                       </div>
-                    ))}
-                    {company.categories.length > 4 && (
-                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full text-xs text-gray-600">
-                        +{company.categories.length - 4}
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {company.nombreEmpresa}
+                      </CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  {company.descripcionEmpresa && (
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      {stripHtml(company.descripcionEmpresa)}
+                    </p>
+                  )}
+                  
+                  <div className="space-y-2 mb-4">
+                    {company.telefono1 && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span>{company.telefono1}</span>
+                      </div>
+                    )}
+                    {company.email1 && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{company.email1}</span>
                       </div>
                     )}
                   </div>
-                )}
-                
-                <div className="flex justify-center mt-4">
-                  <Link href={`/empresa/${company.id}`}>
-                    <Button className="w-full" size="sm">
-                      Ver Detalles
-                      <ExternalLink className="h-4 w-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+
+                  {/* Iconos de categorías */}
+                  {Array.isArray(company.categories) && company.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {company.categories.slice(0, 4).map((category: Category) => (
+                        <div key={category.id} className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title={category.nombreCategoria}>
+                          <CategoryIcon category={category} />
+                        </div>
+                      ))}
+                      {company.categories.length > 4 && (
+                        <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full text-xs text-gray-600">
+                          +{company.categories.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-center mt-4">
+                    <Link href={`/empresa/${company.id}`}>
+                      <Button className="w-full" size="sm">
+                        Ver Detalles
+                        <ExternalLink className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredCompanies.map((company: CompanyWithDetails) => (
+              <Card key={company.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    {/* Logo */}
+                    <div className="flex-shrink-0">
+                      {company.logotipoUrl ? (
+                        <img
+                          src={company.logotipoUrl}
+                          alt={`Logo de ${company.nombreEmpresa}`}
+                          className="w-20 h-20 rounded-lg object-cover border-2 border-gray-100"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                          <Building2 className="h-10 w-10 text-white" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Información */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                        {company.nombreEmpresa}
+                      </h3>
+                      
+                      {company.descripcionEmpresa && (
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                          {stripHtml(company.descripcionEmpresa)}
+                        </p>
+                      )}
+                      
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                        {company.telefono1 && (
+                          <div className="flex items-center">
+                            <Phone className="h-4 w-4 mr-1.5 flex-shrink-0" />
+                            <span>{company.telefono1}</span>
+                          </div>
+                        )}
+                        {company.email1 && (
+                          <div className="flex items-center">
+                            <Mail className="h-4 w-4 mr-1.5 flex-shrink-0" />
+                            <span className="truncate max-w-xs">{company.email1}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Categorías e iconos */}
+                    <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+                      {Array.isArray(company.categories) && company.categories.length > 0 && (
+                        <div className="flex gap-2">
+                          {company.categories.slice(0, 5).map((category: Category) => (
+                            <div key={category.id} className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors" title={category.nombreCategoria}>
+                              <CategoryIcon category={category} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botón */}
+                    <div className="flex-shrink-0">
+                      <Link href={`/empresa/${company.id}`}>
+                        <Button size="sm" className="whitespace-nowrap">
+                          Ver Detalles
+                          <ExternalLink className="h-4 w-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {filteredCompanies.length === 0 && (
           <div className="text-center py-16">
