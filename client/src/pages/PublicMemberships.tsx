@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,18 @@ import fondoHeaderDirectorioImage from "@assets/fondo_header_directorio.png";
 
 export default function PublicMemberships() {
   const [, setLocation] = useLocation();
+
+  // Auto-scroll to membership plans section if hash is present
+  useEffect(() => {
+    if (window.location.hash === '#planes') {
+      setTimeout(() => {
+        const plansSection = document.getElementById('membership-plans');
+        if (plansSection) {
+          plansSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, []);
   
   const { data: memberships, isLoading } = useQuery({
     queryKey: ["/api/membership-types/public"],

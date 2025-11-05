@@ -147,10 +147,11 @@ export default function Directory() {
   // Extraer estados únicos de las direcciones de las empresas
   const allStates = companies
     .map((company: CompanyWithDetails) => {
-      const address = company.ubicacionGeografica?.address || company.direccionFisica;
+      const ubicacion = company.ubicacionGeografica as any;
+      const address = ubicacion?.address || company.direccionFisica;
       return extractStateFromAddress(address);
     })
-    .filter((state): state is string => state !== null);
+    .filter((state: any): state is string => state !== null);
   
   const states = Array.from(new Set(allStates)).sort();
   
@@ -162,7 +163,8 @@ export default function Directory() {
                            (company.categories && Array.isArray(company.categories) && 
                             company.categories.some((cat: any) => cat.id === parseInt(selectedCategory)));
     
-    const address = company.ubicacionGeografica?.address || company.direccionFisica;
+    const ubicacion = company.ubicacionGeografica as any;
+    const address = ubicacion?.address || company.direccionFisica;
     const companyState = extractStateFromAddress(address);
     const matchesState = !selectedState || selectedState === "all" || companyState === selectedState;
     
@@ -491,7 +493,7 @@ export default function Directory() {
               Regístrese y conecte con miles de proyectos y clientes potenciales en todo América 
               Latina. Muestre sus soluciones a la audiencia correcta.
             </p>
-            <Link href="/planes">
+            <Link href="/planes#planes">
               <Button 
                 size="lg" 
                 className="font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg text-blue-900"
