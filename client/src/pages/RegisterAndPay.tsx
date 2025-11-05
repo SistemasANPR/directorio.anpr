@@ -178,6 +178,25 @@ export default function RegisterAndPay() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Scroll a la sección de planes cuando se llega al paso 3
+  useEffect(() => {
+    if (currentStep === 3) {
+      setTimeout(() => {
+        const planSection = document.getElementById('elige-plan-section');
+        if (planSection) {
+          const offset = 100; // Espacio desde el top
+          const elementPosition = planSection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  }, [currentStep]);
+
   // Detectar si viene con un plan preseleccionado
   const urlParams = new URLSearchParams(window.location.search);
   const preselectedPlanId = urlParams.get('plan');
@@ -785,7 +804,7 @@ export default function RegisterAndPay() {
 
       case 3:
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" id="elige-plan-section">
             <div className="text-center mb-6">
               <h3 className="text-xl font-semibold mb-2">Verificar y Seleccionar Plan de Membresía</h3>
               <p className="text-gray-600">Confirma tu plan y elige la periodicidad de pago</p>
