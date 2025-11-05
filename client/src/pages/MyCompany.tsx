@@ -267,7 +267,7 @@ export default function MyCompany() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-lg">Información de Membresía</h3>
                     <Button
-                      onClick={() => setLocation(`/empresa/${companyData.id}`)}
+                      onClick={() => setLocation("/")}
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-2 hover:bg-[#bcce16] hover:text-black hover:border-[#bcce16] transition-colors"
