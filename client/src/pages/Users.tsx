@@ -53,11 +53,11 @@ import Swal from 'sweetalert2';
 const userSchema = z.object({
   displayName: z.string().min(1, "El nombre es requerido"),
   email: z.string().email("Email inválido"),
-  role: z.enum(["admin", "user", "representante"]),
+  role: z.string().min(1, "El rol es requerido"),
   companyId: z.number().optional(),
 }).refine((data) => {
   // Si el rol es representante, debe tener una empresa asignada
-  if (data.role === "representante") {
+  if (data.role.toLowerCase() === "representante") {
     return data.companyId !== undefined && data.companyId > 0;
   }
   return true;
@@ -282,7 +282,7 @@ export default function Users() {
     editForm.reset({
       displayName: user.displayName || "",
       email: user.email,
-      role: user.role as "admin" | "user" | "representante",
+      role: user.role,
       companyId: assignedCompanyId,
     });
     setIsEditModalOpen(true);
@@ -723,8 +723,8 @@ export default function Users() {
                         {roles
                           .filter((role: any) => role.estado === "activo")
                           .map((role: any) => (
-                            <SelectItem key={role.id} value={role.nombre.toLowerCase()}>
-                              {role.nombre.charAt(0).toUpperCase() + role.nombre.slice(1)}
+                            <SelectItem key={role.id} value={role.nombre}>
+                              {role.nombre}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -737,7 +737,7 @@ export default function Users() {
                 )}
               />
 
-              {editForm.watch("role") === "representante" && (
+              {editForm.watch("role")?.toLowerCase() === "representante" && (
                 <FormField
                   control={editForm.control}
                   name="companyId"
