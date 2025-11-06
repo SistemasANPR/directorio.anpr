@@ -845,7 +845,7 @@ export default function Home() {
             Muestre sus soluciones a la audiencia correcta.
           </p>
 
-          <a href="/planes#planes">
+          <Link href="/planes">
             <button style={{
               backgroundColor: "#bcce16",
               color: "#0f2161",
@@ -867,7 +867,7 @@ export default function Home() {
             }}>
               Regístrate como empresa
             </button>
-          </a>
+          </Link>
         </div>
       </div>
     </div>
