@@ -295,9 +295,10 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   useEffect(() => {
     if (watchedFechaInicio && watchedPeriodicidad) {
       const endDate = calculateEndDate(watchedFechaInicio, watchedPeriodicidad);
-      form.setValue("fechaFinMembresia", endDate);
+      form.setValue("fechaFinMembresia", endDate, { shouldValidate: false, shouldDirty: false });
     }
-  }, [watchedFechaInicio, watchedPeriodicidad, form]);
+    // Removed form from dependencies to avoid unnecessary re-renders
+  }, [watchedFechaInicio, watchedPeriodicidad]);
 
   // Debounce effect para evitar búsquedas mientras el usuario escribe
   useEffect(() => {
