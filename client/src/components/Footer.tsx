@@ -49,12 +49,12 @@ export default function Footer() {
                 <img src={iconFacebook} alt="Facebook" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
-                href="https://twitter.com/anprmexico" 
+                href="https://x.com/anprmexico" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hover:scale-110 transition-transform"
               >
-                <img src={iconTwitter} alt="Twitter" className="w-8 h-8 sm:w-10 sm:h-10" />
+                <img src={iconTwitter} alt="X" className="w-8 h-8 sm:w-10 sm:h-10" />
               </a>
               <a 
                 href="https://instagram.com/anprmexico" 

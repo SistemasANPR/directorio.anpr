@@ -86,7 +86,9 @@ export default function DynamicSocialMedia({ value = {}, onChange, disabled = fa
 
   const getAvailablePlatforms = (currentPlatform?: string) => {
     const usedPlatforms = entries.map(entry => entry.platform).filter(p => p !== currentPlatform);
-    return SOCIAL_PLATFORMS.filter(platform => !usedPlatforms.includes(platform.value));
+    return SOCIAL_PLATFORMS.filter(platform => 
+      !usedPlatforms.includes(platform.value) && platform.value !== "twitter"
+    );
   };
 
   return (
