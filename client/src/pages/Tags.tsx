@@ -122,6 +122,7 @@ export default function Tags() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tags"] });
+      setIsCreateOpen(false);
       setEditingTag(null);
       form.reset();
       toast({
