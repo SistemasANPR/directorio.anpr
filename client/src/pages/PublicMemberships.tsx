@@ -15,13 +15,16 @@ export default function PublicMemberships() {
 
   // Auto-scroll to membership plans section if hash is present
   useEffect(() => {
-    if (window.location.hash === '#planes') {
-      setTimeout(() => {
+    const hash = window.location.hash;
+    if (hash === '#planes') {
+      // Wait for content to load
+      const timer = setTimeout(() => {
         const plansSection = document.getElementById('membership-plans');
         if (plansSection) {
           plansSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 100);
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, []);
   

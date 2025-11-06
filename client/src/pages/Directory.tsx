@@ -493,7 +493,7 @@ export default function Directory() {
               Regístrese y conecte con miles de proyectos y clientes potenciales en todo América 
               Latina. Muestre sus soluciones a la audiencia correcta.
             </p>
-            <Link href="/planes#planes">
+            <a href="/planes#planes">
               <Button 
                 size="lg" 
                 className="font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg text-blue-900"
@@ -510,7 +510,7 @@ export default function Directory() {
               >
                 Regístrate como empresa
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </div>
