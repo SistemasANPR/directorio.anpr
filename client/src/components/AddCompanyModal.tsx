@@ -113,7 +113,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   // Estados para transacciones de WordPress
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
 
   // Función para cargar transacciones de un usuario
   const loadUserTransactions = async (userId: string) => {
@@ -255,8 +255,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setSelectedWordPressUser(null);
       setWordPressUsers([]);
       setIsLoadingWordPressUsers(false);
+    } else {
+      // Cuando el modal se cierra, limpiar todos los toasts
+      dismiss();
     }
-  }, [open, form]);
+  }, [open, form, dismiss]);
 
   // Function to calculate end date automatically
   const calculateEndDate = (startDate: string, periodicidad: string) => {
@@ -497,6 +500,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         title: "Error",
         description: `No se pudo registrar la empresa: ${error.message || 'Error desconocido'}`,
         variant: "destructive",
+        duration: 5000, // Auto-cerrar después de 5 segundos
       });
     },
   });
@@ -508,6 +512,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         title: "Error en validación de límites",
         description: "Has excedido los límites de productos de tu plan de membresía. Reduce el número de productos o actualiza tu plan.",
         variant: "destructive",
+        duration: 5000,
       });
       return;
     }
