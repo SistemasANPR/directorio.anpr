@@ -393,7 +393,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
       // Set the certificate IDs in the form
       const certificateIds = membershipCertificates.map(cert => cert.id);
-      form.setValue("certificateIds", certificateIds);
+      form.setValue("certificateIds", certificateIds, { shouldValidate: false, shouldDirty: false });
       
       // Show toast notification if certificates were loaded
       if (certificateIds.length > 0) {
@@ -403,7 +403,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         });
       }
     }
-  }, [watchedMembershipTypeId, certificates, form, toast]);
+    // Removed form and toast from dependencies to avoid unnecessary re-renders
+  }, [watchedMembershipTypeId, certificates]);
 
   // Note: Location fields removed from schema, keeping only direccionFisica and ubicacionGeografica
 
