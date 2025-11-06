@@ -9,7 +9,7 @@ import { Plus, Trash2, Facebook, Instagram, Twitter, Linkedin, Youtube, Globe, L
 
 interface SocialMediaEntry {
   id: string;
-  platform: string;
+  platform: string | undefined;
   url: string;
 }
 
@@ -49,7 +49,7 @@ export default function DynamicSocialMedia({ value = {}, onChange, disabled = fa
   const updateValue = (newEntries: SocialMediaEntry[]) => {
     const newValue: Record<string, string> = {};
     newEntries.forEach(entry => {
-      if (entry.platform && entry.url) {
+      if (entry.platform && entry.url.trim()) {
         newValue[entry.platform] = entry.url;
       }
     });
@@ -59,7 +59,7 @@ export default function DynamicSocialMedia({ value = {}, onChange, disabled = fa
   const addEntry = () => {
     const newEntry: SocialMediaEntry = {
       id: `new-${Date.now()}`,
-      platform: "",
+      platform: undefined,
       url: ""
     };
     const newEntries = [...entries, newEntry];
@@ -85,7 +85,7 @@ export default function DynamicSocialMedia({ value = {}, onChange, disabled = fa
   };
 
   const getAvailablePlatforms = (currentPlatform?: string) => {
-    const usedPlatforms = entries.map(entry => entry.platform).filter(p => p !== currentPlatform);
+    const usedPlatforms = entries.map(entry => entry.platform).filter((p): p is string => !!p && p !== currentPlatform);
     return SOCIAL_PLATFORMS.filter(platform => 
       !usedPlatforms.includes(platform.value) && platform.value !== "twitter"
     );
@@ -107,7 +107,7 @@ export default function DynamicSocialMedia({ value = {}, onChange, disabled = fa
         )}
 
         {entries.map((entry) => {
-          const platformInfo = getPlatformInfo(entry.platform);
+          const platformInfo = entry.platform ? getPlatformInfo(entry.platform) : null;
           const IconComponent = platformInfo?.icon || Link;
           
           return (
@@ -119,12 +119,12 @@ export default function DynamicSocialMedia({ value = {}, onChange, disabled = fa
                 
                 <div className="flex-1 space-y-2">
                   <Select
-                    value={entry.platform}
+                    value={entry.platform || ""}
                     onValueChange={(value) => updateEntry(entry.id, 'platform', value)}
                     disabled={disabled}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Seleccionar plataforma" />
+                      <SelectValue placeholder="Plataforma" />
                     </SelectTrigger>
                     <SelectContent>
                       {getAvailablePlatforms(entry.platform).map((platform) => {
