@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -115,6 +115,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const { toast, dismiss } = useToast();
+  
+  // Ref para trackear el estado anterior del modal
+  const previousOpenRef = useRef(open);
 
   // Función para cargar transacciones de un usuario
   const loadUserTransactions = async (userId: string) => {
@@ -210,9 +213,14 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     },
   });
 
-  // Reset form and set current date when modal opens
+  // Reset form and set current date when modal opens (SOLO cuando pasa de cerrado a abierto)
   useEffect(() => {
-    if (open) {
+    // Solo resetear cuando el modal transiciona de cerrado (false) a abierto (true)
+    const justOpened = !previousOpenRef.current && open;
+    const justClosed = previousOpenRef.current && !open;
+    
+    if (justOpened) {
+      // El modal ACABA de abrirse - resetear el formulario
       const currentDate = new Date().toISOString().split('T')[0];
       form.reset({
         nombreEmpresa: "",
@@ -232,7 +240,6 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         fechaInicioMembresia: currentDate,
         fechaFinMembresia: "",
         notasMembresia: "",
-        // CRITICAL FIX: Add ubicacionGeografica to reset values
         ubicacionGeografica: null,
       });
       
@@ -250,11 +257,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setDireccionesPorCiudad({});
       setUbicacionesPorCiudad({});
       setVideosUrls([]);
-      
-      // NO limpiar el buscador de WordPress cuando se abre el modal
-      // Esto permite que el usuario vea su búsqueda anterior si reabre
-    } else {
-      // Cuando el modal se cierra, limpiar todos los toasts Y el buscador
+    } else if (justClosed) {
+      // El modal ACABA de cerrarse - limpiar toasts y búsqueda
       dismiss();
       setWordPressUserSearch("");
       setDebouncedSearchTerm("");
@@ -262,6 +266,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setWordPressUsers([]);
       setIsLoadingWordPressUsers(false);
     }
+    
+    // Actualizar el ref para el siguiente render
+    previousOpenRef.current = open;
   }, [open, form, dismiss]);
 
   // Function to calculate end date automatically
