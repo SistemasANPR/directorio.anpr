@@ -1708,6 +1708,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                             onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
                               field.onChange(location);
                               
+                              // Actualizar también el campo direccionFisica con la dirección geocodificada
+                              if (location.address) {
+                                form.setValue("direccionFisica", location.address);
+                              }
+                              
                               // SIMPLIFIED: Only log location data - presence fields removed from schema
                               if (location.country && location.state && location.city) {
                                 console.log('Ubicación geocodificada:', location);
