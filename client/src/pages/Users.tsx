@@ -194,7 +194,7 @@ export default function Users() {
   });
 
   // Fetch companies for representative assignment
-  const { data: companies = [] } = useQuery({
+  const { data: companiesData = [] } = useQuery({
     queryKey: ["/api/companies"],
     queryFn: async () => {
       const response = await fetch("/api/companies?limit=1000", {
@@ -207,6 +207,9 @@ export default function Users() {
       return data.companies || [];
     },
   });
+
+  // Ensure companies is always an array
+  const companies = Array.isArray(companiesData) ? companiesData : [];
 
   // Update user mutation
   const updateUserMutation = useMutation({
