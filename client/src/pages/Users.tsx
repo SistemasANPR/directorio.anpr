@@ -268,7 +268,7 @@ export default function Users() {
     
     // Get user's assigned company if they are a representante
     let assignedCompanyId = undefined;
-    if (user.role === "representante") {
+    if (user.role.toLowerCase() === "representante") {
       try {
         const response = await fetch(`/api/companies/by-user/${user.id}`, {
           credentials: "include",
@@ -276,11 +276,19 @@ export default function Users() {
         if (response.ok) {
           const company = await response.json();
           assignedCompanyId = company.id;
+          console.log("Debug - User's assigned company:", company.id, company.nombreEmpresa);
         }
       } catch (error) {
-        console.log("No company assigned to this user");
+        console.log("Debug - No company assigned to this user");
       }
     }
+    
+    console.log("Debug - Initializing edit form with values:", {
+      displayName: user.displayName || "",
+      email: user.email,
+      role: user.role,
+      companyId: assignedCompanyId,
+    });
     
     editForm.reset({
       displayName: user.displayName || "",
