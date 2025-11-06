@@ -1155,6 +1155,10 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                       ciudad="México"
                       onLocationSelect={(location) => {
                         form.setValue("ubicacionGeografica", JSON.stringify(location));
+                        // Actualizar también el campo direccionFisica con la dirección geocodificada
+                        if (location.address) {
+                          form.setValue("direccionFisica", location.address);
+                        }
                       }}
                       initialLocation={(() => {
                         const ubicacion = form.watch("ubicacionGeografica");
