@@ -274,7 +274,7 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
       )}
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-full overflow-y-auto flex-col ${className}`}>
+      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-full overflow-y-auto flex-col z-10 ${className}`}>
         <SidebarContent />
       </aside>
     </>

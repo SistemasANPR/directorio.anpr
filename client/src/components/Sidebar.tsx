@@ -405,7 +405,7 @@ export default function Sidebar({ className = "" }: SidebarProps) {
       )}
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-screen flex-col overflow-hidden ${className}`}>
+      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-screen flex-col overflow-hidden z-10 ${className}`}>
         <SidebarContent />
       </aside>
     </>

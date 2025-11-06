@@ -52,8 +52,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background">
       {isAdmin ? <Sidebar /> : <RepresentativeSidebar />}
-      <main className="flex-1 ml-0 lg:ml-64">
-        <div className="p-6 pt-20 lg:pt-6">
+      <main className="flex-1 ml-0 lg:ml-64 min-w-0 w-full">
+        <div className="p-6 pt-20 lg:pt-6 w-full">
           {children}
         </div>
       </main>
@@ -66,8 +66,8 @@ function RepresentativeLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background">
       <RepresentativeSidebar />
-      <main className="flex-1 ml-0 lg:ml-64">
-        <div className="p-6 pt-20 lg:pt-6">
+      <main className="flex-1 ml-0 lg:ml-64 min-w-0 w-full">
+        <div className="p-6 pt-20 lg:pt-6 w-full">
           {children}
         </div>
       </main>
