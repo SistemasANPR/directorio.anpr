@@ -727,7 +727,14 @@ export default function Users() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Rol *</FormLabel>
+                    <div className="flex items-center justify-between mb-2">
+                      <FormLabel>Rol *</FormLabel>
+                      {field.value && (
+                        <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getRoleBadgeColor(field.value.toLowerCase())}`}>
+                          {getRoleDisplayName(field.value.toLowerCase())}
+                        </div>
+                      )}
+                    </div>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
