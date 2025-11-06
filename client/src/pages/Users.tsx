@@ -388,9 +388,13 @@ export default function Users() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los roles</SelectItem>
-                <SelectItem value="admin">Administrador</SelectItem>
-                <SelectItem value="user">Usuario</SelectItem>
-                <SelectItem value="representante">Representante</SelectItem>
+                {roles
+                  .filter((role: any) => role.estado === "activo")
+                  .map((role: any) => (
+                    <SelectItem key={role.id} value={role.nombre.toLowerCase()}>
+                      {role.nombre}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
