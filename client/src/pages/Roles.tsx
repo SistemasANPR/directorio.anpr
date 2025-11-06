@@ -21,6 +21,14 @@ import { z } from "zod";
 
 type RoleFormData = z.infer<typeof insertRoleSchema>;
 
+// Función para limpiar HTML tags de la descripción
+const stripHtmlTags = (html: string): string => {
+  if (!html) return "";
+  const tmp = document.createElement("DIV");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+};
+
 // Lista de permisos disponibles
 const availablePermissions = [
   { id: "users.read", name: "Ver usuarios", category: "Usuarios", icon: Users },
@@ -152,11 +160,21 @@ export default function Roles() {
   });
 
   const onSubmit = (data: RoleFormData) => {
-    createMutation.mutate(data);
+    // Limpiar HTML de la descripción antes de guardar
+    const cleanedData = {
+      ...data,
+      descripcion: stripHtmlTags(data.descripcion || "")
+    };
+    createMutation.mutate(cleanedData);
   };
 
   const onEditSubmit = (data: RoleFormData) => {
-    updateMutation.mutate(data);
+    // Limpiar HTML de la descripción antes de guardar
+    const cleanedData = {
+      ...data,
+      descripcion: stripHtmlTags(data.descripcion || "")
+    };
+    updateMutation.mutate(cleanedData);
   };
 
   const handleEdit = (role: Role) => {
@@ -349,24 +367,33 @@ export default function Roles() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {roles?.map((role: Role) => (
-          <Card key={role.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  {role.nombre}
+          <Card key={role.id} className="hover:shadow-lg transition-all border-l-4 border-l-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <span className="line-clamp-1">{role.nombre}</span>
+                </CardTitle>
+                <div className="flex flex-col gap-1">
+                  <Badge 
+                    variant={role.estado === "activo" ? "default" : "secondary"}
+                    className={role.estado === "activo" 
+                      ? "bg-green-500 hover:bg-green-600 text-white" 
+                      : "bg-gray-400 hover:bg-gray-500"}
+                  >
+                    {role.estado}
+                  </Badge>
                   {role.esRolSistema && (
                     <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                       Sistema
                     </Badge>
                   )}
-                </CardTitle>
-                <Badge variant={role.estado === "activo" ? "default" : "secondary"}>
-                  {role.estado}
-                </Badge>
+                </div>
               </div>
               {role.descripcion && (
-                <CardDescription>{role.descripcion}</CardDescription>
+                <CardDescription className="mt-2 line-clamp-2 text-sm">
+                  {stripHtmlTags(role.descripcion)}
+                </CardDescription>
               )}
             </CardHeader>
             <CardContent>
