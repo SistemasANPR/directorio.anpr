@@ -222,11 +222,11 @@ export default function CompanyLocationMap({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full" style={{ position: 'relative', zIndex: 1 }}>
       <div 
         ref={mapRef} 
         className="w-full h-64 border rounded-lg"
-        style={{ minHeight: '256px' }}
+        style={{ minHeight: '256px', position: 'relative', zIndex: 1 }}
       />
       {direccionFisica && (
         <p className="text-sm text-gray-600 mt-2">
