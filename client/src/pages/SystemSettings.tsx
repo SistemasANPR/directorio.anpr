@@ -86,7 +86,7 @@ interface SystemSettingsData {
 
 const socialMediaPlatforms = [
   { value: "facebook", label: "Facebook", icon: SiFacebook, defaultColor: "#1877F2" },
-  { value: "twitter", label: "Twitter / X", icon: SiX, defaultColor: "#000000" },
+  { value: "twitter", label: "X", icon: SiX, defaultColor: "#000000" },
   { value: "instagram", label: "Instagram", icon: SiInstagram, defaultColor: "#E4405F" },
   { value: "youtube", label: "YouTube", icon: SiYoutube, defaultColor: "#FF0000" },
   { value: "linkedin", label: "LinkedIn", icon: SiLinkedin, defaultColor: "#0077B5" },
