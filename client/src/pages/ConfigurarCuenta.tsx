@@ -42,13 +42,19 @@ export default function ConfigurarCuenta() {
         title: "Cuenta actualizada",
         description: "Tu información de cuenta ha sido actualizada correctamente.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+      
       // Actualizar el estado local con los datos actualizados
       if (updatedUser.photoURL) {
         setCurrentPhotoURL(updatedUser.photoURL);
       }
-      // Actualizar la información del usuario en el contexto
-      await refreshUser();
+      
+      // Actualizar la información del usuario en el contexto con los datos devueltos por la API
+      // Esto evita una llamada extra a la API y sincroniza inmediatamente
+      await refreshUser(updatedUser);
+      
+      // Invalidar queries relacionadas para mantener la cache actualizada
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     },
     onError: (error: any) => {
       toast({

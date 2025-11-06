@@ -14,7 +14,7 @@ interface AuthContextType {
   impersonateCompany: (company: any) => void;
   stopImpersonation: () => void;
   signOut: () => void;
-  refreshUser: () => Promise<void>;
+  refreshUser: (updatedUserData?: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -95,7 +95,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsImpersonating(false);
   };
 
-  const refreshUser = async () => {
+  const refreshUser = async (updatedUserData?: Partial<User>) => {
+    // If we have updated user data provided, use it directly
+    if (updatedUserData) {
+      const currentUser = user;
+      if (currentUser) {
+        const mergedUser = { ...currentUser, ...updatedUserData };
+        setUser(mergedUser);
+        
+        // Update localStorage if using temp user
+        const tempUserData = localStorage.getItem('tempUser');
+        if (tempUserData) {
+          localStorage.setItem('tempUser', JSON.stringify(mergedUser));
+        }
+        return;
+      }
+    }
+    
     // Force refresh of user data from database
     const tempUserData = localStorage.getItem('tempUser');
     if (tempUserData) {
