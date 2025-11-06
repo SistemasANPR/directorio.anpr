@@ -181,9 +181,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     { name: "Facebook", icon: Facebook },
     { name: "Instagram", icon: Instagram },
     { name: "LinkedIn", icon: Linkedin },
-    { name: "Twitter", icon: Twitter },
+    { name: "X", icon: Twitter },
     { name: "YouTube", icon: Youtube },
-    { name: "Sitio Web", icon: Globe },
   ];
 
   const form = useForm<CompanyFormData>({
