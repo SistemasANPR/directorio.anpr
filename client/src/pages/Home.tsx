@@ -229,8 +229,8 @@ function TestimonialsSection() {
                 cursor: "pointer",
                 transition: "background-color 0.2s ease"
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = "#a8b814"}
-              onMouseLeave={(e) => e.target.style.backgroundColor = "#bcce16"}
+              onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = "#a8b814"}
+              onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = "#bcce16"}
               >
                 Ver Más Reseñas
               </button>
@@ -845,7 +845,7 @@ export default function Home() {
             Muestre sus soluciones a la audiencia correcta.
           </p>
 
-          <Link href="/planes">
+          <a href="/planes#planes">
             <button style={{
               backgroundColor: "#bcce16",
               color: "#0f2161",
@@ -867,7 +867,7 @@ export default function Home() {
             }}>
               Regístrate como empresa
             </button>
-          </Link>
+          </a>
         </div>
       </div>
     </div>
