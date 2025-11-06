@@ -181,6 +181,18 @@ export default function Users() {
     };
   }, [rawWordpressData, searchTerm, selectedRole, currentPage, usersPerPage]);
 
+  // Fetch roles for user assignment
+  const { data: roles = [] } = useQuery({
+    queryKey: ["/api/roles"],
+    queryFn: async () => {
+      const response = await fetch("/api/roles", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch roles");
+      return response.json();
+    },
+  });
+
   // Fetch companies for representative assignment
   const { data: companies = [] } = useQuery({
     queryKey: ["/api/companies"],
@@ -708,16 +720,18 @@ export default function Users() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="user">Usuario</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="representante">Representante</SelectItem>
+                        {roles
+                          .filter((role: any) => role.estado === "activo")
+                          .map((role: any) => (
+                            <SelectItem key={role.id} value={role.nombre.toLowerCase()}>
+                              {role.nombre.charAt(0).toUpperCase() + role.nombre.slice(1)}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                     <p className="text-xs text-gray-500">
-                      Administradores: Acceso completo al sistema<br/>
-                      Representantes: Pueden gestionar empresas y comentarios<br/>
-                      Usuarios: Acceso básico de lectura
+                      Cada rol tiene permisos específicos en el sistema
                     </p>
                   </FormItem>
                 )}
