@@ -115,6 +115,64 @@ const uploadDocument = multer({
   }
 });
 
+// Configuración mixta para creación de empresas (imágenes + documentos)
+const uploadCompanyFiles = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      // Catálogos van a /uploads/documents, todo lo demás a /uploads/images
+      let uploadPath;
+      if (file.fieldname === 'catalogoFile') {
+        uploadPath = path.join(process.cwd(), 'uploads', 'documents');
+      } else {
+        uploadPath = path.join(process.cwd(), 'uploads', 'images');
+      }
+      
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueName = `${uuidv4()}_${Date.now()}${path.extname(file.originalname)}`;
+      cb(null, uniqueName);
+    }
+  }),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB
+  },
+  fileFilter: (req, file, cb) => {
+    // Para catálogos: permitir PDF, Word e imágenes
+    if (file.fieldname === 'catalogoFile') {
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif'
+      ];
+      
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Para el catálogo solo se permiten archivos PDF, Word o imágenes'));
+      }
+    } 
+    // Para logos, fotos de portada y galería: solo imágenes
+    else if (['logoFile', 'fotoPortadaFile', 'galeriaFiles'].includes(file.fieldname)) {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Para ${file.fieldname} solo se permiten archivos de imagen`));
+      }
+    }
+    else {
+      cb(new Error('Campo de archivo no reconocido'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Servir archivos estáticos desde la carpeta uploads
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -655,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Nueva ruta POST para crear empresas con archivos
-  app.post("/api/companies/with-files", uploadImage.fields([
+  app.post("/api/companies/with-files", uploadCompanyFiles.fields([
     { name: 'logoFile', maxCount: 1 },
     { name: 'fotoPortadaFile', maxCount: 1 },
     { name: 'catalogoFile', maxCount: 1 },
