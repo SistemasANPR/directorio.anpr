@@ -293,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const parsedCompanyId = parseInt(companyId);
         
         // If user is being assigned as representante and companyId is provided
-        if (effectiveRole === "representante" && companyId) {
+        if (effectiveRole.toLowerCase() === "representante" && companyId) {
           // Validate that the company exists
           if (isNaN(parsedCompanyId)) {
             return res.status(400).json({ error: "Invalid company ID format" });
@@ -312,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Then assign the user to the new company
           await storage.updateCompany(parsedCompanyId, { userId: id });
-        } else if (effectiveRole !== "representante") {
+        } else if (effectiveRole.toLowerCase() !== "representante") {
           // If user is no longer a representante, remove them from any company
           const currentCompanies = await storage.getCompaniesByUser(id);
           for (const company of currentCompanies) {
