@@ -57,7 +57,7 @@ const companySchema = insertCompanySchema.extend({
   tagIds: z.array(z.number()).optional(),
   certificateIds: z.array(z.number()).optional(),
   redesSociales: z.array(z.object({
-    plataforma: z.string(),
+    plataforma: z.string().min(1, "Selecciona una plataforma"),
     url: z.string().url("URL inválida"),
   })).optional(),
   direccionFisica: z.string().optional(),
@@ -572,6 +572,11 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
         ubicacionGeograficaType: typeof data.ubicacionGeografica
       });
       
+      // Filtrar redes sociales que tengan tanto plataforma como URL
+      const redesSocialesValidas = redesSociales.filter(
+        red => red.plataforma && red.plataforma.trim() !== "" && red.url && red.url.trim() !== ""
+      );
+
       const companyData = {
         ...data,
         // Convertir membershipTypeId a null si es undefined o string vacío
@@ -583,8 +588,8 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
         // Agregar galería de productos
         galeriaProductosUrls: galeriaPreviews,
-        // Agregar redes sociales
-        redesSociales: redesSociales,
+        // Agregar redes sociales válidas
+        redesSociales: redesSocialesValidas,
         // Agregar logo si existe
         logotipoUrl: logoPreview || null,
         // Agregar foto de portada si existe
@@ -721,9 +726,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
 
   // Funciones para redes sociales dinámicas
   const addRedSocial = () => {
-    const newSocial = redesSociales.length === 0 
-      ? { plataforma: "Sitio Web", url: "" }
-      : { plataforma: "", url: "" };
+    const newSocial = { plataforma: "", url: "" };
     setRedesSociales([...redesSociales, newSocial]);
   };
 

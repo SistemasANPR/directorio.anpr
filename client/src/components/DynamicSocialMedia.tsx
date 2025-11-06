@@ -180,7 +180,7 @@ export default function DynamicSocialMedia({ value = {}, onChange, disabled = fa
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <Label className="text-sm font-medium">Vista previa:</Label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {entries.filter(entry => entry.platform && entry.url).map((entry) => {
+              {entries.filter((entry): entry is SocialMediaEntry & { platform: string } => !!entry.platform && !!entry.url).map((entry) => {
                 const platformInfo = getPlatformInfo(entry.platform);
                 const IconComponent = platformInfo?.icon || Link;
                 
