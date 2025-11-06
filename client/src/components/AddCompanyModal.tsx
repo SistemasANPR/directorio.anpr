@@ -103,6 +103,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
   
   // Estados para buscador de WordPress
   const [wordPressUserSearch, setWordPressUserSearch] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedWordPressUser, setSelectedWordPressUser] = useState<any>(null);
   const [isLoadingWordPressUsers, setIsLoadingWordPressUsers] = useState(false);
   const [wordPressUsers, setWordPressUsers] = useState<any[]>([]);
@@ -250,14 +251,16 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setUbicacionesPorCiudad({});
       setVideosUrls([]);
       
-      // Limpiar estados del buscador de WordPress
+      // NO limpiar el buscador de WordPress cuando se abre el modal
+      // Esto permite que el usuario vea su búsqueda anterior si reabre
+    } else {
+      // Cuando el modal se cierra, limpiar todos los toasts Y el buscador
+      dismiss();
       setWordPressUserSearch("");
+      setDebouncedSearchTerm("");
       setSelectedWordPressUser(null);
       setWordPressUsers([]);
       setIsLoadingWordPressUsers(false);
-    } else {
-      // Cuando el modal se cierra, limpiar todos los toasts
-      dismiss();
     }
   }, [open, form, dismiss]);
 
@@ -289,15 +292,26 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
     }
   }, [watchedFechaInicio, watchedPeriodicidad, form]);
 
-  // Función para buscar usuarios de WordPress
+  // Debounce effect para evitar búsquedas mientras el usuario escribe
   useEffect(() => {
-    if (wordPressUserSearch.length >= 3) {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(wordPressUserSearch);
+    }, 400); // 400ms de delay
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [wordPressUserSearch]);
+
+  // Función para buscar usuarios de WordPress (usando el término debounced)
+  useEffect(() => {
+    if (debouncedSearchTerm.length >= 3) {
       setIsLoadingWordPressUsers(true);
       
       fetch('/api/wordpress-users')
         .then(response => response.json())
         .then(data => {
-          const searchLower = wordPressUserSearch.toLowerCase();
+          const searchLower = debouncedSearchTerm.toLowerCase();
           const filteredUsers = data.users.filter((user: any) => 
             (user.name && user.name.toLowerCase().includes(searchLower)) ||
             (user.email && user.email.toLowerCase().includes(searchLower)) ||
@@ -318,7 +332,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       setWordPressUsers([]);
       setIsLoadingWordPressUsers(false);
     }
-  }, [wordPressUserSearch]);
+  }, [debouncedSearchTerm]);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -979,9 +993,9 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   </div>
 
                   {/* Resultados de búsqueda */}
-                  {wordPressUserSearch.length >= 3 && (
+                  {(wordPressUserSearch.length >= 3 || debouncedSearchTerm.length >= 3) && (
                     <div className="border-2 border-blue-200 rounded-lg bg-white max-h-48 overflow-y-auto shadow-lg">
-                      {isLoadingWordPressUsers ? (
+                      {isLoadingWordPressUsers || (wordPressUserSearch !== debouncedSearchTerm && wordPressUserSearch.length >= 3) ? (
                         <div className="p-3 text-center text-gray-600">
                           <div className="flex items-center justify-center gap-2">
                             <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
