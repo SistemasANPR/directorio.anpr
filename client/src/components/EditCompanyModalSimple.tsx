@@ -774,10 +774,10 @@ export default function EditCompanyModalSimple({
                     </div>
 
                     <div>
-                      <Label htmlFor="twitter">Twitter</Label>
+                      <Label htmlFor="twitter">X (Twitter)</Label>
                       <Input
                         id="twitter"
-                        placeholder="https://twitter.com/tuempresa"
+                        placeholder="https://x.com/tuempresa"
                         {...form.register("twitter")}
                         disabled={updateCompanyMutation.isPending}
                       />

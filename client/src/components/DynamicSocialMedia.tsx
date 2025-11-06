@@ -22,13 +22,13 @@ interface DynamicSocialMediaProps {
 const SOCIAL_PLATFORMS = [
   { value: "facebook", label: "Facebook", icon: Facebook, placeholder: "https://facebook.com/tu-empresa", color: "bg-blue-600" },
   { value: "instagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/tu-empresa", color: "bg-pink-600" },
-  { value: "twitter", label: "Twitter", icon: Twitter, placeholder: "https://twitter.com/tu-empresa", color: "bg-sky-500" },
+  { value: "x", label: "X", icon: Twitter, placeholder: "https://x.com/tu-empresa", color: "bg-black" },
+  { value: "twitter", label: "X", icon: Twitter, placeholder: "https://x.com/tu-empresa", color: "bg-black" },
   { value: "linkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/company/tu-empresa", color: "bg-blue-700" },
   { value: "youtube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@tu-empresa", color: "bg-red-600" },
   { value: "tiktok", label: "TikTok", icon: Link, placeholder: "https://tiktok.com/@tu-empresa", color: "bg-black" },
   { value: "whatsapp", label: "WhatsApp", icon: Link, placeholder: "https://wa.me/52XXXXXXXXXX", color: "bg-green-600" },
   { value: "telegram", label: "Telegram", icon: Link, placeholder: "https://t.me/tu-empresa", color: "bg-blue-500" },
-  { value: "website", label: "Sitio Web", icon: Globe, placeholder: "https://tu-empresa.com", color: "bg-gray-600" },
   { value: "other", label: "Otro", icon: Link, placeholder: "https://ejemplo.com", color: "bg-gray-500" },
 ];
 

@@ -1618,9 +1618,9 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                     />
                   </div>
                   <div>
-                    <FormLabel>Twitter/X</FormLabel>
+                    <FormLabel>X (Twitter)</FormLabel>
                     <Input
-                      placeholder="https://twitter.com/..."
+                      placeholder="https://x.com/..."
                       value={redesSociales.twitter || ''}
                       onChange={(e) => updateRedSocial('twitter', e.target.value)}
                     />

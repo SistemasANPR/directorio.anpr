@@ -647,13 +647,13 @@ export default function CompanyDetails() {
                           <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center mr-3 transition-colors">
                             {red.plataforma === 'Facebook' && <Facebook className="h-4 w-4" />}
                             {red.plataforma === 'LinkedIn' && <Linkedin className="h-4 w-4" />}
-                            {red.plataforma === 'Twitter' && <Twitter className="h-4 w-4" />}
+                            {(red.plataforma === 'Twitter' || red.plataforma === 'X' || red.plataforma === 'x' || red.plataforma === 'twitter') && <Twitter className="h-4 w-4" />}
                             {red.plataforma === 'Instagram' && <Instagram className="h-4 w-4" />}
-                            {!['Facebook', 'LinkedIn', 'Twitter', 'Instagram'].includes(red.plataforma) && 
+                            {!['Facebook', 'LinkedIn', 'Twitter', 'X', 'x', 'twitter', 'Instagram'].includes(red.plataforma) && 
                               <Globe className="h-4 w-4" />
                             }
                           </div>
-                          <span className="font-medium">{red.plataforma}</span>
+                          <span className="font-medium">{red.plataforma === 'Twitter' || red.plataforma === 'twitter' ? 'X' : red.plataforma}</span>
                         </a>
                       ))}
                     </div>
