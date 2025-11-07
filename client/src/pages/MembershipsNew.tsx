@@ -191,6 +191,10 @@ export default function MembershipsNew() {
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest("DELETE", `/api/membership-types/${id}`);
+      // El servidor responde con 204 No Content, no hay cuerpo JSON que parsear
+      if (response.status === 204) {
+        return null;
+      }
       return response.json();
     },
     onSuccess: () => {
