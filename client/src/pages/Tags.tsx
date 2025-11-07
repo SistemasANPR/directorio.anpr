@@ -100,7 +100,6 @@ export default function Tags() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tags"] });
       setIsCreateOpen(false);
-      form.reset();
       toast({
         title: "Etiqueta creada",
         description: "La etiqueta ha sido creada exitosamente.",
@@ -123,8 +122,6 @@ export default function Tags() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tags"] });
       setIsCreateOpen(false);
-      setEditingTag(null);
-      form.reset();
       toast({
         title: "Etiqueta actualizada",
         description: "La etiqueta ha sido actualizada exitosamente.",
@@ -178,6 +175,21 @@ export default function Tags() {
     });
   };
 
+  const resetFormToDefaults = () => {
+    setEditingTag(null);
+    // Reset form to default values
+    form.reset({
+      nombre: "",
+      descripcion: "",
+      color: "#3B82F6"
+    });
+  };
+
+  const handleOpenCreateDialog = () => {
+    resetFormToDefaults();
+    setIsCreateOpen(true);
+  };
+
   const handleDelete = async (id: number) => {
     if (confirm("¿Está seguro de eliminar esta etiqueta?")) {
       await deleteTagMutation.mutateAsync(id);
@@ -200,14 +212,16 @@ export default function Tags() {
             Administra las etiquetas para categorizar y mejorar la búsqueda de empresas
           </p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) {
+            resetFormToDefaults();
+          }
+        }}>
           <DialogTrigger asChild>
             <Button 
               className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
-              onClick={() => {
-                setEditingTag(null);
-                form.reset();
-              }}
+              onClick={handleOpenCreateDialog}
             >
               <Plus className="h-4 w-4 mr-2" />
               Nueva Etiqueta
@@ -278,10 +292,7 @@ export default function Tags() {
                   <Button 
                     type="button" 
                     variant="outline"
-                    onClick={() => {
-                      setIsCreateOpen(false);
-                      setEditingTag(null);
-                    }}
+                    onClick={() => setIsCreateOpen(false)}
                   >
                     Cancelar
                   </Button>
