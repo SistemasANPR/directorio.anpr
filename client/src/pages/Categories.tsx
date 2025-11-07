@@ -733,7 +733,7 @@ export default function Categories() {
                 />
                 </div>
 
-                <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex items-center justify-end space-x-2">
+                <div className="flex-shrink-0 bg-white border-t px-6 py-4 flex items-center justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
                     Cancelar
                   </Button>
