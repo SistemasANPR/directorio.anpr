@@ -753,12 +753,14 @@ export default function MembershipsNew() {
 
       {/* Modal de edición */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Editar Plan de Membresía</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col">
+              {/* Contenido scrolleable */}
+              <div className="max-h-[60vh] overflow-y-auto px-1 space-y-4">
               <FormField
                 control={editForm.control}
                 name="nombrePlan"
@@ -1054,8 +1056,10 @@ export default function MembershipsNew() {
                   </FormItem>
                 )}
               />
+              </div>
 
-              <div className="flex justify-end gap-3">
+              {/* Footer fijo con botones */}
+              <div className="flex justify-end gap-3 pt-4 border-t mt-4">
                 <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
                   Cancelar
                 </Button>
