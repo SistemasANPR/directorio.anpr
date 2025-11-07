@@ -1640,9 +1640,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (key !== 'imageFile') {
           if (key === 'membershipPlanIds' || key === 'planesMembresia') {
             try {
-              certificateData.membershipPlanIds = JSON.parse(value as string);
+              let parsed = JSON.parse(value as string);
+              // Forzar que siempre sea un array
+              certificateData.membershipPlanIds = Array.isArray(parsed) ? parsed : [parsed];
             } catch (e) {
-              certificateData.membershipPlanIds = value;
+              // Si no se puede parsear, tratar como array
+              certificateData.membershipPlanIds = Array.isArray(value) ? value : [value];
             }
           } else if (key === 'asignacionAutomatica') {
             certificateData[key] = value === 'true';
@@ -1700,9 +1703,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (key !== 'imageFile') {
             if (key === 'membershipPlanIds' || key === 'planesMembresia') {
               try {
-                updateData.membershipPlanIds = JSON.parse(value as string);
+                let parsed = JSON.parse(value as string);
+                // Forzar que siempre sea un array
+                updateData.membershipPlanIds = Array.isArray(parsed) ? parsed : [parsed];
               } catch (e) {
-                updateData.membershipPlanIds = value;
+                updateData.membershipPlanIds = Array.isArray(value) ? value : [value];
               }
             } else if (key === 'asignacionAutomatica') {
               updateData[key] = value === 'true';
@@ -1719,7 +1724,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Convertir a boolean si viene como string o ya es boolean
               updateData[key] = typeof value === 'string' ? value === 'true' : Boolean(value);
             } else if (key === 'membershipPlanIds' || key === 'planesMembresia') {
-              updateData.membershipPlanIds = Array.isArray(value) ? value : [];
+              // Forzar que siempre sea un array
+              updateData.membershipPlanIds = Array.isArray(value) ? value : (value ? [value] : []);
             } else {
               updateData[key] = value;
             }
