@@ -90,6 +90,14 @@ const categorySchema = z.object({
 
 type CategoryFormData = z.infer<typeof categorySchema>;
 
+// Helper function to strip HTML tags from text
+const stripHtmlTags = (html: string | null | undefined): string => {
+  if (!html) return "";
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+  return temp.textContent || temp.innerText || "";
+};
+
 export default function Categories() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -578,7 +586,7 @@ export default function Categories() {
           
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center space-x-2">
+              <Button className="flex items-center space-x-2 text-white">
                 <Plus className="w-4 h-4" />
                 <span>Nueva Categoría</span>
               </Button>
@@ -786,7 +794,7 @@ export default function Categories() {
                         {category.nombreCategoria}
                       </TableCell>
                       <TableCell>
-                        {category.descripcion || "Sin descripción"}
+                        {stripHtmlTags(category.descripcion) || "Sin descripción"}
                       </TableCell>
                       <TableCell>
                         {new Date(category.createdAt).toLocaleDateString('es-ES')}
