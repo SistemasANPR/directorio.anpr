@@ -42,6 +42,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import Swal from 'sweetalert2';
 
 // Tag schema for validation
 const tagSchema = z.object({
@@ -191,7 +192,19 @@ export default function Tags() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("¿Está seguro de eliminar esta etiqueta?")) {
+    const result = await Swal.fire({
+      title: '¿Eliminar etiqueta?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
       await deleteTagMutation.mutateAsync(id);
     }
   };
