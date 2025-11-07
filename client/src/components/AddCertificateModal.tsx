@@ -102,7 +102,7 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
@@ -111,9 +111,7 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
-            {/* Contenido scrolleable */}
-            <div className="max-h-[60vh] overflow-y-auto px-1 space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="nombreCertificado"
@@ -314,10 +312,8 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
                 )}
               </div>
             )}
-            </div>
-            
-            {/* Footer fijo con botones */}
-            <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
+
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
