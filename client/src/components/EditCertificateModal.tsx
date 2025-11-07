@@ -247,7 +247,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
@@ -256,7 +256,9 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
+            {/* Contenido scrolleable */}
+            <div className="max-h-[60vh] overflow-y-auto px-1 space-y-4">
             <FormField
               control={form.control}
               name="nombreCertificado"
@@ -573,8 +575,10 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                 )}
               </div>
             )}
-
-            <div className="flex justify-end space-x-2 pt-4">
+            </div>
+            
+            {/* Footer fijo con botones */}
+            <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -587,7 +591,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                 disabled={updateCertificateMutation.isPending}
                 className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
               >
-                {updateCertificateMutation.isPending ? "Actualizando..." : "Actualizar Certificado"}
+                {updateCertificateMutation.isPending ? "Actualizando..." : "Guardar Cambios"}
               </Button>
             </div>
           </form>

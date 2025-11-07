@@ -102,16 +102,18 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            Agregar Certificado o Premio
+            Nuevo Certificado
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
+            {/* Contenido scrolleable */}
+            <div className="max-h-[60vh] overflow-y-auto px-1 space-y-4">
             <FormField
               control={form.control}
               name="nombreCertificado"
@@ -312,8 +314,10 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
                 )}
               </div>
             )}
-
-            <div className="flex justify-end space-x-2 pt-4">
+            </div>
+            
+            {/* Footer fijo con botones */}
+            <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -326,7 +330,7 @@ export default function AddCertificateModal({ open, onOpenChange }: AddCertifica
                 disabled={createCertificateMutation.isPending}
                 className="bg-[#bcce16] hover:bg-[#a8b814] text-black"
               >
-                {createCertificateMutation.isPending ? "Guardando..." : "Agregar Certificado"}
+                {createCertificateMutation.isPending ? "Guardando..." : "Crear"}
               </Button>
             </div>
           </form>
