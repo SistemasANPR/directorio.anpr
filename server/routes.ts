@@ -1648,7 +1648,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               certificateData.membershipPlanIds = Array.isArray(value) ? value : [value];
             }
           } else if (key === 'asignacionAutomatica') {
-            certificateData[key] = value === 'true';
+            // Manejar tanto boolean (JSON) como string (FormData)
+            certificateData[key] = typeof value === 'boolean' ? value : value === 'true';
           } else {
             certificateData[key] = value;
           }
