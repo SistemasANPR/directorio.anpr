@@ -578,9 +578,9 @@ export default function Categories() {
           
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center space-x-2 text-white">
+              <Button className="flex items-center space-x-2 !text-white" style={{ color: 'white' }}>
                 <Plus className="w-4 h-4" />
-                <span>Nueva Categoría</span>
+                <span className="!text-white" style={{ color: 'white' }}>Nueva Categoría</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
