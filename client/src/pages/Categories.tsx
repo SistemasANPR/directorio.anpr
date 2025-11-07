@@ -578,7 +578,7 @@ export default function Categories() {
           
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center space-x-2">
+              <Button className="flex items-center space-x-2 text-white">
                 <Plus className="w-4 h-4" />
                 <span>Nueva Categoría</span>
               </Button>
@@ -786,7 +786,14 @@ export default function Categories() {
                         {category.nombreCategoria}
                       </TableCell>
                       <TableCell>
-                        {category.descripcion || "Sin descripción"}
+                        {category.descripcion ? (
+                          <div 
+                            className="text-sm prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: category.descripcion }}
+                          />
+                        ) : (
+                          "Sin descripción"
+                        )}
                       </TableCell>
                       <TableCell>
                         {new Date(category.createdAt).toLocaleDateString('es-ES')}
@@ -839,7 +846,10 @@ export default function Categories() {
               {selectedCategory.descripcion && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">Descripción</label>
-                  <p className="text-sm text-gray-700">{selectedCategory.descripcion}</p>
+                  <div 
+                    className="text-sm text-gray-700 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: selectedCategory.descripcion }}
+                  />
                 </div>
               )}
             </div>

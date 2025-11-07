@@ -156,9 +156,14 @@ export default function CategoryDataTable({ categories, onEdit }: CategoryDataTa
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs">
-                        <p className="text-sm text-gray-900 truncate">
-                          {category.descripcion || "Sin descripción"}
-                        </p>
+                        {category.descripcion ? (
+                          <div 
+                            className="text-sm text-gray-900 truncate prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: category.descripcion }}
+                          />
+                        ) : (
+                          <p className="text-sm text-gray-900 truncate">Sin descripción</p>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
