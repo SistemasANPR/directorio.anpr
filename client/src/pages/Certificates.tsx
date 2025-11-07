@@ -54,7 +54,7 @@ export default function Certificates() {
       entidadEmisora: "",
       estado: "activo",
       asignacionAutomatica: false,
-      membershipPlanIds: [],
+      planesMembresia: [],
       creadoPorAdmin: true,
     },
   });
@@ -363,13 +363,13 @@ export default function Certificates() {
                       {membershipTypes.map((plan: any) => (
                         <label key={plan.id} className="flex items-center space-x-2 cursor-pointer">
                           <Checkbox
-                            checked={form.watch("membershipPlanIds")?.includes(plan.id) || false}
+                            checked={form.watch("planesMembresia")?.includes(String(plan.id)) || false}
                             onCheckedChange={(checked) => {
-                              const currentIds = form.getValues("membershipPlanIds") || [];
+                              const currentIds = form.getValues("planesMembresia") || [];
                               if (checked) {
-                                form.setValue("membershipPlanIds", [...currentIds, plan.id]);
+                                form.setValue("planesMembresia", [...currentIds, String(plan.id)]);
                               } else {
-                                form.setValue("membershipPlanIds", currentIds.filter(id => id !== plan.id));
+                                form.setValue("planesMembresia", currentIds.filter(id => id !== String(plan.id)));
                               }
                             }}
                           />

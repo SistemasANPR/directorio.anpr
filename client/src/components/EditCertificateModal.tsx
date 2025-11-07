@@ -125,7 +125,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
       imagenUrl: "",
       estado: "activo",
       asignacionAutomatica: false,
-      membershipPlanIds: [],
+      planesMembresia: [],
       creadoPorAdmin: true,
     },
   });
@@ -139,9 +139,9 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         ? new Date(certificate.fechaVencimiento).toISOString().split('T')[0]
         : "";
 
-      // Normalizar membershipPlanIds a números
+      // Normalizar planesMembresia a strings (siempre array de strings)
       const normalizedPlanIds = Array.isArray(certificate.membershipPlanIds) 
-        ? certificate.membershipPlanIds.map(id => typeof id === 'string' ? parseInt(id, 10) : id).filter(id => !isNaN(id))
+        ? certificate.membershipPlanIds.map(id => String(id))
         : [];
 
       form.reset({
@@ -153,7 +153,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         imagenUrl: certificate.imagenUrl || "",
         estado: certificate.estado || "activo",
         asignacionAutomatica: !!certificate.asignacionAutomatica, // Forzar a boolean
-        membershipPlanIds: normalizedPlanIds,
+        planesMembresia: normalizedPlanIds,
         creadoPorAdmin: certificate.creadoPorAdmin !== undefined ? certificate.creadoPorAdmin : true,
       });
 
@@ -174,7 +174,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         // Agregar todos los campos del formulario (sin imagenUrl ya que estamos subiendo nuevo archivo)
         Object.entries(data).forEach(([key, value]) => {
           if (key === 'imagenUrl') return; // Omitir imagenUrl cuando hay nuevo archivo
-          if (key === 'membershipPlanIds' && Array.isArray(value)) {
+          if (key === 'planesMembresia' && Array.isArray(value)) {
             formData.append(key, JSON.stringify(value));
           } else if (key === 'asignacionAutomatica' || key === 'creadoPorAdmin') {
             formData.append(key, value ? 'true' : 'false');
@@ -206,7 +206,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
           // Fechas ya vienen en formato yyyy-mm-dd del input date
           fechaEmision: data.fechaEmision || null,
           fechaVencimiento: data.fechaVencimiento || null,
-          membershipPlanIds: data.membershipPlanIds || [],
+          planesMembresia: data.planesMembresia || [],
           asignacionAutomatica: data.asignacionAutomatica || false,
           creadoPorAdmin: data.creadoPorAdmin || true,
         };
@@ -534,7 +534,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                 {form.watch("asignacionAutomatica") && (
                   <FormField
                     control={form.control}
-                    name="membershipPlanIds"
+                    name="planesMembresia"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Planes de Membresía</FormLabel>
@@ -543,13 +543,13 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
                             <div key={membershipType.id} className="flex items-center space-x-2">
                               <Checkbox
                                 id={`edit-plan-${membershipType.id}`}
-                                checked={Array.isArray(field.value) && field.value.includes(membershipType.id)}
+                                checked={Array.isArray(field.value) && field.value.includes(String(membershipType.id))}
                                 onCheckedChange={(checked) => {
                                   const currentValues = Array.isArray(field.value) ? field.value : [];
                                   if (checked) {
-                                    field.onChange([...currentValues, membershipType.id]);
+                                    field.onChange([...currentValues, String(membershipType.id)]);
                                   } else {
-                                    field.onChange(currentValues.filter((id: number) => id !== membershipType.id));
+                                    field.onChange(currentValues.filter((id: string) => id !== String(membershipType.id)));
                                   }
                                 }}
                               />

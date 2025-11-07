@@ -262,7 +262,7 @@ export const certificateFormSchema = insertCertificateSchema.extend({
   entidadEmisora: z.string().optional(),
   estado: z.string().default("activo"),
   asignacionAutomatica: z.boolean().default(false),
-  membershipPlanIds: z.array(z.number()).default([]),
+  planesMembresia: z.array(z.string()).default([]), // IDs de planes como strings
   creadoPorAdmin: z.boolean().default(true),
 });
 
