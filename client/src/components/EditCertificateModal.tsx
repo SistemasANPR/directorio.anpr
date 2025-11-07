@@ -30,7 +30,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { insertCertificateSchema, Certificate } from "@shared/schema";
+import { certificateFormSchema, Certificate, CertificateFormData } from "@shared/schema";
 import { Award, Upload, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,15 +40,6 @@ interface EditCertificateModalProps {
   onOpenChange: (open: boolean) => void;
   certificate: Certificate | null;
 }
-
-const formSchema = insertCertificateSchema.extend({
-  fechaEmision: z.string().optional(),
-  fechaVencimiento: z.string().optional(),
-  asignacionAutomatica: z.boolean().optional(),
-  membershipPlanIds: z.array(z.number()).optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
 
 export default function EditCertificateModal({ open, onOpenChange, certificate }: EditCertificateModalProps) {
   const { toast } = useToast();
@@ -123,8 +114,8 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
     enabled: isAdmin // Solo cargar si es admin
   });
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CertificateFormData>({
+    resolver: zodResolver(certificateFormSchema),
     defaultValues: {
       nombreCertificado: "",
       descripcion: "",
@@ -135,6 +126,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
       estado: "activo",
       asignacionAutomatica: false,
       membershipPlanIds: [],
+      creadoPorAdmin: true,
     },
   });
 
@@ -166,48 +158,53 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
   }, [certificate, open, form]);
 
   const updateCertificateMutation = useMutation({
-    mutationFn: async (data: FormData) => {
+    mutationFn: async (data: CertificateFormData) => {
       if (!certificate) throw new Error("No certificate selected");
       
-      // Si hay archivo de imagen, usar FormData, sino usar JSON
+      // Si hay archivo de imagen nuevo, usar FormData
       if (imageFile) {
         const formData = new FormData();
         
-        // Agregar todos los campos del formulario
+        // Agregar todos los campos del formulario (sin imagenUrl ya que estamos subiendo nuevo archivo)
         Object.entries(data).forEach(([key, value]) => {
+          if (key === 'imagenUrl') return; // Omitir imagenUrl cuando hay nuevo archivo
           if (key === 'membershipPlanIds' && Array.isArray(value)) {
             formData.append(key, JSON.stringify(value));
-          } else if (key === 'asignacionAutomatica') {
+          } else if (key === 'asignacionAutomatica' || key === 'creadoPorAdmin') {
             formData.append(key, value ? 'true' : 'false');
           } else if (value !== undefined && value !== null && value !== '') {
             formData.append(key, value.toString());
           }
         });
         
-        // Agregar fechas procesadas
+        // Agregar fechas en formato ISO yyyy-mm-dd (ya vienen así del input date)
         if (data.fechaEmision) {
-          formData.append("fechaEmision", new Date(data.fechaEmision).toISOString());
+          formData.append("fechaEmision", data.fechaEmision);
         }
         if (data.fechaVencimiento) {
-          formData.append("fechaVencimiento", new Date(data.fechaVencimiento).toISOString());
+          formData.append("fechaVencimiento", data.fechaVencimiento);
         }
         
         // Agregar archivo de imagen
         formData.append("imageFile", imageFile);
 
-        console.log('Enviando FormData con archivo de imagen');
+        console.log('Enviando FormData con archivo de imagen nuevo');
         const response = await apiRequest("PUT", `/api/certificates/${certificate.id}`, formData);
         return response.json();
       } else {
-        // Sin archivo, usar JSON
+        // Sin archivo nuevo, usar JSON y mantener imagenUrl existente
         const certificateData = {
           ...data,
-          fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString() : null,
-          fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento).toISOString() : null,
+          // Mantener imagenUrl existente si no cambió la imagen
+          imagenUrl: data.imagenUrl || certificate.imagenUrl,
+          // Fechas ya vienen en formato yyyy-mm-dd del input date
+          fechaEmision: data.fechaEmision || null,
+          fechaVencimiento: data.fechaVencimiento || null,
           membershipPlanIds: data.membershipPlanIds || [],
           asignacionAutomatica: data.asignacionAutomatica || false,
+          creadoPorAdmin: data.creadoPorAdmin || true,
         };
-        console.log('Enviando datos de actualización:', certificateData);
+        console.log('Enviando datos de actualización (sin cambiar imagen):', certificateData);
         const response = await apiRequest("PUT", `/api/certificates/${certificate.id}`, certificateData);
         return response.json();
       }
@@ -232,7 +229,7 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: CertificateFormData) => {
     updateCertificateMutation.mutate(data);
   };
 

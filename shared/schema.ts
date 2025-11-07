@@ -251,6 +251,21 @@ export const insertCertificateSchema = createInsertSchema(certificates).omit({
   updatedAt: true,
 });
 
+// Esquema de formulario compartido para crear/editar certificados
+// Las fechas se manejan como strings yyyy-mm-dd en el frontend
+// imagenUrl es opcional en edición (no reenviar si no cambió)
+export const certificateFormSchema = insertCertificateSchema.extend({
+  imagenUrl: z.string().optional(), // Opcional en edición
+  descripcion: z.string().optional(),
+  fechaEmision: z.string().optional(),
+  fechaVencimiento: z.string().optional(),
+  entidadEmisora: z.string().optional(),
+  estado: z.string().default("activo"),
+  asignacionAutomatica: z.boolean().default(false),
+  membershipPlanIds: z.array(z.number()).default([]),
+  creadoPorAdmin: z.boolean().default(true),
+});
+
 export const insertRoleSchema = createInsertSchema(roles).omit({
   id: true,
   createdAt: true,
@@ -415,6 +430,7 @@ export type InsertCompany = z.infer<typeof insertCompanySchema>;
 
 export type Certificate = typeof certificates.$inferSelect;
 export type InsertCertificate = z.infer<typeof insertCertificateSchema>;
+export type CertificateFormData = z.infer<typeof certificateFormSchema>;
 
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;

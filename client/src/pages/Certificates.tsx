@@ -12,24 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Certificate, InsertCertificate } from "@shared/schema";
-import { z } from "zod";
+import type { Certificate, CertificateFormData } from "@shared/schema";
+import { certificateFormSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Swal from "sweetalert2";
-
-const certificateSchema = z.object({
-  nombreCertificado: z.string().min(1, "El nombre es requerido"),
-  imagenUrl: z.string().min(1, "La imagen es requerida"),
-  descripcion: z.string().optional(),
-  fechaEmision: z.string().optional(),
-  fechaVencimiento: z.string().optional(),
-  entidadEmisora: z.string().optional(),
-  membershipPlanIds: z.array(z.number()).optional(),
-  creadoPorAdmin: z.boolean().default(true),
-});
-
-type CertificateFormData = z.infer<typeof certificateSchema>;
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Certificates() {
   const [open, setOpen] = useState(false);
@@ -56,7 +44,7 @@ export default function Certificates() {
   });
 
   const form = useForm<CertificateFormData>({
-    resolver: zodResolver(certificateSchema),
+    resolver: zodResolver(certificateFormSchema),
     defaultValues: {
       nombreCertificado: "",
       imagenUrl: "",
@@ -64,6 +52,8 @@ export default function Certificates() {
       fechaEmision: "",
       fechaVencimiento: "",
       entidadEmisora: "",
+      estado: "activo",
+      asignacionAutomatica: false,
       membershipPlanIds: [],
       creadoPorAdmin: true,
     },
@@ -328,31 +318,67 @@ export default function Certificates() {
               </div>
 
               <div>
-                <Label className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Planes de Membresía Asociados
-                </Label>
-                <p className="text-sm text-gray-600 mb-3">
-                  Selecciona los planes que tendrán acceso automático a este certificado
-                </p>
-                <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                  {membershipTypes.map((plan: any) => (
-                    <label key={plan.id} className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox
-                        checked={form.watch("membershipPlanIds")?.includes(plan.id) || false}
-                        onCheckedChange={(checked) => {
-                          const currentIds = form.getValues("membershipPlanIds") || [];
-                          if (checked) {
-                            form.setValue("membershipPlanIds", [...currentIds, plan.id]);
-                          } else {
-                            form.setValue("membershipPlanIds", currentIds.filter(id => id !== plan.id));
-                          }
-                        }}
-                      />
-                      <span className="text-sm">{plan.nombrePlan}</span>
-                    </label>
-                  ))}
+                <Label htmlFor="estado">Estado</Label>
+                <Select
+                  value={form.watch("estado") || "activo"}
+                  onValueChange={(value) => form.setValue("estado", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="activo">Activo</SelectItem>
+                    <SelectItem value="inactivo">Inactivo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="asignacionAutomatica"
+                    checked={form.watch("asignacionAutomatica") || false}
+                    onCheckedChange={(checked) => form.setValue("asignacionAutomatica", !!checked)}
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="asignacionAutomatica" className="cursor-pointer">
+                      Asignar automáticamente a planes de membresía
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Si está habilitado, este certificado se asignará automáticamente a las empresas de los planes seleccionados
+                    </p>
+                  </div>
                 </div>
+
+                {form.watch("asignacionAutomatica") && (
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Planes de Membresía Asociados
+                    </Label>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Selecciona los planes que tendrán acceso automático a este certificado
+                    </p>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                      {membershipTypes.map((plan: any) => (
+                        <label key={plan.id} className="flex items-center space-x-2 cursor-pointer">
+                          <Checkbox
+                            checked={form.watch("membershipPlanIds")?.includes(plan.id) || false}
+                            onCheckedChange={(checked) => {
+                              const currentIds = form.getValues("membershipPlanIds") || [];
+                              if (checked) {
+                                form.setValue("membershipPlanIds", [...currentIds, plan.id]);
+                              } else {
+                                form.setValue("membershipPlanIds", currentIds.filter(id => id !== plan.id));
+                              }
+                            }}
+                          />
+                          <span className="text-sm">{plan.nombrePlan}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
