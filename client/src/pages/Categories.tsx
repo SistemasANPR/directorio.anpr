@@ -583,12 +583,13 @@ export default function Categories() {
                 <span>Nueva Categoría</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
-            <DialogHeader>
+            <DialogContent className="max-h-[90vh] flex flex-col p-0">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b">
               <DialogTitle>Agregar Nueva Categoría</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+                <div className="overflow-y-auto px-6 py-4 space-y-4 flex-1">
                 <FormField
                   control={form.control}
                   name="nombreCategoria"
@@ -730,8 +731,9 @@ export default function Categories() {
                     </FormItem>
                   )}
                 />
+                </div>
 
-                <div className="flex items-center justify-end space-x-2 pt-4">
+                <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex items-center justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
                     Cancelar
                   </Button>
