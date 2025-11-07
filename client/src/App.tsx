@@ -45,6 +45,7 @@ import Footer from "@/components/Footer";
 import TestHome from "@/TestHome";
 import NotFound from "@/pages/not-found";
 import PasswordChangeWrapper from "@/components/PasswordChangeWrapper";
+import ScrollRestoration from "@/components/ScrollRestoration";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isAdmin } = useAuth();
@@ -354,6 +355,7 @@ function App() {
       <AuthProvider>
         <PasswordChangeWrapper>
           <TooltipProvider>
+            <ScrollRestoration />
             <Toaster />
             <Router />
           </TooltipProvider>
