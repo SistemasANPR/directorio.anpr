@@ -16,6 +16,7 @@ import type { Certificate, InsertCertificate } from "@shared/schema";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Swal from "sweetalert2";
 
 const certificateSchema = z.object({
   nombreCertificado: z.string().min(1, "El nombre es requerido"),
@@ -97,8 +98,7 @@ export default function Certificates() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/certificates/${id}`);
-      return response.json();
+      await apiRequest("DELETE", `/api/certificates/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/certificates"] });
@@ -119,9 +119,21 @@ export default function Certificates() {
     setEditOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este certificado?")) {
-      deleteMutation.mutate(id);
+  const handleDelete = async (id: number) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar certificado?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      await deleteMutation.mutateAsync(id);
     }
   };
 
