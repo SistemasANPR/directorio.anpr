@@ -31,8 +31,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { certificateFormSchema, Certificate, CertificateFormData } from "@shared/schema";
-import { Award, Upload, X } from "lucide-react";
+import { Award, Upload, X, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 
 interface EditCertificateModalProps {
@@ -515,67 +516,57 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
 
             {/* Campos de asignación automática - Solo para administradores */}
             {isAdmin && (
-              <div className="space-y-4 border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900">Asignación Automática</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="asignacionAutomatica"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Asignar automáticamente a planes de membresía
-                        </FormLabel>
-                        <div className="text-sm text-gray-500">
-                          Si está habilitado, este certificado se asignará automáticamente a las empresas de los planes seleccionados
-                        </div>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+              <div className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="asignacionAutomatica"
+                    checked={form.watch("asignacionAutomatica") || false}
+                    onCheckedChange={(checked) => form.setValue("asignacionAutomatica", !!checked)}
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="asignacionAutomatica" className="cursor-pointer">
+                      Asignar automáticamente a planes de membresía
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Si está habilitado, este certificado se asignará automáticamente a las empresas de los planes seleccionados
+                    </p>
+                  </div>
+                </div>
 
                 {form.watch("asignacionAutomatica") && (
-                  <FormField
-                    control={form.control}
-                    name="planesMembresia"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Planes de Membresía</FormLabel>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {membershipTypes.map((membershipType: any) => (
-                            <div key={membershipType.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`edit-plan-${membershipType.id}`}
-                                checked={Array.isArray(field.value) && field.value.includes(String(membershipType.id))}
-                                onCheckedChange={(checked) => {
-                                  const currentValues = Array.isArray(field.value) ? field.value : [];
-                                  if (checked) {
-                                    field.onChange([...currentValues, String(membershipType.id)]);
-                                  } else {
-                                    field.onChange(currentValues.filter((id: string) => id !== String(membershipType.id)));
-                                  }
-                                }}
-                              />
-                              <label
-                                htmlFor={`edit-plan-${membershipType.id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {membershipType.nombrePlan}
-                              </label>
-                            </div>
-                          ))}
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Planes de Membresía Asociados
+                    </Label>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Selecciona los planes que tendrán acceso automático a este certificado
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {membershipTypes.map((plan: any) => (
+                        <div key={plan.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`edit-plan-${plan.id}`}
+                            checked={form.watch("planesMembresia")?.includes(String(plan.id)) || false}
+                            onCheckedChange={(checked) => {
+                              const currentIds = form.getValues("planesMembresia") || [];
+                              if (checked) {
+                                form.setValue("planesMembresia", [...currentIds, String(plan.id)]);
+                              } else {
+                                form.setValue("planesMembresia", currentIds.filter((id: string) => id !== String(plan.id)));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={`edit-plan-${plan.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          >
+                            {plan.nombrePlan}
+                          </label>
                         </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
