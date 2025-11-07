@@ -583,14 +583,12 @@ export default function Categories() {
                 <span className="!text-white" style={{ color: 'white' }}>Nueva Categoría</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Agregar Nueva Categoría</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
-                {/* Contenido scrolleable */}
-                <div className="max-h-[60vh] overflow-y-auto px-1 space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="nombreCategoria"
@@ -732,10 +730,8 @@ export default function Categories() {
                     </FormItem>
                   )}
                 />
-                </div>
 
-                {/* Footer fijo con botones */}
-                <div className="flex items-center justify-end space-x-2 pt-4 border-t mt-4">
+                <div className="flex items-center justify-end space-x-2 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
                     Cancelar
                   </Button>
@@ -863,14 +859,12 @@ export default function Categories() {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Categoría</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col">
-              {/* Contenido scrolleable */}
-              <div className="max-h-[60vh] overflow-y-auto px-1 space-y-4">
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
               <FormField
                 control={editForm.control}
                 name="nombreCategoria"
@@ -1011,10 +1005,8 @@ export default function Categories() {
                   </FormItem>
                 )}
               />
-              </div>
 
-              {/* Footer fijo con botones */}
-              <div className="flex items-center justify-end space-x-2 pt-4 border-t mt-4">
+              <div className="flex items-center justify-end space-x-2 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
