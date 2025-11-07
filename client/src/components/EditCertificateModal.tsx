@@ -195,18 +195,11 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         // Agregar archivo de imagen
         formData.append("imageFile", imageFile);
 
-        const response = await fetch(`/api/certificates/${certificate.id}`, {
-          method: 'PUT',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al actualizar el certificado');
-        }
-
+        console.log('Enviando FormData con archivo de imagen');
+        const response = await apiRequest("PUT", `/api/certificates/${certificate.id}`, formData);
         return response.json();
       } else {
-        // Sin archivo, usar apiRequest tradicional
+        // Sin archivo, usar JSON
         const certificateData = {
           ...data,
           fechaEmision: data.fechaEmision ? new Date(data.fechaEmision).toISOString() : null,
