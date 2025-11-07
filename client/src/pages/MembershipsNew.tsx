@@ -49,6 +49,7 @@ import { Plus, MoreHorizontal, Edit, Trash2, Crown, Eye, EyeOff } from "lucide-r
 import { MembershipType } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import Swal from 'sweetalert2';
 
 const membershipSchema = z.object({
   nombrePlan: z.string().min(1, "El nombre del plan es requerido"),
@@ -267,8 +268,20 @@ export default function MembershipsNew() {
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este plan?")) {
+  const handleDelete = async (id: number) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar plan?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
       deleteMutation.mutate(id);
     }
   };
