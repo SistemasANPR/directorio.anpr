@@ -60,15 +60,15 @@ const membershipSchema = z.object({
   beneficios: z.string().optional(),
   visibilidad: z.enum(["publica", "privada"]).default("publica"),
   masPopular: z.boolean().default(false),
-  cantidadProductosAdmitidos: z.number().default(0),
-  cantidadProyectosAdmitidos: z.number().default(0),
-  cantidadFotosPorProyecto: z.number().min(1, "La cantidad debe ser mayor a 0").default(5),
+  cantidadProductosAdmitidos: z.number().nullable().default(0),
+  cantidadProyectosAdmitidos: z.number().nullable().default(0),
+  cantidadFotosPorProyecto: z.number().nullable().default(5),
   productosIlimitados: z.boolean().default(false),
   proyectosIlimitados: z.boolean().default(false),
   fotosIlimitadas: z.boolean().default(false),
 }).superRefine((data, ctx) => {
   // Validar cantidades solo cuando las opciones ilimitadas NO están activadas
-  if (!data.productosIlimitados && data.cantidadProductosAdmitidos < 0) {
+  if (!data.productosIlimitados && data.cantidadProductosAdmitidos !== null && data.cantidadProductosAdmitidos < 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "La cantidad debe ser mayor o igual a 0",
@@ -76,11 +76,19 @@ const membershipSchema = z.object({
     });
   }
   
-  if (!data.proyectosIlimitados && data.cantidadProyectosAdmitidos < 0) {
+  if (!data.proyectosIlimitados && data.cantidadProyectosAdmitidos !== null && data.cantidadProyectosAdmitidos < 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "La cantidad debe ser mayor o igual a 0",
       path: ["cantidadProyectosAdmitidos"]
+    });
+  }
+  
+  if (!data.fotosIlimitadas && data.cantidadFotosPorProyecto !== null && data.cantidadFotosPorProyecto < 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La cantidad debe ser mayor a 0",
+      path: ["cantidadFotosPorProyecto"]
     });
   }
 });
@@ -201,9 +209,9 @@ export default function MembershipsNew() {
     const processedData = {
       ...data,
       beneficios: data.beneficios ? data.beneficios.split('\n').filter(b => b.trim()) : [],
-      cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
-      cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
-      cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
+      cantidadProductosAdmitidos: data.productosIlimitados ? null : data.cantidadProductosAdmitidos,
+      cantidadProyectosAdmitidos: data.proyectosIlimitados ? null : data.cantidadProyectosAdmitidos,
+      cantidadFotosPorProyecto: data.fotosIlimitadas ? null : data.cantidadFotosPorProyecto,
     };
     // Remove the checkbox fields from the data sent to backend
     const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
@@ -214,9 +222,9 @@ export default function MembershipsNew() {
     const processedData = {
       ...data,
       beneficios: data.beneficios ? data.beneficios.split('\n').filter(b => b.trim()) : [],
-      cantidadProductosAdmitidos: data.productosIlimitados ? -1 : data.cantidadProductosAdmitidos,
-      cantidadProyectosAdmitidos: data.proyectosIlimitados ? -1 : data.cantidadProyectosAdmitidos,
-      cantidadFotosPorProyecto: data.fotosIlimitadas ? -1 : data.cantidadFotosPorProyecto,
+      cantidadProductosAdmitidos: data.productosIlimitados ? null : data.cantidadProductosAdmitidos,
+      cantidadProyectosAdmitidos: data.proyectosIlimitados ? null : data.cantidadProyectosAdmitidos,
+      cantidadFotosPorProyecto: data.fotosIlimitadas ? null : data.cantidadFotosPorProyecto,
     };
     // Remove the checkbox fields from the data sent to backend
     const { productosIlimitados, proyectosIlimitados, fotosIlimitadas, ...finalData } = processedData;
@@ -237,6 +245,11 @@ export default function MembershipsNew() {
       beneficiosText = membership.beneficios.join('\n');
     }
 
+    // Detect unlimited values (both -1 for legacy and null for new)
+    const productosIlimitados = (membership as any).cantidadProductosAdmitidos === -1 || (membership as any).cantidadProductosAdmitidos === null;
+    const proyectosIlimitados = (membership as any).cantidadProyectosAdmitidos === -1 || (membership as any).cantidadProyectosAdmitidos === null;
+    const fotosIlimitadas = (membership as any).cantidadFotosPorProyecto === -1 || (membership as any).cantidadFotosPorProyecto === null;
+    
     editForm.reset({
       nombrePlan: membership.nombrePlan,
       descripcionPlan: membership.descripcionPlan || "",
@@ -244,12 +257,12 @@ export default function MembershipsNew() {
       beneficios: beneficiosText,
       visibilidad: (membership as any).visibilidad || "publica",
       masPopular: (membership as any).masPopular || false,
-      cantidadProductosAdmitidos: (membership as any).cantidadProductosAdmitidos || 0,
-      cantidadProyectosAdmitidos: (membership as any).cantidadProyectosAdmitidos || 0,
-      cantidadFotosPorProyecto: (membership as any).cantidadFotosPorProyecto || 5,
-      productosIlimitados: (membership as any).cantidadProductosAdmitidos === -1,
-      proyectosIlimitados: (membership as any).cantidadProyectosAdmitidos === -1,
-      fotosIlimitadas: (membership as any).cantidadFotosPorProyecto === -1,
+      cantidadProductosAdmitidos: productosIlimitados ? 0 : ((membership as any).cantidadProductosAdmitidos || 0),
+      cantidadProyectosAdmitidos: proyectosIlimitados ? 0 : ((membership as any).cantidadProyectosAdmitidos || 0),
+      cantidadFotosPorProyecto: fotosIlimitadas ? 5 : ((membership as any).cantidadFotosPorProyecto || 5),
+      productosIlimitados,
+      proyectosIlimitados,
+      fotosIlimitadas,
     });
     setIsEditModalOpen(true);
   };
@@ -435,7 +448,7 @@ export default function MembershipsNew() {
                               placeholder="0"
                               {...field}
                               onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                              value={field.value || 0}
+                              value={form.watch("productosIlimitados") ? "" : (field.value ?? 0)}
                               disabled={form.watch("productosIlimitados")}
                             />
                           </FormControl>
@@ -478,7 +491,7 @@ export default function MembershipsNew() {
                               placeholder="0"
                               {...field}
                               onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                              value={field.value || 0}
+                              value={form.watch("proyectosIlimitados") ? "" : (field.value ?? 0)}
                               disabled={form.watch("proyectosIlimitados")}
                             />
                           </FormControl>
@@ -522,7 +535,7 @@ export default function MembershipsNew() {
                             placeholder="5"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
-                            value={field.value || 5}
+                            value={form.watch("fotosIlimitadas") ? "" : (field.value ?? 5)}
                             disabled={form.watch("fotosIlimitadas")}
                           />
                         </FormControl>
@@ -657,21 +670,21 @@ export default function MembershipsNew() {
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-xs text-gray-600">
-                        Productos: {(membership as any).cantidadProductosAdmitidos === -1 ? (
+                        Productos: {(membership as any).cantidadProductosAdmitidos === -1 || (membership as any).cantidadProductosAdmitidos === null ? (
                           <Badge variant="secondary" className="text-xs">Ilimitado</Badge>
                         ) : (
                           <Badge variant="outline" className="text-xs">{(membership as any).cantidadProductosAdmitidos || 0}</Badge>
                         )}
                       </div>
                       <div className="text-xs text-gray-600">
-                        Proyectos: {(membership as any).cantidadProyectosAdmitidos === -1 ? (
+                        Proyectos: {(membership as any).cantidadProyectosAdmitidos === -1 || (membership as any).cantidadProyectosAdmitidos === null ? (
                           <Badge variant="secondary" className="text-xs">Ilimitado</Badge>
                         ) : (
                           <Badge variant="outline" className="text-xs">{(membership as any).cantidadProyectosAdmitidos || 0}</Badge>
                         )}
                       </div>
                       <div className="text-xs text-gray-600">
-                        Fotos/Proyecto: {(membership as any).cantidadFotosPorProyecto === -1 ? (
+                        Fotos/Proyecto: {(membership as any).cantidadFotosPorProyecto === -1 || (membership as any).cantidadFotosPorProyecto === null ? (
                           <Badge variant="secondary" className="text-xs">Ilimitado</Badge>
                         ) : (
                           <Badge variant="outline" className="text-xs">{(membership as any).cantidadFotosPorProyecto || 5}</Badge>
@@ -864,7 +877,7 @@ export default function MembershipsNew() {
                             placeholder="0"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            value={field.value || 0}
+                            value={editForm.watch("productosIlimitados") ? "" : (field.value ?? 0)}
                             disabled={editForm.watch("productosIlimitados")}
                           />
                         </FormControl>
@@ -907,7 +920,7 @@ export default function MembershipsNew() {
                             placeholder="0"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            value={field.value || 0}
+                            value={editForm.watch("proyectosIlimitados") ? "" : (field.value ?? 0)}
                             disabled={editForm.watch("proyectosIlimitados")}
                           />
                         </FormControl>
@@ -951,7 +964,7 @@ export default function MembershipsNew() {
                           placeholder="5"
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
-                          value={field.value || 5}
+                          value={editForm.watch("fotosIlimitadas") ? "" : (field.value ?? 5)}
                           disabled={editForm.watch("fotosIlimitadas")}
                         />
                       </FormControl>

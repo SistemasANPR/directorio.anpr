@@ -230,6 +230,9 @@ export const insertMembershipTypeSchema = createInsertSchema(membershipTypes).om
     periodicidad: z.string(),
     costo: z.number()
   })).optional(),
+  cantidadProductosAdmitidos: z.number().nullable().optional(),
+  cantidadProyectosAdmitidos: z.number().nullable().optional(),
+  cantidadFotosPorProyecto: z.number().nullable().optional(),
 });
 
 export const insertCompanySchema = createInsertSchema(companies).omit({
