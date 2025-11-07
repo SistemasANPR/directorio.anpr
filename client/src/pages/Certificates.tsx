@@ -39,7 +39,7 @@ export default function Certificates() {
     },
   });
 
-  const { data: membershipTypes = [] } = useQuery({
+  const { data: membershipTypes = [] } = useQuery<any[]>({
     queryKey: ["/api/membership-types"],
   });
 

@@ -144,7 +144,14 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         ? certificate.membershipPlanIds.map(id => String(id))
         : [];
 
-      form.reset({
+      console.log('🔄 Hidratando modal de editar:', {
+        certificateId: certificate.id,
+        asignacionAutomatica: certificate.asignacionAutomatica,
+        membershipPlanIds: certificate.membershipPlanIds,
+        normalizedPlanIds
+      });
+
+      const formData = {
         nombreCertificado: certificate.nombreCertificado || "",
         descripcion: certificate.descripcion || "",
         entidadEmisora: certificate.entidadEmisora || "",
@@ -152,16 +159,19 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         fechaVencimiento,
         imagenUrl: certificate.imagenUrl || "",
         estado: certificate.estado || "activo",
-        asignacionAutomatica: !!certificate.asignacionAutomatica, // Forzar a boolean
+        asignacionAutomatica: !!certificate.asignacionAutomatica,
         planesMembresia: normalizedPlanIds,
         creadoPorAdmin: certificate.creadoPorAdmin !== undefined ? certificate.creadoPorAdmin : true,
-      });
+      };
+
+      console.log('✅ Datos para form.reset:', formData);
+      form.reset(formData);
 
       // Limpiar estados de archivo de imagen al cargar certificado existente
       setImageFile(null);
       setImagePreview("");
     }
-  }, [certificate?.id, open, form]);
+  }, [certificate?.id, open]);
 
   const updateCertificateMutation = useMutation({
     mutationFn: async (data: CertificateFormData) => {
