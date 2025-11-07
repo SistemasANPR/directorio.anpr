@@ -131,13 +131,18 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
   });
 
   useEffect(() => {
-    if (certificate && open) {
+    if (certificate?.id && open) {
       const fechaEmision = certificate.fechaEmision 
         ? new Date(certificate.fechaEmision).toISOString().split('T')[0]
         : "";
       const fechaVencimiento = certificate.fechaVencimiento 
         ? new Date(certificate.fechaVencimiento).toISOString().split('T')[0]
         : "";
+
+      // Normalizar membershipPlanIds a números
+      const normalizedPlanIds = Array.isArray(certificate.membershipPlanIds) 
+        ? certificate.membershipPlanIds.map(id => typeof id === 'string' ? parseInt(id, 10) : id).filter(id => !isNaN(id))
+        : [];
 
       form.reset({
         nombreCertificado: certificate.nombreCertificado || "",
@@ -147,15 +152,16 @@ export default function EditCertificateModal({ open, onOpenChange, certificate }
         fechaVencimiento,
         imagenUrl: certificate.imagenUrl || "",
         estado: certificate.estado || "activo",
-        asignacionAutomatica: certificate.asignacionAutomatica || false,
-        membershipPlanIds: Array.isArray(certificate.membershipPlanIds) ? certificate.membershipPlanIds : [],
+        asignacionAutomatica: !!certificate.asignacionAutomatica, // Forzar a boolean
+        membershipPlanIds: normalizedPlanIds,
+        creadoPorAdmin: certificate.creadoPorAdmin !== undefined ? certificate.creadoPorAdmin : true,
       });
 
       // Limpiar estados de archivo de imagen al cargar certificado existente
       setImageFile(null);
       setImagePreview("");
     }
-  }, [certificate, open, form]);
+  }, [certificate?.id, open, form]);
 
   const updateCertificateMutation = useMutation({
     mutationFn: async (data: CertificateFormData) => {
