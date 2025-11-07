@@ -1638,11 +1638,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Procesar los demás campos del formulario
       Object.entries(req.body).forEach(([key, value]) => {
         if (key !== 'imageFile') {
-          if (key === 'membershipPlanIds') {
+          if (key === 'membershipPlanIds' || key === 'planesMembresia') {
             try {
-              certificateData[key] = JSON.parse(value as string);
+              certificateData.membershipPlanIds = JSON.parse(value as string);
             } catch (e) {
-              certificateData[key] = value;
+              certificateData.membershipPlanIds = value;
             }
           } else if (key === 'asignacionAutomatica') {
             certificateData[key] = value === 'true';
@@ -1698,11 +1698,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Procesar campos de FormData (cuando hay archivo)
         Object.entries(req.body).forEach(([key, value]) => {
           if (key !== 'imageFile') {
-            if (key === 'membershipPlanIds') {
+            if (key === 'membershipPlanIds' || key === 'planesMembresia') {
               try {
-                updateData[key] = JSON.parse(value as string);
+                updateData.membershipPlanIds = JSON.parse(value as string);
               } catch (e) {
-                updateData[key] = value;
+                updateData.membershipPlanIds = value;
               }
             } else if (key === 'asignacionAutomatica') {
               updateData[key] = value === 'true';
@@ -1718,8 +1718,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (key === 'asignacionAutomatica') {
               // Convertir a boolean si viene como string o ya es boolean
               updateData[key] = typeof value === 'string' ? value === 'true' : Boolean(value);
-            } else if (key === 'membershipPlanIds') {
-              updateData[key] = Array.isArray(value) ? value : [];
+            } else if (key === 'membershipPlanIds' || key === 'planesMembresia') {
+              updateData.membershipPlanIds = Array.isArray(value) ? value : [];
             } else {
               updateData[key] = value;
             }
