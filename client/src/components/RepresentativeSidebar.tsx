@@ -267,14 +267,14 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-sm border-r border-gray-100 flex flex-col">
+          <aside className="fixed left-0 top-0 h-full w-80 bg-white shadow-sm border-r border-gray-100 flex flex-col">
             <SidebarContent />
           </aside>
         </div>
       )}
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex w-64 bg-white shadow-sm border-r border-gray-100 fixed h-full overflow-y-auto flex-col z-10 ${className}`}>
+      <aside className={`hidden lg:flex w-80 bg-white shadow-sm border-r border-gray-100 fixed h-full overflow-y-auto flex-col z-10 ${className}`}>
         <SidebarContent />
       </aside>
     </>
