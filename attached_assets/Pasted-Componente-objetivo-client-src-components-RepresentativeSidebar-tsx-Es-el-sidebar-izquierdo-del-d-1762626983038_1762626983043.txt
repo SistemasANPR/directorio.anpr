@@ -1,0 +1,99 @@
+Componente objetivo: client/src/components/RepresentativeSidebar.tsx.
+
+Es el sidebar izquierdo del dashboard. Para roles que NO son administrador hay menos items.
+
+Problema: el <aside> tiene overflow-y-auto y aparece una barra de scroll vertical; además el botón de cerrar sesión queda fuera de vista en algunos tamaños. En mobile (drawer) también se ve mal.
+
+Objetivo
+
+Para roles no-admin: quitar el scroll del <aside> y garantizar que el botón de salir sea siempre visible sin necesidad de desplazarse.
+
+En responsive (mobile y tablet): que el menú se vea bonito, claro y usable. Si el contenido llega a ser largo, solo el listado de opciones puede desplazar, pero el bloque de usuario + botón de salir debe quedar fijo visible abajo.
+
+Mantener el look & feel actual (iconos, colores), mejorando espaciados y estados activos/hover.
+
+Qué hay que cambiar (sin romper estilos actuales)
+
+Sustituir overflow-y-auto en el <aside> por un layout con flex vertical:
+
+Estructura: aside (container) → header (logo/título) + nav (items, ocupa flex-1) + footer (usuario + botón salir, fijo abajo).
+
+Usar class tipo: flex h-screen lg:fixed lg:w-64 flex-col (no pongas código literal si no quieres, pero esa es la idea).
+
+El scroll, si es necesario, se aplica solo al nav, nunca al aside completo. El nav debe respetar un max-height calculado (altura total – header – footer). En Tailwind se resuelve con flex-1 min-h-0 overflow-y-auto.
+
+Para no-admin (menos items), fuerza overflow-y-visible/overflow-y-hidden para que no aparezca barra.
+
+El footer (bloque con avatar, nombre, email y botón de logout) debe:
+
+Quedar pegado al borde inferior mediante sticky bottom-0 o manteniéndolo fuera del área scroll (no dentro del nav).
+
+Incluir un botón de “Cerrar sesión” claro, con label + ícono (no solo ícono), tamaño h-10 aprox, borde/contraste suficiente.
+
+Responsive / Drawer:
+
+En lg: mostrar sidebar fijo como ahora.
+
+En <lg usar un panel lateral (off-canvas) de altura completa. Dentro del panel, el nav puede desplazarse, pero el footer queda fijo. Agrega botón de Cerrar arriba.
+
+Asegura padding interno consistente (p-4), separación entre grupos (space-y-2), y foco accesible.
+
+Roles:
+
+Para no-admin, si la cantidad de items cabe en alto, desactiva cualquier overflow que genere scrollbar. El botón de salir debe verse sin scroll.
+
+Pulido visual:
+
+Estados: active con fondo suave y borde lateral (ya hay un borde verde), hover sutil.
+
+Aumentar line-height y px/py de items para toque cómodo.
+
+Truncado de email con truncate, pero que no colisione con el botón salir.
+
+En mobile, que el botón salir sea full-width dentro del footer del drawer.
+
+Accesibilidad
+
+El botón de salir debe tener texto “Cerrar sesión” (no solo ícono) y aria-label.
+
+Navegación por teclado: orden lógico header → nav → footer.
+
+Focus visible en links y botón salir.
+
+Criterios de aceptación (pruébalo en estos casos)
+
+Usuario no-admin en lg:
+
+No aparece barra de scroll en el sidebar.
+
+El botón Cerrar sesión es visible siempre, sin scroll.
+
+Usuario no-admin en mobile (panel lateral abierto):
+
+El contenido del nav puede hacer scroll, el footer permanece visible.
+
+No hay superposiciones; el botón Cerrar sesión es fácil de tocar.
+
+Usuario admin (lista larga):
+
+Si hay overflow, el scroll ocurre solo en el nav, el footer queda fijo.
+
+Al reducir/agrandar la ventana:
+
+No aparece doble scroll.
+
+El alto del nav se ajusta correctamente.
+
+Accesibilidad:
+
+Navegación con tab funciona; Enter en “Cerrar sesión” dispara el handler actual.
+
+Notas de implementación
+
+No cambies la lógica de rutas ni handlers; solo layout/estilos/composición.
+
+Mantén las clases de color actuales (bg-[#bcce16]/10, borde lateral, etc.).
+
+Revisa que z-index en el drawer no tape el botón cerrar.
+
+Evita usar position: fixed para el footer dentro del aside; mejor flex/sticky para no romper el flujo.
