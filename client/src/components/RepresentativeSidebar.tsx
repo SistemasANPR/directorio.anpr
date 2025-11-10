@@ -17,7 +17,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { signOutUser } from "@/lib/auth";
 
 interface RepresentativeSidebarProps {
   className?: string;
@@ -94,7 +93,7 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
   const [currentTab, setCurrentTab] = useState('overview');
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   
   // Verificar si el usuario es administrador
   const isAdmin = user?.role === 'admin' || user?.role === 'administrator';
@@ -137,22 +136,9 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
     return true;
   });
 
-  const handleSignOut = async () => {
-    try {
-      // Clear temporary user data first
-      localStorage.removeItem('tempUser');
-      
-      // Sign out from Firebase if authenticated
-      await signOutUser();
-      
-      // Force redirect to login page
-      window.location.href = '/login';
-    } catch (error) {
-      console.error("Error signing out:", error);
-      // Force redirect even if there's an error
-      localStorage.removeItem('tempUser');
-      window.location.href = '/login';
-    }
+  const handleSignOut = () => {
+    signOut();
+    window.location.href = '/login';
   };
 
   const isTabActive = (href: string) => {
