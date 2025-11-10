@@ -248,8 +248,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<boolean> {
-    const result = await db.delete(users).where(eq(users.id, id));
-    return (result.rowCount || 0) > 0;
+    try {
+      // First, remove the user from any companies they're assigned to
+      await db.update(companies)
+        .set({ userId: null })
+        .where(eq(companies.userId, id));
+      
+      // Delete all opinions created by this user
+      await db.delete(opinions).where(eq(opinions.userId, id));
+      
+      // Finally, delete the user
+      const result = await db.delete(users).where(eq(users.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
   }
 
   async getAllUsers(): Promise<User[]> {
