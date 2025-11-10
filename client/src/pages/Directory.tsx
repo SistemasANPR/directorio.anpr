@@ -104,7 +104,7 @@ const CategoryIcon = ({ category }: { category: Category }) => {
 };
 
 export default function Directory() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
@@ -493,24 +493,26 @@ export default function Directory() {
               Regístrese y conecte con miles de proyectos y clientes potenciales en todo América 
               Latina. Muestre sus soluciones a la audiencia correcta.
             </p>
-            <a href="/planes#planes">
-              <Button 
-                size="lg" 
-                className="font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg text-blue-900"
-                style={{
-                  backgroundColor: 'rgb(188, 206, 22)',
-                  borderColor: 'rgb(188, 206, 22)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgb(170, 186, 20)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgb(188, 206, 22)';
-                }}
-              >
-                Regístrate como empresa
-              </Button>
-            </a>
+            <Button 
+              size="lg" 
+              className="font-bold px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg text-blue-900"
+              style={{
+                backgroundColor: 'rgb(188, 206, 22)',
+                borderColor: 'rgb(188, 206, 22)'
+              }}
+              onClick={() => {
+                setLocation('/planes');
+                setTimeout(() => window.scrollTo(0, 0), 0);
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgb(170, 186, 20)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgb(188, 206, 22)';
+              }}
+            >
+              Regístrate como empresa
+            </Button>
           </div>
         </div>
       </div>
