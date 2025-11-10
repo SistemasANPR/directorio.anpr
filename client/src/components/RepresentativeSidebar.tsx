@@ -241,7 +241,10 @@ export default function RepresentativeSidebar({ className }: RepresentativeSideb
             variant="ghost"
             size="sm"
             onClick={handleSignOut}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className="p-1 text-gray-400 hover:text-gray-600 flex-shrink-0"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            data-testid="button-logout"
           >
             <LogOut className="w-4 h-4" />
           </Button>
