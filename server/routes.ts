@@ -3268,10 +3268,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: user.id, 
           email: user.email, 
           displayName: user.displayName,
+          photoURL: user.photoURL,
           role: user.role,
           roleId: roleId,
           firebaseUid: user.firebaseUid,
-          requirePasswordChange: user.requirePasswordChange || false
+          requirePasswordChange: user.requirePasswordChange || false,
+          tempPassword: user.tempPassword,
+          stripeCustomerId: user.stripeCustomerId,
+          stripeSubscriptionId: user.stripeSubscriptionId,
+          autoRenewal: user.autoRenewal,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
         }
       });
     } catch (error: any) {
