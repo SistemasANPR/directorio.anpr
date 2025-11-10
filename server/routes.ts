@@ -3108,6 +3108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         email: userData.email,
         displayName: userData.nombre,
+        photoURL: userData.photoURL || "", // Save profile photo if provided
         firebaseUid: `pending_${Date.now()}_${userData.email}`, // Unique temporary identifier
         role: 'representante', // Always assign representative role for paid users
       });
