@@ -143,8 +143,7 @@ function TestimonialsSection() {
           maxWidth: "900px",
           margin: "0 auto 3rem auto"
         }}>
-          Lea reseñas auténticas de productos y proveedores, comparta sus opiniones y conéctese con sus pares. 
-          Su retroalimentación da forma a nuestra red de confianza y excelencia.
+          Lee opiniones de profesionales como tú, comparte tu experiencia y contribuye a construir una comunidad que eleva los estándares del sector.
         </p>
 
         {/* Grid de reseñas */}
