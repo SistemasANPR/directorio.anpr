@@ -1,0 +1,108 @@
+Prompt 1 — Arreglar la prioridad de “Ilimitado”
+
+Contexto
+En el panel de edición de planes tengo “Sin límite de productos”, “Sin límite de proyectos” y “Sin límite de fotos por proyecto”. Aunque marco esas casillas, al guardar y ver la tarjeta pública del plan se muestran números (por ejemplo 0 y 5). Es decir, el sistema sigue tomando los valores escritos en los inputs aunque “Ilimitado” esté activo.
+
+Objetivo
+Que el estado “Ilimitado” tenga prioridad absoluta sobre cualquier número escrito en el input. Si está marcado “Ilimitado”, debe ignorarse el valor numérico y mostrarse “Ilimitado” (o el campo debería ocultarse) tanto en almacenamiento como en render del plan.
+
+Alcance (sin tocar otros sistemas)
+
+No cambiar nombres de campos ni estructura externa de la API.
+
+Usar las banderas/flags booleanas ya existentes (“sin límite …”) como fuente de verdad.
+
+Mantener los valores numéricos solo como respaldo si el “Ilimitado” está desmarcado.
+
+Criterios de aceptación
+
+Si “Sin límite de productos” = true → en la tarjeta pública se ve “Ilimitado” para Productos y jamás un número.
+
+Si “Sin límite de proyectos” = true → se ve “Ilimitado” para Proyectos.
+
+Si “Sin límite de fotos por proyecto” = true → se ve “Ilimitado” para Fotos por proyecto.
+
+Si cualquiera de las casillas está en true, el sistema ignora el número del input aunque sea 0, 5 o cualquier otro.
+
+Al desmarcar “Ilimitado”, vuelven a aplicarse y mostrarse los números guardados.
+
+No se alteran ni rompen otros módulos que consumen estos datos.
+
+Notas de implementación (sin código)
+
+En el guardado: si “Ilimitado” = true, guarda el flag y normaliza el valor numérico a null o un valor “no aplicable” interno (sin exponerlo); lo importante es que consumidores del dato usen primero el flag.
+
+En el render: primero evalúa la bandera de “Ilimitado”. Solo si está en false, usa el número.
+
+En el formulario: cuando “Ilimitado” = true, deshabilita visualmente el input y muestra una leyenda “Sin límite”. (Opcional pero deseable para evitar confusión).
+
+Casos de prueba
+
+Marcar “Sin límite de productos” con el input en 0 → la tarjeta debe mostrar “Ilimitado”, no “0”.
+
+Marcar “Sin límite de fotos por proyecto” con el input en 5 → la tarjeta debe mostrar “Ilimitado”, no “5”.
+
+Desmarcar “Ilimitado” y poner 25 → la tarjeta debe mostrar “25”.
+
+Guardar, recargar y volver a editar: el estado visual debe ser consistente con lo guardado.
+
+Prompt 2 — Solo ajuste de visualización (rápido y sin riesgo)
+
+Tarea
+Sin modificar la API ni la base de datos, ajusta exclusivamente la lógica de visualización de la tarjeta pública del plan para que, si la bandera de “Sin límite” está activa, se muestre “Ilimitado” y no el número del input. La prioridad de render debe ser:
+
+bandera “Sin límite” → mostrar “Ilimitado”;
+
+si no está activa → mostrar el número.
+
+Criterios
+
+No tocar contratos públicos.
+
+No cambiar nombres de campos.
+
+No introducir efectos colaterales en otros componentes.
+
+Pruebas rápidas
+
+Con “Sin límite” activo y número = 0/5 → ver “Ilimitado”.
+
+Con “Sin límite” inactivo y número = 5 → ver “5”.
+
+Prompt 3 — Consistencia en edición/guardado
+
+Objetivo
+Evitar que el usuario piense que el sistema “toma” el número aunque “Ilimitado” esté activo.
+
+Requisitos UX (sin código)
+
+Al activar “Sin límite” deshabilitar el input numérico y mostrar “Ilimitado” como placeholder/label.
+
+Al guardar con “Sin límite” = true, almacenar el flag y normalizar el valor numérico a null (o equivalente interno) para que ningún proceso aguas abajo lea por error el número.
+
+Al reabrir el formulario, si el flag está en true, mantener el input deshabilitado.
+
+Validaciones
+
+No permitir valores negativos ni 0 cuando “Ilimitado” = false (si aplica a negocio).
+
+Mantener coherencia al alternar el switch varias veces antes de guardar.
+
+Prompt 4 — QA / Lista de verificación
+
+“Sin límite” activo y números distintos en cada campo → la vista pública siempre muestra “Ilimitado” para esos campos.
+
+Exportaciones o APIs que consuman límites deben leer primero la bandera; solo si es false usar el número.
+
+Plan marcado como “Más popular”: el cambio no afecta el badge ni otros atributos visuales.
+
+No cambia el comportamiento de precios (anual/mensual).
+
+No afecta traducciones ni estilos.
+
+Prompt 5 — Mensaje para ticket
+
+Descripción corta: Los campos de límites muestran 0/5 en la tarjeta pública aunque el plan esté marcado como “Sin límite”.
+Comportamiento esperado: Si el flag “Sin límite” está activo, debe mostrarse “Ilimitado” y el valor numérico debe ignorarse en guardado y render.
+Impacto: Confusión de usuarios al ver “0” y “5” en planes que deberían ser ilimitados.
+Cierre: Validar con los casos de prueba anteriores y confirmar que no se alteran otros módulos.
