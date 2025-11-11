@@ -132,7 +132,7 @@ function TestimonialsSection() {
           color: "#0f2161",
           fontFamily: "'Montserrat', sans-serif"
         }}>
-          Escuche a Nuestra Comunidad: Proyectos Reales, Experiencias Auténticas
+          Historias reales, resultados comprobados.
         </h2>
         
         <p style={{
