@@ -590,7 +590,7 @@ export default function Home() {
             <p className="text-sm md:text-lg text-center text-gray-500 mb-8 md:mb-12 max-w-4xl mx-auto px-4">
               {searchTerm
                 ? `Resultados de búsqueda (${searchResults.length})`
-                : `Descubra ${companies.length} empresas líderes en diferentes sectores`}
+                : `Conoce a las empresas líderes que transforman espacios públicos`}
             </p>
 
             {searchResults.length === 0 ? (
