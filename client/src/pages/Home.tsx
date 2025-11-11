@@ -830,7 +830,7 @@ export default function Home() {
             fontFamily: "'Montserrat', sans-serif",
             color: "white"
           }}>
-            ¿Es Usted un Proveedor de Equipamiento Urbano o Parques?
+            ¿Eres proveedor de equipamiento urbano o soluciones para parques?
           </h2>
           
           <p style={{
