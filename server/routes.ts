@@ -1176,6 +1176,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (files?.catalogoFile?.[0]) {
         updateData.catalogoDigitalUrl = `/uploads/documents/${files.catalogoFile[0].filename}`;
       }
+      // Si el frontend envió catalogoDigitalUrl vacío explícitamente (borrar catálogo)
+      // y no hay archivo nuevo, respetamos la intención de borrado
+      else if (updateData.catalogoDigitalUrl === "") {
+        updateData.catalogoDigitalUrl = null;
+      }
       
       // Procesar archivos de galería
       if (files?.galeriaFiles?.length > 0) {

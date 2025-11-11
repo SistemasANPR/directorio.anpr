@@ -424,6 +424,12 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       
       // CRITICAL FIX: Proper FormData serialization for objects and arrays
       Object.entries(data).forEach(([key, value]) => {
+        // Skip catalogoDigitalUrl if we have a new file to upload
+        // (the backend will generate the correct URL from the uploaded file)
+        if (key === 'catalogoDigitalUrl' && catalogoFile) {
+          return;
+        }
+        
         if (Array.isArray(value)) {
           formData.append(key, JSON.stringify(value));
         } else if (typeof value === 'object' && value !== null) {

@@ -542,8 +542,14 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     mutationFn: async (data: CompanyFormData) => {
       const formData = new FormData();
       
-      // Add all form fields
+      // Add all form fields, but skip catalogoDigitalUrl if we have a new file
+      // (the backend will generate the correct URL from the uploaded file)
       Object.entries(data).forEach(([key, value]) => {
+        // Skip catalogoDigitalUrl if we have a new file to upload
+        if (key === 'catalogoDigitalUrl' && catalogoFile) {
+          return;
+        }
+        
         if (Array.isArray(value)) {
           formData.append(key, JSON.stringify(value));
         } else if (value !== undefined && value !== null) {
