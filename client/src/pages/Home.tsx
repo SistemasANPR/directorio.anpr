@@ -652,8 +652,7 @@ export default function Home() {
           </h2>
           
           <p className="text-sm md:text-lg text-center text-gray-500 mb-8 md:mb-12 max-w-4xl mx-auto px-4">
-            Descubra empresas mejor valoradas, soluciones innovadoras y proyectos inspiradores. 
-            Haga clic para explorar sus perfiles y conectarse directamente.
+            Haz clic y descubre más sobre las empresas líderes y cómo colaborar con ellas.
           </p>
 
           {/* Slider de empresas por categoría */}
