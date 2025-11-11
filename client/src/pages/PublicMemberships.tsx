@@ -436,19 +436,19 @@ export default function PublicMemberships() {
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Productos:</span>
                             <span className="font-medium text-gray-900">
-                              {(membership as any).cantidadProductosAdmitidos === -1 ? 'Ilimitado' : ((membership as any).cantidadProductosAdmitidos || 0)}
+                              {((membership as any).cantidadProductosAdmitidos === -1 || (membership as any).cantidadProductosAdmitidos === null) ? 'Ilimitado' : ((membership as any).cantidadProductosAdmitidos ?? 0)}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Proyectos:</span>
                             <span className="font-medium text-gray-900">
-                              {(membership as any).cantidadProyectosAdmitidos === -1 ? 'Ilimitado' : ((membership as any).cantidadProyectosAdmitidos || 0)}
+                              {((membership as any).cantidadProyectosAdmitidos === -1 || (membership as any).cantidadProyectosAdmitidos === null) ? 'Ilimitado' : ((membership as any).cantidadProyectosAdmitidos ?? 0)}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Fotos por proyecto:</span>
                             <span className="font-medium text-gray-900">
-                              {(membership as any).cantidadFotosPorProyecto === -1 ? 'Ilimitado' : ((membership as any).cantidadFotosPorProyecto || 5)}
+                              {((membership as any).cantidadFotosPorProyecto === -1 || (membership as any).cantidadFotosPorProyecto === null) ? 'Ilimitado' : ((membership as any).cantidadFotosPorProyecto ?? 5)}
                             </span>
                           </div>
                         </div>
