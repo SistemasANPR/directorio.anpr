@@ -839,8 +839,8 @@ export default function Home() {
             marginBottom: "2.5rem",
             color: "#e5e7eb"
           }}>
-            Regístrese y conecte con miles de proyectos y clientes potenciales en todo América Latina. 
-            Muestre sus soluciones a la audiencia correcta.
+            Regístrate y conecta con cientos de profesionales, proyectos y clientes potenciales en toda América Latina.
+            Muestra tus productos, comparte tus innovaciones y haz crecer tu presencia en la industria.
           </p>
 
           <Link href="/planes">
