@@ -1136,7 +1136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Nueva ruta PATCH para actualizar empresas con archivos
-  app.patch("/api/companies/:id", uploadImage.fields([
+  app.patch("/api/companies/:id", uploadCompanyFiles.fields([
     { name: 'logoFile', maxCount: 1 },
     { name: 'fotoPortadaFile', maxCount: 1 },
     { name: 'catalogoFile', maxCount: 1 },
