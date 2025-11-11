@@ -463,29 +463,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
       });
       
       if (!response.ok) {
-        // Intentar obtener el mensaje de error del backend
-        try {
-          const errorData = await response.json();
-          if (errorData.error && errorData.details) {
-            // Error de validación de Zod con detalles
-            const detailsStr = Array.isArray(errorData.details) 
-              ? errorData.details.map((d: any) => `${d.path?.join('.') || 'Campo'}: ${d.message}`).join(', ')
-              : JSON.stringify(errorData.details);
-            throw new Error(`${errorData.error}: ${detailsStr}`);
-          } else if (errorData.error) {
-            // Error general del backend
-            throw new Error(errorData.error);
-          } else if (errorData.message) {
-            // Mensaje de error alternativo
-            throw new Error(errorData.message);
-          } else {
-            // Error sin mensaje específico
-            throw new Error(`Error del servidor (${response.status}): ${response.statusText}`);
-          }
-        } catch (jsonError) {
-          // Si no se puede parsear el JSON, mostrar error genérico con status
-          throw new Error(`Error del servidor (${response.status}): No se pudo procesar la respuesta`);
-        }
+        throw new Error('Error al crear la empresa');
       }
       
       return response.json();
