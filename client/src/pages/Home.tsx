@@ -486,7 +486,7 @@ export default function Home() {
               textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
             }}
           >
-            Conéctese con fabricantes, distribuidores y especialistas líderes. Descubra soluciones innovadoras y haga crecer su red de proyectos. ¡Comience su búsqueda hoy mismo!
+            Encuentra en un solo lugar a los mejores proveedores del sector. Explora productos, compara soluciones y conecta con quienes pueden llevar tu proyecto al siguiente nivel. ¡Empieza ahora!
           </p>
 
           <div className="max-w-5xl mx-auto px-4">
