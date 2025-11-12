@@ -51,7 +51,7 @@ export default function MainNavigation() {
                 alt="ANPR Logo" 
                 className="h-12 w-auto object-contain"
               />
-              <span className="text-xl font-bold text-gray-900">Directorio de Proveedores de Equipamiento Urbano</span>
+              <span className="text-xl font-bold text-gray-900">Directorio ANPR</span>
             </div>
           </Link>
 
