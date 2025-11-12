@@ -45,10 +45,12 @@ export default function MainNavigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center space-x-2 cursor-pointer">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Building2 className="h-5 w-5 text-white" />
-              </div>
+            <div className="flex items-center space-x-3 cursor-pointer">
+              <img 
+                src="https://anpr.org.mx/wp-content/uploads/2021/06/anpr.png" 
+                alt="ANPR Logo" 
+                className="h-12 w-auto object-contain"
+              />
               <span className="text-xl font-bold text-gray-900">Directorio de Proveedores de Equipamiento Urbano</span>
             </div>
           </Link>
