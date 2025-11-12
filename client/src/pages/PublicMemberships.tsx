@@ -240,56 +240,110 @@ export default function PublicMemberships() {
         <div className="border-t border-gray-300 w-3/5"></div>
       </div>
 
-      {/* Sección de registro para proveedores */}
-      <div style={{ 
-        padding: "4rem 2rem", 
-        backgroundColor: "#0f2161",
-        color: "white" 
-      }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{
-            fontSize: "2rem",
-            fontWeight: "bold",
-            marginBottom: "1rem",
-            fontFamily: "'Montserrat', sans-serif",
-            color: "white"
-          }}>
-            ¿Eres proveedor de equipamiento urbano o soluciones para parques?
+      {/* ¿Por qué unirte al Directorio? - Nueva sección */}
+      <div className="bg-gray-50 py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="hero-title text-3xl md:text-4xl text-gray-800 mb-12 text-center">
+            ¿Por qué unirte al Directorio de Proveedores de Equipamiento Urbano?
           </h2>
           
-          <p style={{
-            fontSize: "1.2rem",
-            lineHeight: "1.6",
-            marginBottom: "2.5rem",
-            color: "#e5e7eb"
-          }}>
-            Regístrate y conecta con cientos de profesionales, proyectos y clientes potenciales en toda América Latina.
-            Muestra tus productos, comparte tus innovaciones y haz crecer tu presencia en la industria.
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            {/* Primera columna */}
+            <div className="space-y-8">
+              {/* Tu marca donde importa */}
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/attached_assets/Rectangle 10.png"
+                    alt="Tu marca donde importa"
+                    className="w-12 h-12"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Tu marca donde importa:</h3>
+                  <p className="text-gray-600">Llega a quienes toman decisiones reales.</p>
+                </div>
+              </div>
 
-          <a href="/planes">
-            <button style={{
-              backgroundColor: "#bcce16",
-              color: "#0f2161",
-              border: "none",
-              borderRadius: "50px",
-              padding: "1.2rem 2.5rem",
-              fontSize: "1.1rem",
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: "700",
-              cursor: "pointer",
-              transition: "background-color 0.2s ease",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.2)"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#a8b914";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#bcce16";
-            }}>
-              Regístrate como empresa
-            </button>
-          </a>
+              {/* Presencia que convierte */}
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/attached_assets/Rectangle 11.png"
+                    alt="Presencia que convierte"
+                    className="w-12 h-12"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Presencia que convierte:</h3>
+                  <p className="text-gray-600">Transforma tu visibilidad digital en oportunidades de negocio.</p>
+                </div>
+              </div>
+
+              {/* Visibilidad regional */}
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/attached_assets/Rectangle 12.png"
+                    alt="Visibilidad regional"
+                    className="w-12 h-12"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Visibilidad regional:</h3>
+                  <p className="text-gray-600">Desde México hasta Argentina, haz que te vean.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Segunda columna */}
+            <div className="space-y-8">
+              {/* Aparición en buscadores */}
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/attached_assets/Rectangle 13.png"
+                    alt="Aparición en buscadores"
+                    className="w-12 h-12"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Aparición en buscadores:</h3>
+                  <p className="text-gray-600">Aprovecha el SEO de tu micrositio especializado.</p>
+                </div>
+              </div>
+
+              {/* Promoción cruzada */}
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/attached_assets/Rectangle 14.png"
+                    alt="Promoción cruzada"
+                    className="w-12 h-12"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Promoción cruzada:</h3>
+                  <p className="text-gray-600">Posible presencia en eventos, webinars y medios aliados.</p>
+                </div>
+              </div>
+
+              {/* Atención personalizada */}
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/attached_assets/Rectangle 15.png"
+                    alt="Atención personalizada"
+                    className="w-12 h-12"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Atención personalizada:</h3>
+                  <p className="text-gray-600">Asesoría cercana para maximizar tu impacto.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
