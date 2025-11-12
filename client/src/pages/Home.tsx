@@ -804,7 +804,7 @@ export default function Home() {
       </div>
 
       {/* Sección de reseñas */}
-      <TestimonialsSection />
+      {/* <TestimonialsSection /> */}
 
       {/* Sección de registro para proveedores */}
       <div style={{ 
