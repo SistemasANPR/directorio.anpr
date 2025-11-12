@@ -806,56 +806,262 @@ export default function Home() {
       {/* Sección de reseñas */}
       {/* <TestimonialsSection /> */}
 
-      {/* Sección de registro para proveedores */}
+      {/* Sección de beneficios */}
       <div style={{ 
         padding: "4rem 2rem", 
-        backgroundColor: "#0f2161",
-        color: "white" 
+        backgroundColor: "#f8f9fa",
+        color: "#333" 
       }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <h2 style={{
             fontSize: "2rem",
             fontWeight: "bold",
-            marginBottom: "1rem",
+            marginBottom: "3rem",
             fontFamily: "'Montserrat', sans-serif",
-            color: "white"
+            color: "#4a4a4a",
+            textAlign: "center"
           }}>
-            ¿Eres proveedor de equipamiento urbano o soluciones para parques?
+            ¿Por qué unirte al Directorio de Proveedores de Equipamiento Urbano?
           </h2>
           
-          <p style={{
-            fontSize: "1.2rem",
-            lineHeight: "1.6",
-            marginBottom: "2.5rem",
-            color: "#e5e7eb"
+          {/* Grid de beneficios */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "2.5rem",
+            marginBottom: "3rem"
           }}>
-            Regístrate y conecta con cientos de profesionales, proyectos y clientes potenciales en toda América Latina.
-            Muestra tus productos, comparte tus innovaciones y haz crecer tu presencia en la industria.
-          </p>
+            {/* Beneficio 1 */}
+            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div style={{
+                width: "60px",
+                height: "60px",
+                backgroundColor: "#4dd0e1",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}>
+                <LucideIcons.Target size={32} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: "1.1rem",
+                  fontWeight: "700",
+                  marginBottom: "0.5rem",
+                  color: "#4a4a4a",
+                  fontFamily: "'Montserrat', sans-serif"
+                }}>
+                  Tu marca donde importa:
+                </h3>
+                <p style={{
+                  fontSize: "0.95rem",
+                  lineHeight: "1.5",
+                  color: "#6b7280"
+                }}>
+                  Llega a quienes toman decisiones reales.
+                </p>
+              </div>
+            </div>
 
-          <Link href="/planes">
-            <button style={{
-              backgroundColor: "#bcce16",
-              color: "#0f2161",
-              border: "none",
-              borderRadius: "50px",
-              padding: "1.2rem 2.5rem",
-              fontSize: "1.1rem",
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: "700",
-              cursor: "pointer",
-              transition: "background-color 0.2s ease",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.2)"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#a8b914";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#bcce16";
-            }}>
-              Regístrate como empresa
-            </button>
-          </Link>
+            {/* Beneficio 2 */}
+            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div style={{
+                width: "60px",
+                height: "60px",
+                backgroundColor: "#ab47bc",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}>
+                <LucideIcons.Lightbulb size={32} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: "1.1rem",
+                  fontWeight: "700",
+                  marginBottom: "0.5rem",
+                  color: "#4a4a4a",
+                  fontFamily: "'Montserrat', sans-serif"
+                }}>
+                  Presencia que convierte:
+                </h3>
+                <p style={{
+                  fontSize: "0.95rem",
+                  lineHeight: "1.5",
+                  color: "#6b7280"
+                }}>
+                  Transforma tu visibilidad digital en oportunidades de negocio.
+                </p>
+              </div>
+            </div>
+
+            {/* Beneficio 3 */}
+            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div style={{
+                width: "60px",
+                height: "60px",
+                backgroundColor: "#26c6da",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}>
+                <LucideIcons.Globe size={32} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: "1.1rem",
+                  fontWeight: "700",
+                  marginBottom: "0.5rem",
+                  color: "#4a4a4a",
+                  fontFamily: "'Montserrat', sans-serif"
+                }}>
+                  Visibilidad regional:
+                </h3>
+                <p style={{
+                  fontSize: "0.95rem",
+                  lineHeight: "1.5",
+                  color: "#6b7280"
+                }}>
+                  Desde México hasta Argentina, haz que te vean.
+                </p>
+              </div>
+            </div>
+
+            {/* Beneficio 4 */}
+            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div style={{
+                width: "60px",
+                height: "60px",
+                backgroundColor: "#5c6bc0",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}>
+                <LucideIcons.Search size={32} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: "1.1rem",
+                  fontWeight: "700",
+                  marginBottom: "0.5rem",
+                  color: "#4a4a4a",
+                  fontFamily: "'Montserrat', sans-serif"
+                }}>
+                  Aparición en buscadores:
+                </h3>
+                <p style={{
+                  fontSize: "0.95rem",
+                  lineHeight: "1.5",
+                  color: "#6b7280"
+                }}>
+                  Aprovecha el SEO de tu micrositio especializado.
+                </p>
+              </div>
+            </div>
+
+            {/* Beneficio 5 */}
+            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div style={{
+                width: "60px",
+                height: "60px",
+                backgroundColor: "#ef5350",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}>
+                <LucideIcons.Megaphone size={32} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: "1.1rem",
+                  fontWeight: "700",
+                  marginBottom: "0.5rem",
+                  color: "#4a4a4a",
+                  fontFamily: "'Montserrat', sans-serif"
+                }}>
+                  Promoción cruzada:
+                </h3>
+                <p style={{
+                  fontSize: "0.95rem",
+                  lineHeight: "1.5",
+                  color: "#6b7280"
+                }}>
+                  Posible presencia en eventos, webinars y medios aliados.
+                </p>
+              </div>
+            </div>
+
+            {/* Beneficio 6 */}
+            <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+              <div style={{
+                width: "60px",
+                height: "60px",
+                backgroundColor: "#42a5f5",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}>
+                <LucideIcons.Users size={32} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: "1.1rem",
+                  fontWeight: "700",
+                  marginBottom: "0.5rem",
+                  color: "#4a4a4a",
+                  fontFamily: "'Montserrat', sans-serif"
+                }}>
+                  Atención personalizada:
+                </h3>
+                <p style={{
+                  fontSize: "0.95rem",
+                  lineHeight: "1.5",
+                  color: "#6b7280"
+                }}>
+                  Asesoría cercana para maximizar tu impacto.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Botón CTA */}
+          <div style={{ textAlign: "center" }}>
+            <Link href="/planes">
+              <button style={{
+                backgroundColor: "#bcce16",
+                color: "#0f2161",
+                border: "none",
+                borderRadius: "50px",
+                padding: "1.2rem 2.5rem",
+                fontSize: "1.1rem",
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: "700",
+                cursor: "pointer",
+                transition: "background-color 0.2s ease",
+                boxShadow: "0 4px 6px rgba(0,0,0,0.2)"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#a8b914";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#bcce16";
+              }}>
+                Regístrate como empresa
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
