@@ -507,7 +507,7 @@ export default function Home() {
               <div className="flex-1">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger 
-                    className="w-full px-4 text-sm md:text-lg rounded-lg cursor-pointer [&>span]:font-normal [&_svg]:hidden"
+                    className="w-full px-4 text-sm md:text-lg rounded-lg cursor-pointer [&>span]:font-normal [&_svg]:hidden [&>span]:!text-[#374151]"
                     style={{
                       height: "52px",
                       boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
@@ -515,7 +515,7 @@ export default function Home() {
                       backdropFilter: "blur(10px)",
                       borderRadius: "8px",
                       border: "none",
-                      color: "#0f2161",
+                      color: "#374151 !important",
                     }}
                   >
                     <SelectValue placeholder="Todas las categorías" />
