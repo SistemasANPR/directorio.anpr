@@ -3,6 +3,13 @@ import { useState, useRef } from "react";
 import { Link } from "wouter";
 import * as LucideIcons from "lucide-react";
 import { estadosMexico } from "@/lib/locationData";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Función para limpiar HTML tags
 function stripHtml(html: string): string {
@@ -346,7 +353,7 @@ function CompanyCard({ company }: { company: any }) {
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("");
   const sliderRef = useRef<HTMLDivElement>(null);
   const categorySliderRef = useRef<HTMLDivElement>(null);
@@ -398,7 +405,7 @@ export default function Home() {
       company.descripcionEmpresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.categories?.some((cat: any) => cat.nombreCategoria?.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesCategory = selectedCategory === "" || 
+    const matchesCategory = selectedCategory === "" || selectedCategory === "all" || 
       company.categories?.some((cat: any) => cat.id?.toString() === selectedCategory);
     
     const matchesLocation = selectedLocation === "" || 
@@ -498,25 +505,36 @@ export default function Home() {
               
               {/* Filtro de categoría */}
               <div className="flex-1">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
-                  style={{
-                    height: "52px",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(10px)",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <option value="">Todas las categorías</option>
-                  {categories.map((category: any) => (
-                    <option key={category.id} value={category.id}>
-                      {category.nombreCategoria}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger 
+                    className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
+                    style={{
+                      height: "52px",
+                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                      backgroundColor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <SelectValue placeholder="Todas las categorías" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <LucideIcons.Layers className="w-4 h-4" />
+                        <span>Todas las categorías</span>
+                      </div>
+                    </SelectItem>
+                    {categories.map((category: any) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <CategoryIcon category={category} className="w-4 h-4" />
+                          <span>{category.nombreCategoria}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Filtro de ubicación */}
