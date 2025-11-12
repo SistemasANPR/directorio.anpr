@@ -2,9 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { Link } from "wouter";
 import * as LucideIcons from "lucide-react";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Función para limpiar HTML tags
 function stripHtml(html: string): string {
@@ -495,57 +492,69 @@ export default function Home() {
 
           <div>
             <div className="flex flex-col md:flex-row gap-4 mb-4">
-              {/* Campo de búsqueda con lupa */}
-              <div className="relative flex-1 md:flex-[2]">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar empresas..."
+              {/* Campo de búsqueda - SIN LUPA */}
+              <div className="flex-1 md:flex-2 relative">
+                <input
+                  type="text"
+                  placeholder="empresas, servicios o categorías..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-12 bg-white/95 backdrop-blur-sm border-gray-200"
+                  className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700"
                   style={{
+                    height: "52px",
                     boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                    backgroundColor: "rgba(255,255,255,0.95)",
+                    backdropFilter: "blur(10px)",
+                    borderRadius: "8px",
                   }}
                 />
               </div>
               
               {/* Filtro de categoría */}
               <div className="flex-1">
-                <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? "" : value)}>
-                  <SelectTrigger className="h-12 bg-white/95 backdrop-blur-sm border-gray-200" style={{
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
+                  style={{
+                    height: "52px",
                     boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                  }}>
-                    <SelectValue placeholder="Categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las categorías</SelectItem>
-                    {categories.map((category: any) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.nombreCategoria}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    backgroundColor: "rgba(255,255,255,0.95)",
+                    backdropFilter: "blur(10px)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <option value="">Todas las categorías</option>
+                  {categories.map((category: any) => (
+                    <option key={category.id} value={category.id}>
+                      {category.nombreCategoria}
+                    </option>
+                  ))}
+                </select>
               </div>
               
               {/* Filtro de ubicación - solo mostrar si hay estados registrados */}
               {hasValidStates && (
                 <div className="flex-1">
-                  <Select value={selectedLocation || "all"} onValueChange={(value) => setSelectedLocation(value === "all" ? "" : value)}>
-                    <SelectTrigger className="h-12 bg-white/95 backdrop-blur-sm border-gray-200" style={{
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
+                    style={{
+                      height: "52px",
                       boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    }}>
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos los estados</SelectItem>
-                      {mexicanStates.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      backgroundColor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <option value="">Todas las ubicaciones</option>
+                    {mexicanStates.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
             </div>
