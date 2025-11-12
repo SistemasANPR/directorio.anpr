@@ -504,10 +504,10 @@ export default function Home() {
               </div>
               
               {/* Filtro de categoría */}
-              <div className="flex-1">
+              <div className="flex-1" style={{ color: "#374151 !important" }}>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger 
-                    className="w-full px-4 text-sm md:text-lg rounded-lg cursor-pointer border-none focus:ring-0 focus:ring-offset-0 [&>span]:!text-[#374151] [&>span]:font-normal [&_svg]:hidden data-[placeholder]:!text-[#374151]"
+                    className="w-full px-4 text-sm md:text-lg rounded-lg cursor-pointer border-none focus:ring-0 focus:ring-offset-0 [&>span]:!text-[#374151] [&>span]:font-normal [&_svg]:hidden data-[placeholder]:!text-[#374151] !text-[#374151]"
                     style={{
                       height: "52px",
                       boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
@@ -518,7 +518,7 @@ export default function Home() {
                       color: "#374151 !important",
                     }}
                   >
-                    <SelectValue placeholder="Todas las categorías" />
+                    <SelectValue placeholder="Todas las categorías" style={{ color: "#374151 !important" }} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">
