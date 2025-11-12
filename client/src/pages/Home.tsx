@@ -363,8 +363,8 @@ export default function Home() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["/api/companies", { premiumOnly: true }],
-    queryFn: () => fetch("/api/companies?premiumOnly=true").then(res => res.json()),
+    queryKey: ["/api/companies", { limit: 1000 }],
+    queryFn: () => fetch("/api/companies?limit=1000").then(res => res.json()),
   });
 
   const {
@@ -411,7 +411,15 @@ export default function Home() {
     const matchesLocation = selectedLocation === "" || 
       (company.estadosPresencia && company.estadosPresencia.includes(selectedLocation));
     
-    return matchesSearch && matchesCategory && matchesLocation;
+    // Si NO hay búsqueda activa (sin filtros), mostrar solo empresas con membresía Empresarial
+    const hasActiveSearch = searchTerm.trim() !== "" || 
+                           (selectedCategory !== "" && selectedCategory !== "all") || 
+                           selectedLocation !== "";
+    
+    const matchesMembership = hasActiveSearch || 
+      company.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+    
+    return matchesSearch && matchesCategory && matchesLocation && matchesMembership;
   });
 
   const scrollLeft = () => {
