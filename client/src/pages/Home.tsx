@@ -713,84 +713,86 @@ export default function Home() {
                 if (!categoryCompany) return null;
                 
                 return (
-                  <div key={categoryCompany.id} className="min-w-[320px] md:min-w-[500px] lg:min-w-[600px] max-w-[320px] md:max-w-[500px] lg:max-w-[600px] flex-shrink-0">
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row h-auto md:h-72">
-                      {/* Imagen del producto */}
+                  <div key={categoryCompany.id} className="min-w-[280px] md:min-w-[400px] lg:min-w-[450px] max-w-[280px] md:max-w-[400px] lg:max-w-[450px] flex-shrink-0">
+                    <div className="relative rounded-xl shadow-lg overflow-hidden h-64 md:h-80">
+                      {/* Imagen de fondo */}
                       <div style={{
-                        width: "50%",
+                        width: "100%",
+                        height: "100%",
                         background: categoryCompany.galeriaProductosUrls && categoryCompany.galeriaProductosUrls.length > 0
                           ? `url(${categoryCompany.galeriaProductosUrls[0]}) center/cover`
-                          : categoryCompany.imagenPortada
-                          ? `url(${categoryCompany.imagenPortada}) center/cover`
+                          : categoryCompany.fotoPortadaUrl
+                          ? `url(${categoryCompany.fotoPortadaUrl}) center/cover`
                           : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                         position: "relative"
                       }}>
                         
-                        {!categoryCompany.galeriaProductosUrls?.length && !categoryCompany.imagenPortada && (
+                        {/* Overlay oscuro para mejorar visibilidad del botón */}
+                        <div style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
+                        }}></div>
+                        
+                        {/* Botón Ver Detalles centrado */}
+                        <div style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          zIndex: 10
+                        }}>
+                          <Link href={`/empresa/${categoryCompany.id}`}>
+                            <button style={{
+                              backgroundColor: "#bcce16",
+                              color: "#0f2161",
+                              border: "none",
+                              borderRadius: "50px",
+                              padding: "1rem 2.5rem",
+                              fontSize: "1rem",
+                              fontFamily: "'Montserrat', sans-serif",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              transition: "all 0.3s ease",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#a8b914";
+                              e.currentTarget.style.transform = "scale(1.05)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "#bcce16";
+                              e.currentTarget.style.transform = "scale(1)";
+                            }}>
+                              Ver Detalles
+                            </button>
+                          </Link>
+                        </div>
+                        
+                        {!categoryCompany.galeriaProductosUrls?.length && !categoryCompany.fotoPortadaUrl && (
                           <div style={{
                             position: "absolute",
                             top: "50%",
                             left: "50%",
                             transform: "translate(-50%, -50%)",
-                            width: "80px",
-                            height: "80px",
+                            width: "100px",
+                            height: "100px",
                             backgroundColor: "rgba(255,255,255,0.2)",
                             borderRadius: "50%",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: "2rem",
+                            fontSize: "2.5rem",
                             fontWeight: "bold",
-                            color: "white"
+                            color: "white",
+                            zIndex: 1
                           }}>
                             {categoryCompany.nombreEmpresa?.charAt(0) || "?"}
                           </div>
                         )}
-                      </div>
-                      
-                      {/* Ficha técnica de la empresa */}
-                      <div style={{
-                        width: "50%",
-                        padding: "2rem",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: "1.5rem"
-                      }}>
-                        <h3 style={{
-                          fontSize: "1.6rem",
-                          fontWeight: "700",
-                          color: "#0f2161",
-                          fontFamily: "'Montserrat', sans-serif",
-                          textAlign: "center"
-                        }}>
-                          {categoryCompany.nombreEmpresa}
-                        </h3>
-                        
-                        {/* Botón ver detalles */}
-                        <Link href={`/empresa/${categoryCompany.id}`}>
-                          <button style={{
-                            backgroundColor: "#bcce16",
-                            color: "#0f2161",
-                            border: "none",
-                            borderRadius: "50px",
-                            padding: "0.8rem 2rem",
-                            fontSize: "0.95rem",
-                            fontFamily: "'Montserrat', sans-serif",
-                            fontWeight: "700",
-                            cursor: "pointer",
-                            transition: "background-color 0.2s ease"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#a8b914";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#bcce16";
-                          }}>
-                            Ver Detalles
-                          </button>
-                        </Link>
                       </div>
                     </div>
                   </div>
