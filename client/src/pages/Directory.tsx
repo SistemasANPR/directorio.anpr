@@ -15,7 +15,8 @@ import {
   Search, 
   ExternalLink,
   Grid3X3,
-  List
+  List,
+  Layers
 } from "lucide-react";
 import DirectoryMap from "@/components/DirectoryMap";
 import type { CompanyWithDetails, Category } from "@/../../shared/schema";
@@ -74,15 +75,14 @@ const CategoryIcon = ({ category }: { category: Category }) => {
       <img 
         src={category.iconoUrl} 
         alt={category.nombreCategoria}
-        className="w-5 h-5 object-contain"
+        className="w-4 h-4 object-contain"
       />
     );
   }
 
   // Fallback a iconos por defecto si no hay icono en la BD
   const iconProps = {
-    size: 20,
-    className: "text-gray-600"
+    className: "w-4 h-4 text-gray-600"
   };
 
   switch (category.nombreCategoria?.toLowerCase()) {
@@ -106,8 +106,8 @@ const CategoryIcon = ({ category }: { category: Category }) => {
 export default function Directory() {
   const [location, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedState, setSelectedState] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedState, setSelectedState] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Parse URL parameters and set initial filter states
@@ -120,7 +120,7 @@ export default function Directory() {
       setSelectedCategory(categoryId);
     } else {
       // Reset category if no URL parameter
-      setSelectedCategory("");
+      setSelectedCategory("all");
     }
   }, [location]);
 
@@ -232,10 +232,18 @@ export default function Directory() {
                   <SelectValue placeholder="Categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  <SelectItem value="all">
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-4 h-4" />
+                      <span>Todas las categorías</span>
+                    </div>
+                  </SelectItem>
                   {categories?.map((category: Category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.nombreCategoria}
+                      <div className="flex items-center gap-2">
+                        <CategoryIcon category={category} />
+                        <span>{category.nombreCategoria}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -287,8 +295,8 @@ export default function Directory() {
                 size="sm"
                 onClick={() => {
                   setSearchTerm("");
-                  setSelectedCategory("");
-                  setSelectedState("");
+                  setSelectedCategory("all");
+                  setSelectedState("all");
                 }}
               >
                 Limpiar filtros
