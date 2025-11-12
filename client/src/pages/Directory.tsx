@@ -228,8 +228,8 @@ export default function Directory() {
               </div>
               
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Categoría" />
+                <SelectTrigger className="w-full sm:w-48 [&_svg]:hidden [&>span]:!text-[#374151] data-[placeholder]:!text-[#374151]">
+                  <SelectValue placeholder="Categorías" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">
