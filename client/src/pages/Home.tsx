@@ -809,8 +809,8 @@ export default function Home() {
       {/* Sección de beneficios */}
       <div style={{ 
         padding: "4rem 2rem", 
-        backgroundColor: "#f8f9fa",
-        color: "#333" 
+        backgroundColor: "#0f2161",
+        color: "white" 
       }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <h2 style={{
@@ -818,7 +818,7 @@ export default function Home() {
             fontWeight: "bold",
             marginBottom: "3rem",
             fontFamily: "'Montserrat', sans-serif",
-            color: "#4a4a4a",
+            color: "white",
             textAlign: "center"
           }}>
             ¿Por qué unirte al Directorio de Proveedores de Equipamiento Urbano?
@@ -850,7 +850,7 @@ export default function Home() {
                   fontSize: "1.1rem",
                   fontWeight: "700",
                   marginBottom: "0.5rem",
-                  color: "#4a4a4a",
+                  color: "white",
                   fontFamily: "'Montserrat', sans-serif"
                 }}>
                   Tu marca donde importa:
@@ -858,7 +858,7 @@ export default function Home() {
                 <p style={{
                   fontSize: "0.95rem",
                   lineHeight: "1.5",
-                  color: "#6b7280"
+                  color: "#e5e7eb"
                 }}>
                   Llega a quienes toman decisiones reales.
                 </p>
@@ -884,7 +884,7 @@ export default function Home() {
                   fontSize: "1.1rem",
                   fontWeight: "700",
                   marginBottom: "0.5rem",
-                  color: "#4a4a4a",
+                  color: "white",
                   fontFamily: "'Montserrat', sans-serif"
                 }}>
                   Presencia que convierte:
@@ -892,7 +892,7 @@ export default function Home() {
                 <p style={{
                   fontSize: "0.95rem",
                   lineHeight: "1.5",
-                  color: "#6b7280"
+                  color: "#e5e7eb"
                 }}>
                   Transforma tu visibilidad digital en oportunidades de negocio.
                 </p>
@@ -918,7 +918,7 @@ export default function Home() {
                   fontSize: "1.1rem",
                   fontWeight: "700",
                   marginBottom: "0.5rem",
-                  color: "#4a4a4a",
+                  color: "white",
                   fontFamily: "'Montserrat', sans-serif"
                 }}>
                   Visibilidad regional:
@@ -926,7 +926,7 @@ export default function Home() {
                 <p style={{
                   fontSize: "0.95rem",
                   lineHeight: "1.5",
-                  color: "#6b7280"
+                  color: "#e5e7eb"
                 }}>
                   Desde México hasta Argentina, haz que te vean.
                 </p>
@@ -952,7 +952,7 @@ export default function Home() {
                   fontSize: "1.1rem",
                   fontWeight: "700",
                   marginBottom: "0.5rem",
-                  color: "#4a4a4a",
+                  color: "white",
                   fontFamily: "'Montserrat', sans-serif"
                 }}>
                   Aparición en buscadores:
@@ -960,7 +960,7 @@ export default function Home() {
                 <p style={{
                   fontSize: "0.95rem",
                   lineHeight: "1.5",
-                  color: "#6b7280"
+                  color: "#e5e7eb"
                 }}>
                   Aprovecha el SEO de tu micrositio especializado.
                 </p>
@@ -986,7 +986,7 @@ export default function Home() {
                   fontSize: "1.1rem",
                   fontWeight: "700",
                   marginBottom: "0.5rem",
-                  color: "#4a4a4a",
+                  color: "white",
                   fontFamily: "'Montserrat', sans-serif"
                 }}>
                   Promoción cruzada:
@@ -994,7 +994,7 @@ export default function Home() {
                 <p style={{
                   fontSize: "0.95rem",
                   lineHeight: "1.5",
-                  color: "#6b7280"
+                  color: "#e5e7eb"
                 }}>
                   Posible presencia en eventos, webinars y medios aliados.
                 </p>
@@ -1020,7 +1020,7 @@ export default function Home() {
                   fontSize: "1.1rem",
                   fontWeight: "700",
                   marginBottom: "0.5rem",
-                  color: "#4a4a4a",
+                  color: "white",
                   fontFamily: "'Montserrat', sans-serif"
                 }}>
                   Atención personalizada:
@@ -1028,7 +1028,7 @@ export default function Home() {
                 <p style={{
                   fontSize: "0.95rem",
                   lineHeight: "1.5",
-                  color: "#6b7280"
+                  color: "#e5e7eb"
                 }}>
                   Asesoría cercana para maximizar tu impacto.
                 </p>
