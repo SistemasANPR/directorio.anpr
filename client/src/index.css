@@ -432,6 +432,21 @@
   z-index: 1 !important;
 }
 
+/* Force text color for Radix UI Select components */
+[data-radix-select-trigger] span,
+[data-radix-select-trigger] [data-radix-select-value],
+button[role="combobox"] span,
+button[role="combobox"] [data-radix-select-value] {
+  color: #374151 !important;
+}
+
+/* Force placeholder color for Radix UI Select */
+[data-radix-select-trigger][data-placeholder] span,
+[data-radix-select-trigger][data-placeholder] [data-radix-select-value],
+button[role="combobox"][data-placeholder] span {
+  color: #374151 !important;
+}
+
 
 
 
