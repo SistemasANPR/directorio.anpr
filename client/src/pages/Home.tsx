@@ -2,6 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { Link } from "wouter";
 import * as LucideIcons from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 // Función para limpiar HTML tags
 function stripHtml(html: string): string {
@@ -412,10 +416,10 @@ export default function Home() {
       company.descripcionEmpresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.categories?.some((cat: any) => cat.nombreCategoria?.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesCategory = selectedCategory === "" || 
+    const matchesCategory = !selectedCategory || selectedCategory === "" || selectedCategory === "all" || 
       company.categories?.some((cat: any) => cat.id?.toString() === selectedCategory);
     
-    const matchesLocation = selectedLocation === "" || 
+    const matchesLocation = !selectedLocation || selectedLocation === "" || selectedLocation === "all" || 
       (company.estadosPresencia && company.estadosPresencia.includes(selectedLocation));
     
     return matchesSearch && matchesCategory && matchesLocation;
@@ -490,74 +494,49 @@ export default function Home() {
             Encuentra en un solo lugar a los mejores proveedores del sector. Explora productos, compara soluciones y conecta con quienes pueden llevar tu proyecto al siguiente nivel. ¡Empieza ahora!
           </p>
 
-          <div>
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              {/* Campo de búsqueda - SIN LUPA */}
-              <div className="flex-1 md:flex-2 relative">
-                <input
-                  type="text"
-                  placeholder="empresas, servicios o categorías..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700"
-                  style={{
-                    height: "52px",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(10px)",
-                    borderRadius: "8px",
-                  }}
-                />
-              </div>
-              
-              {/* Filtro de categoría */}
-              <div className="flex-1">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
-                  style={{
-                    height: "52px",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(10px)",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <option value="">Todas las categorías</option>
-                  {categories.map((category: any) => (
-                    <option key={category.id} value={category.id}>
-                      {category.nombreCategoria}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              {/* Filtro de ubicación - solo mostrar si hay estados registrados */}
-              {hasValidStates && (
-                <div className="flex-1">
-                  <select
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
-                    style={{
-                      height: "52px",
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                      backgroundColor: "rgba(255,255,255,0.95)",
-                      backdropFilter: "blur(10px)",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <option value="">Todas las ubicaciones</option>
-                    {mexicanStates.map((state) => (
-                      <option key={state} value={state}>
-                        {state}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Campo de búsqueda */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar empresas..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white"
+              />
             </div>
+            
+            {/* Filtro de categoría */}
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full sm:w-48 bg-white">
+                <SelectValue placeholder="Categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las categorías</SelectItem>
+                {categories.map((category: any) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.nombreCategoria}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filtro de ubicación */}
+            {hasValidStates && (
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger className="w-full sm:w-48 bg-white">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  {mexicanStates.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
       </div>
