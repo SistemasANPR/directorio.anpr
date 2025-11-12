@@ -30,7 +30,7 @@ export default function MainNavigation() {
   const navigationItems = [
     { href: "/", label: "Inicio", icon: Home },
     { href: "/directorio", label: "Directorio", icon: Building2 },
-    { href: "/planes", label: "Planes", icon: CreditCard },
+    { href: "/planes", label: "Registrar Empresa", icon: CreditCard, isButton: true },
   ];
 
   const isActive = (href: string) => {
@@ -59,6 +59,22 @@ export default function MainNavigation() {
           <div className="hidden md:flex items-center space-x-8">
             {navigationItems.map((item) => {
               const Icon = item.icon;
+              const isButton = (item as any).isButton;
+              
+              if (isButton) {
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <div 
+                      className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-semibold transition-all cursor-pointer text-white hover:opacity-90"
+                      style={{ backgroundColor: 'rgb(188, 206, 22)' }}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </div>
+                  </Link>
+                );
+              }
+              
               return (
                 <Link key={item.href} href={item.href}>
                   <div className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
@@ -144,6 +160,23 @@ export default function MainNavigation() {
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
+                const isButton = (item as any).isButton;
+                
+                if (isButton) {
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <div 
+                        className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-semibold cursor-pointer text-white hover:opacity-90"
+                        style={{ backgroundColor: 'rgb(188, 206, 22)' }}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span>{item.label}</span>
+                      </div>
+                    </Link>
+                  );
+                }
+                
                 return (
                   <Link key={item.href} href={item.href}>
                     <div 
