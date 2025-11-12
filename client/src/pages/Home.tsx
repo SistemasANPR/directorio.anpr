@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import * as LucideIcons from "lucide-react";
 import { estadosMexico } from "@/lib/locationData";
@@ -399,6 +399,22 @@ export default function Home() {
   
   const leaderCompanies = shuffleArray(allCompanies).slice(0, 15);
 
+  // Auto-scroll para el carrusel de empresas líderes
+  useEffect(() => {
+    const slider = categorySliderRef.current;
+    if (!slider || leaderCompanies.length <= 1) return;
+
+    const scrollInterval = setInterval(() => {
+      if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth) {
+        slider.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        slider.scrollBy({ left: 350, behavior: 'smooth' });
+      }
+    }, 4000); // Cambia cada 4 segundos
+
+    return () => clearInterval(scrollInterval);
+  }, [leaderCompanies]);
+
   const searchResults = companies.filter((company: any) => {
     const matchesSearch = searchTerm.trim() === "" || 
       company.nombreEmpresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -738,60 +754,19 @@ export default function Home() {
                         padding: "2rem",
                         display: "flex",
                         flexDirection: "column",
-                        justifyContent: "space-between"
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: "1.5rem"
                       }}>
-                        <div>
-                          <h3 style={{
-                            fontSize: "1.4rem",
-                            fontWeight: "700",
-                            color: "#0f2161",
-                            marginBottom: "0.5rem",
-                            fontFamily: "'Montserrat', sans-serif"
-                          }}>
-                            {categoryCompany.nombreEmpresa}
-                          </h3>
-                          
-                          <div style={{
-                            color: "#6b7280",
-                            fontSize: "0.9rem",
-                            lineHeight: "1.5",
-                            marginBottom: "1rem",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden"
-                          }}>
-                            {categoryCompany.descripcionEmpresa ? stripHtml(categoryCompany.descripcionEmpresa) : "Empresa especializada en soluciones innovadoras"}
-                          </div>
-                          
-                          {/* Información de contacto */}
-                          <div style={{ marginBottom: "1rem" }}>
-                            {categoryCompany.estadosPresencia && categoryCompany.estadosPresencia.length > 0 && (
-                              <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "0.5rem",
-                                fontSize: "0.8rem",
-                                color: "#6b7280"
-                              }}>
-                                <span style={{ marginRight: "0.5rem" }}>📍</span>
-                                <span>{categoryCompany.estadosPresencia.slice(0, 2).join(', ')}</span>
-                              </div>
-                            )}
-                            
-                            {categoryCompany.telefono1 && (
-                              <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                fontSize: "0.8rem",
-                                color: "#6b7280"
-                              }}>
-                                <span style={{ marginRight: "0.5rem" }}>📞</span>
-                                <span>{categoryCompany.telefono1}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <h3 style={{
+                          fontSize: "1.6rem",
+                          fontWeight: "700",
+                          color: "#0f2161",
+                          fontFamily: "'Montserrat', sans-serif",
+                          textAlign: "center"
+                        }}>
+                          {categoryCompany.nombreEmpresa}
+                        </h3>
                         
                         {/* Botón ver detalles */}
                         <Link href={`/empresa/${categoryCompany.id}`}>
@@ -800,12 +775,11 @@ export default function Home() {
                             color: "#0f2161",
                             border: "none",
                             borderRadius: "50px",
-                            padding: "0.8rem 1.5rem",
-                            fontSize: "0.9rem",
+                            padding: "0.8rem 2rem",
+                            fontSize: "0.95rem",
                             fontFamily: "'Montserrat', sans-serif",
                             fontWeight: "700",
                             cursor: "pointer",
-                            width: "100%",
                             transition: "background-color 0.2s ease"
                           }}
                           onMouseEnter={(e) => {
