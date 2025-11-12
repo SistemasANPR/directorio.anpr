@@ -713,8 +713,8 @@ export default function Home() {
                 if (!categoryCompany) return null;
                 
                 return (
-                  <div key={categoryCompany.id} className="min-w-[280px] md:min-w-[400px] lg:min-w-[450px] max-w-[280px] md:max-w-[400px] lg:max-w-[450px] flex-shrink-0">
-                    <div className="relative rounded-xl shadow-lg overflow-hidden h-64 md:h-80">
+                  <div key={categoryCompany.id} className="min-w-[280px] md:min-w-[320px] lg:min-w-[350px] max-w-[280px] md:max-w-[320px] lg:max-w-[350px] flex-shrink-0">
+                    <div className="relative rounded-xl shadow-lg overflow-hidden h-[280px] md:h-[320px] lg:h-[350px]">
                       {/* Imagen de fondo */}
                       <div style={{
                         width: "100%",
