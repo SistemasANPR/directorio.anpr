@@ -470,25 +470,27 @@ export default function Home() {
           }}
         ></div>
 
-        <div style={{ position: "relative", zIndex: 2 }}>
+        <div style={{ position: "relative", zIndex: 2, maxWidth: "900px", marginLeft: "2rem", paddingRight: "2rem" }}>
           <h1
             className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4"
             style={{
               textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+              textAlign: "left",
             }}
           >
             El Directorio de Equipamiento Urbano de México
           </h1>
           <p
-            className="text-sm md:text-lg lg:text-xl mb-8 opacity-95 max-w-4xl mx-auto px-4"
+            className="text-sm md:text-lg lg:text-xl mb-8 opacity-95"
             style={{
               textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
+              textAlign: "left",
             }}
           >
             Encuentra en un solo lugar a los mejores proveedores del sector. Explora productos, compara soluciones y conecta con quienes pueden llevar tu proyecto al siguiente nivel. ¡Empieza ahora!
           </p>
 
-          <div className="max-w-5xl mx-auto px-4">
+          <div>
             <div className="flex flex-col md:flex-row gap-4 mb-4">
               {/* Campo de búsqueda - SIN LUPA */}
               <div className="flex-1 md:flex-2 relative">
