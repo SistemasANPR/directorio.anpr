@@ -96,7 +96,7 @@ export default function Footer() {
       {/* Línea inferior con aviso de privacidad */}
       <div className="border-t border-blue-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="text-center text-xs sm:text-sm text-blue-300 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0">
+          <div className="text-center text-xs sm:text-sm text-white flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0">
             <a href="/privacy" className="hover:text-white transition-colors sm:mr-4">
               Aviso de Privacidad
             </a>
