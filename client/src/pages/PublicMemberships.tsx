@@ -347,8 +347,8 @@ export default function PublicMemberships() {
                 backgroundColor: 'transparent'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-                e.currentTarget.style.color = 'rgb(15, 33, 97)';
+                e.currentTarget.style.backgroundColor = 'rgb(15, 33, 97)';
+                e.currentTarget.style.color = '#ffffff';
                 e.currentTarget.style.borderColor = '#ffffff';
               }}
               onMouseLeave={(e) => {
