@@ -343,7 +343,7 @@ export default function Directory() {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="pt-0 flex flex-col flex-1">
+                <CardContent className="pt-0 flex flex-col flex-1 pb-6">
                   {company.descripcionEmpresa && (
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                       {stripHtml(company.descripcionEmpresa)}
@@ -381,7 +381,7 @@ export default function Directory() {
                     </div>
                   )}
                   
-                  <div className="flex justify-center mt-auto">
+                  <div className="flex justify-center mt-auto pt-4">
                     <Link href={`/empresa/${company.id}`}>
                       <Button className="w-full" size="sm">
                         Ver Detalles
