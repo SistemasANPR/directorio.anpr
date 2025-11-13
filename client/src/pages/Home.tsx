@@ -514,7 +514,7 @@ export default function Home() {
               textAlign: "left",
             }}
           >
-            Encuentra en un solo lugar a los mejores proveedores del sector. Explora productos, compara soluciones y conecta con quienes pueden llevar tu proyecto al siguiente nivel. ¡Empieza ahora!
+            Explora todas las empresas registradas en nuestra plataforma. Encuentra proveedores, servicios y oportunidades de negocio.
           </p>
 
           <div>
