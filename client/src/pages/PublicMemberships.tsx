@@ -67,53 +67,6 @@ export default function PublicMemberships() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div 
-        className="relative min-h-[500px] bg-cover bg-center bg-no-repeat flex items-center"
-        style={{
-          backgroundImage: `url(${fondoHeaderDirectorioImage})`,
-          backgroundPosition: 'center center',
-          backgroundSize: 'cover'
-        }}
-      >
-        {/* Overlay para mejor legibilidad del texto */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-blue-800/50"></div>
-        
-        {/* Contenido del Hero */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">
-          <div className="max-w-2xl">
-            <h1 className="hero-title text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight">
-              Directorio de Proveedores de
-              <br />
-              Equipamiento Urbano
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
-              El espacio donde proveedores y líderes de la industria del espacio público se encuentran
-            </p>
-            
-            <Button 
-              size="lg"
-              className="text-black font-bold px-8 py-4 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              style={{ 
-                backgroundColor: '#bcce16'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#a8b814'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#bcce16'}
-              onClick={() => {
-                const plansSection = document.getElementById('membership-plans');
-                if (plansSection) {
-                  plansSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-            >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              ÚNETE AHORA
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* ¿Qué es el Directorio? - Nueva sección */}
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
