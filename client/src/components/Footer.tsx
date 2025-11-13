@@ -27,8 +27,8 @@ export default function Footer() {
 
           {/* Información de contacto */}
           <div className="text-center">
-            <div className="text-xs sm:text-sm mb-2">Todos los derechos reservados • ANPR 2016 - 2022</div>
-            <div className="text-xs sm:text-sm mb-1">Tel. +52 9999 44 4060</div>
+            <div className="text-xs sm:text-sm mb-2 text-white">Todos los derechos reservados • ANPR 2016 - 2022</div>
+            <div className="text-xs sm:text-sm mb-1 text-white">Tel. +52 9999 44 4060</div>
             <div className="text-xs sm:text-sm">
               <a href="mailto:conexion@anpr.org.mx" className="text-white hover:text-green-400 transition-colors break-all">
                 conexion@anpr.org.mx
@@ -38,7 +38,7 @@ export default function Footer() {
 
           {/* Redes sociales */}
           <div className="text-center md:text-right">
-            <div className="text-xs sm:text-sm font-medium mb-4">Síguenos:</div>
+            <div className="text-xs sm:text-sm font-medium mb-4 text-white">Síguenos:</div>
             <div className="flex justify-center md:justify-end flex-wrap gap-2 sm:gap-3">
               <a 
                 href="https://facebook.com/anprmexico" 
@@ -100,8 +100,8 @@ export default function Footer() {
             <a href="/privacy" className="text-white hover:text-green-400 transition-colors sm:mr-4">
               Aviso de Privacidad
             </a>
-            <span className="hidden sm:inline mr-4">•</span>
-            <span className="text-center">© 2025 Asociación Nacional de Parques y Recreación</span>
+            <span className="hidden sm:inline mr-4 text-white">•</span>
+            <span className="text-center text-white">© 2025 Asociación Nacional de Parques y Recreación</span>
           </div>
         </div>
       </div>
