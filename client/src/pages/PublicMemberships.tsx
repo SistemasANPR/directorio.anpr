@@ -67,47 +67,6 @@ export default function PublicMemberships() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ¿Qué es el Directorio? - Nueva sección */}
-      <div className="bg-gray-50 py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Contenido del texto */}
-            <div className="order-2 lg:order-1">
-              <h2 className="hero-title text-3xl md:text-4xl text-gray-800 mb-6">
-                ¿Qué es el Directorio de Proveedores de Equipamiento Urbano?
-              </h2>
-              
-              <div className="space-y-4 text-gray-600 leading-relaxed">
-                <p className="text-lg">
-                  El Directorio de Proveedores de Equipamiento Urbano es una plataforma digital creada por la{" "}
-                  <span className="font-semibold text-green-600">ANPR México</span> que conecta a empresas 
-                  proveedoras con líderes en diseño y gestión de espacios públicos en América Latina.
-                </p>
-                
-                <p className="text-lg">
-                  Más que un catálogo, es una herramienta estratégica para impulsar la visibilidad comercial, 
-                  fomentar alianzas y generar nuevas oportunidades de negocio en la región.
-                </p>
-              </div>
-            </div>
-            
-            {/* Imagen ilustrativa */}
-            <div className="order-1 lg:order-2 flex justify-center">
-              <img 
-                src="/attached_assets/que_es_el_directorio.png"
-                alt="Ilustración del Directorio de Equipamiento Urbano"
-                className="w-full max-w-md lg:max-w-lg h-auto"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Línea divisoria */}
-      <div className="flex justify-center py-8">
-        <div className="border-t border-gray-300 w-3/5"></div>
-      </div>
-
       {/* ¿Quién puede formar parte? - Nueva sección */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4">
