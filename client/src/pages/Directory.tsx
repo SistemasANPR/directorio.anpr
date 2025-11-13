@@ -223,9 +223,6 @@ export default function Directory() {
         
         {/* Content */}
         <div className="relative max-w-7xl mx-auto px-4 py-16">
-          <h1 className="text-4xl md:text-5xl mb-4 text-white" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700 }}>
-            Directorio de Proveedores de Equipamiento Urbano
-          </h1>
           <p className="text-xl text-blue-100 max-w-3xl leading-relaxed">
             Explora todas las empresas registradas en nuestra plataforma. 
             Encuentra proveedores, servicios y oportunidades de negocio.
