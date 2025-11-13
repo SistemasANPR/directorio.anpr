@@ -612,9 +612,19 @@ export default function Home() {
 
         {!isLoading && !error && (
           <>
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 text-center text-gray-700 font-['Montserrat'] leading-tight">
-              Empresas destacadas
-            </h2>
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center md:text-left text-gray-700 font-['Montserrat'] leading-tight">
+                Empresas destacadas
+              </h2>
+              <Link href="/directorio">
+                <button
+                  data-testid="button-ver-todas-empresas"
+                  className="bg-[#bcce16] hover:bg-[#a8b914] text-[#0f2161] font-bold py-2 px-6 rounded-full transition-colors duration-200 font-['Montserrat'] text-sm md:text-base"
+                >
+                  Ver todas
+                </button>
+              </Link>
+            </div>
             
             <p className="text-sm md:text-lg text-center text-gray-500 mb-8 md:mb-12 max-w-4xl mx-auto px-4">
               {searchTerm
