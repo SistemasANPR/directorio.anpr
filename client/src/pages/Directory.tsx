@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Grid3X3,
   List,
-  Layers
+  Layers,
+  ArrowUpDown
 } from "lucide-react";
 import DirectoryMap from "@/components/DirectoryMap";
 import type { CompanyWithDetails, Category } from "@/../../shared/schema";
@@ -109,6 +110,7 @@ export default function Directory() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedState, setSelectedState] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortBy, setSortBy] = useState<string>("default");
 
   // Parse URL parameters and set initial filter states
   useEffect(() => {
@@ -172,13 +174,22 @@ export default function Directory() {
       return matchesSearch && matchesCategory && matchesState;
     })
     .sort((a: any, b: any) => {
-      // Priorizar empresas con membresía empresarial
-      const aHasEmpresarial = a.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
-      const bHasEmpresarial = b.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
-      
-      if (aHasEmpresarial && !bHasEmpresarial) return -1;
-      if (!aHasEmpresarial && bHasEmpresarial) return 1;
-      return 0;
+      // Aplicar ordenamiento según selección
+      switch (sortBy) {
+        case "name-asc":
+          return a.nombreEmpresa.localeCompare(b.nombreEmpresa);
+        case "name-desc":
+          return b.nombreEmpresa.localeCompare(a.nombreEmpresa);
+        case "default":
+        default:
+          // Priorizar empresas con membresía empresarial
+          const aHasEmpresarial = a.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+          const bHasEmpresarial = b.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+          
+          if (aHasEmpresarial && !bHasEmpresarial) return -1;
+          if (!aHasEmpresarial && bHasEmpresarial) return 1;
+          return 0;
+      }
     });
 
   if (companiesLoading) {
@@ -275,6 +286,18 @@ export default function Directory() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-44">
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Por defecto</SelectItem>
+                  <SelectItem value="name-asc">Nombre (A-Z)</SelectItem>
+                  <SelectItem value="name-desc">Nombre (Z-A)</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Button 
                 variant="default" 
                 size="sm"
