@@ -415,28 +415,38 @@ export default function Home() {
     return () => clearInterval(scrollInterval);
   }, [leaderCompanies]);
 
-  const searchResults = companies.filter((company: any) => {
-    const matchesSearch = searchTerm.trim() === "" || 
-      company.nombreEmpresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.descripcionEmpresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.categories?.some((cat: any) => cat.nombreCategoria?.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesCategory = selectedCategory === "" || selectedCategory === "all" || 
-      company.categories?.some((cat: any) => cat.id?.toString() === selectedCategory);
-    
-    const matchesLocation = selectedLocation === "" || 
-      (company.estadosPresencia && company.estadosPresencia.includes(selectedLocation));
-    
-    // Si NO hay búsqueda activa (sin filtros), mostrar solo empresas con membresía Empresarial
-    const hasActiveSearch = searchTerm.trim() !== "" || 
-                           (selectedCategory !== "" && selectedCategory !== "all") || 
-                           selectedLocation !== "";
-    
-    const matchesMembership = hasActiveSearch || 
-      company.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
-    
-    return matchesSearch && matchesCategory && matchesLocation && matchesMembership;
-  });
+  const searchResults = companies
+    .filter((company: any) => {
+      const matchesSearch = searchTerm.trim() === "" || 
+        company.nombreEmpresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.descripcionEmpresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.categories?.some((cat: any) => cat.nombreCategoria?.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesCategory = selectedCategory === "" || selectedCategory === "all" || 
+        company.categories?.some((cat: any) => cat.id?.toString() === selectedCategory);
+      
+      const matchesLocation = selectedLocation === "" || 
+        (company.estadosPresencia && company.estadosPresencia.includes(selectedLocation));
+      
+      // Si NO hay búsqueda activa (sin filtros), mostrar solo empresas con membresía Empresarial
+      const hasActiveSearch = searchTerm.trim() !== "" || 
+                             (selectedCategory !== "" && selectedCategory !== "all") || 
+                             selectedLocation !== "";
+      
+      const matchesMembership = hasActiveSearch || 
+        company.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+      
+      return matchesSearch && matchesCategory && matchesLocation && matchesMembership;
+    })
+    .sort((a: any, b: any) => {
+      // Priorizar empresas con membresía empresarial
+      const aHasEmpresarial = a.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+      const bHasEmpresarial = b.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+      
+      if (aHasEmpresarial && !bHasEmpresarial) return -1;
+      if (!aHasEmpresarial && bHasEmpresarial) return 1;
+      return 0;
+    });
 
   const scrollLeft = () => {
     if (sliderRef.current) {

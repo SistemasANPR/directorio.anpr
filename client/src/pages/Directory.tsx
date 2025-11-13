@@ -155,21 +155,31 @@ export default function Directory() {
   
   const states = Array.from(new Set(allStates)).sort();
   
-  const filteredCompanies = companies.filter((company: CompanyWithDetails) => {
-    const matchesSearch = company.nombreEmpresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (company.descripcionEmpresa && company.descripcionEmpresa.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesCategory = !selectedCategory || selectedCategory === "all" || 
-                           (company.categories && Array.isArray(company.categories) && 
-                            company.categories.some((cat: any) => cat.id === parseInt(selectedCategory)));
-    
-    const ubicacion = company.ubicacionGeografica as any;
-    const address = ubicacion?.address || company.direccionFisica;
-    const companyState = extractStateFromAddress(address);
-    const matchesState = !selectedState || selectedState === "all" || companyState === selectedState;
-    
-    return matchesSearch && matchesCategory && matchesState;
-  });
+  const filteredCompanies = companies
+    .filter((company: CompanyWithDetails) => {
+      const matchesSearch = company.nombreEmpresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (company.descripcionEmpresa && company.descripcionEmpresa.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesCategory = !selectedCategory || selectedCategory === "all" || 
+                             (company.categories && Array.isArray(company.categories) && 
+                              company.categories.some((cat: any) => cat.id === parseInt(selectedCategory)));
+      
+      const ubicacion = company.ubicacionGeografica as any;
+      const address = ubicacion?.address || company.direccionFisica;
+      const companyState = extractStateFromAddress(address);
+      const matchesState = !selectedState || selectedState === "all" || companyState === selectedState;
+      
+      return matchesSearch && matchesCategory && matchesState;
+    })
+    .sort((a: any, b: any) => {
+      // Priorizar empresas con membresía empresarial
+      const aHasEmpresarial = a.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+      const bHasEmpresarial = b.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
+      
+      if (aHasEmpresarial && !bHasEmpresarial) return -1;
+      if (!aHasEmpresarial && bHasEmpresarial) return 1;
+      return 0;
+    });
 
   if (companiesLoading) {
     return (
