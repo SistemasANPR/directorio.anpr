@@ -321,7 +321,7 @@ export default function Directory() {
         {viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCompanies.map((company: CompanyWithDetails) => (
-              <Card key={company.id} className="hover:shadow-lg transition-shadow group">
+              <Card key={company.id} className="hover:shadow-lg transition-shadow group flex flex-col h-full">
                 <CardHeader className="pb-4">
                   <div className="flex items-start space-x-4">
                     {company.logotipoUrl ? (
@@ -343,7 +343,7 @@ export default function Directory() {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 flex flex-col flex-1">
                   {company.descripcionEmpresa && (
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                       {stripHtml(company.descripcionEmpresa)}
@@ -381,7 +381,7 @@ export default function Directory() {
                     </div>
                   )}
                   
-                  <div className="flex justify-center mt-4">
+                  <div className="flex justify-center mt-auto">
                     <Link href={`/empresa/${company.id}`}>
                       <Button className="w-full" size="sm">
                         Ver Detalles
