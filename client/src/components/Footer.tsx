@@ -8,7 +8,7 @@ import iconWhatsapp from "@assets/icon_whatsapp.webp";
 
 export default function Footer() {
   return (
-    <footer className="bg-blue-900 text-white">
+    <footer style={{ backgroundColor: "#013082" }} className="text-white">
       {/* Separador superior */}
       <div className="w-full h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
       
