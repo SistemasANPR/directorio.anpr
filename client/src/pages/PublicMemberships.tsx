@@ -347,14 +347,14 @@ export default function PublicMemberships() {
                 backgroundColor: 'transparent'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-                e.currentTarget.style.color = 'rgb(15, 33, 97)';
-                e.currentTarget.style.borderColor = '#ffffff';
+                e.currentTarget.style.setProperty('background-color', '#ffffff', 'important');
+                e.currentTarget.style.setProperty('color', 'rgb(15, 33, 97)', 'important');
+                e.currentTarget.style.setProperty('border-color', '#ffffff', 'important');
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.borderColor = '#ffffff';
+                e.currentTarget.style.setProperty('background-color', 'transparent', 'important');
+                e.currentTarget.style.setProperty('color', '#ffffff', 'important');
+                e.currentTarget.style.setProperty('border-color', '#ffffff', 'important');
               }}
               onClick={() => {
                 window.location.href = 'mailto:vinculacion@anpr.org.mx';
