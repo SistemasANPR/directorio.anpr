@@ -72,11 +72,11 @@ export default function PublicMemberships() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Grid de categorías */}
-            <div className="order-1 lg:order-1">
+            <div className="order-1 lg:order-1 flex justify-center items-start">
               <img 
                 src="/attached_assets/categorias.png"
                 alt="Categorías del directorio"
-                className="w-full h-auto"
+                className="w-full max-w-sm h-auto"
               />
             </div>
             
