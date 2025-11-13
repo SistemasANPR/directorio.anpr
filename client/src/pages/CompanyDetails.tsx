@@ -556,6 +556,62 @@ export default function CompanyDetails() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Certificados y Reconocimientos */}
+            {company.certificates && company.certificates.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Award className="h-5 w-5 mr-2" />
+                    Certificados y Reconocimientos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {company.certificates.map((certificate: any) => (
+                      <div key={certificate.id} className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                        {/* Header con imagen e icono */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 flex-shrink-0">
+                            <img
+                              src={certificate.imagenUrl}
+                              alt={certificate.nombreCertificado}
+                              className="w-10 h-10 object-cover rounded-full"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 text-sm leading-tight truncate">
+                              {certificate.nombreCertificado}
+                            </h4>
+                          </div>
+                        </div>
+                        
+                        {/* Información compacta */}
+                        <div className="space-y-2 text-xs">
+                          {certificate.fechaVencimiento && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Válido hasta</span>
+                              <span className="text-gray-900 font-medium">
+                                {certificate.fechaVencimiento}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {certificate.entidadEmisora && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Emitido por</span>
+                              <span className="text-gray-900 font-medium text-right truncate">
+                                {certificate.entidadEmisora}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Información de Contacto */}
             <Card>
               <CardHeader>
@@ -745,62 +801,6 @@ export default function CompanyDetails() {
                           <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                             {category.nombreCategoria}
                           </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Certificados y Reconocimientos */}
-            {company.certificates && company.certificates.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Award className="h-5 w-5 mr-2" />
-                    Certificados y Reconocimientos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {company.certificates.map((certificate: any) => (
-                      <div key={certificate.id} className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                        {/* Header con imagen e icono */}
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 flex-shrink-0">
-                            <img
-                              src={certificate.imagenUrl}
-                              alt={certificate.nombreCertificado}
-                              className="w-10 h-10 object-cover rounded-full"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-sm leading-tight truncate">
-                              {certificate.nombreCertificado}
-                            </h4>
-                          </div>
-                        </div>
-                        
-                        {/* Información compacta */}
-                        <div className="space-y-2 text-xs">
-                          {certificate.fechaVencimiento && (
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Válido hasta</span>
-                              <span className="text-gray-900 font-medium">
-                                {certificate.fechaVencimiento}
-                              </span>
-                            </div>
-                          )}
-                          
-                          {certificate.entidadEmisora && (
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Emitido por</span>
-                              <span className="text-gray-900 font-medium text-right truncate">
-                                {certificate.entidadEmisora}
-                              </span>
-                            </div>
-                          )}
                         </div>
                       </div>
                     ))}
