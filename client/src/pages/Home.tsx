@@ -340,7 +340,7 @@ function CompanyCard({ company }: { company: any }) {
                 fontWeight: "600",
               }}
             >
-              {company.membershipType.nombreTipo}
+              DESTACADO
             </div>
           )}
         </div>
