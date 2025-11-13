@@ -415,37 +415,6 @@ export default function PublicMemberships() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4">
-        {/* Bonos y promociones exclusivas */}
-        <div className="mt-16 mb-16">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl shadow-lg p-8 max-w-6xl mx-auto text-white">
-            <h2 className="hero-title text-3xl mb-8 text-center text-white">
-              Bonos y promociones exclusivas
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white bg-opacity-20 rounded-lg p-6">
-                <div className="text-2xl mb-3">🚀</div>
-                <h3 className="text-xl font-semibold mb-2 text-white">Paquetes de lanzamiento</h3>
-                <p className="text-white">Visibilidad destacada durante los 3 primeros meses</p>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-6">
-                <div className="text-2xl mb-3">🏆</div>
-                <h3 className="text-xl font-semibold mb-2 text-white">Sellos de calidad</h3>
-                <p className="text-white">Muestra que eres parte del Directorio oficial de ANPR México</p>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-6">
-                <div className="text-2xl mb-3">⏰</div>
-                <h3 className="text-xl font-semibold mb-2 text-white">Oferta por tiempo limitado</h3>
-                <p className="text-white">¡Inscríbete antes del 15 de junio y recibe 1 mes Premium gratis!</p>
-              </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-6">
-                <div className="text-2xl mb-3">👥</div>
-                <h3 className="text-xl font-semibold mb-2 text-white">Descuentos por referidos</h3>
-                <p className="text-white">Invita a otra empresa y gana beneficios adicionales</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* ¿Cómo funciona? */}
         <div className="mt-16 mb-16">
           <div className="bg-gray-50 py-16">
