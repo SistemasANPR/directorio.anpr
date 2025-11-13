@@ -613,7 +613,7 @@ export default function Home() {
         {!isLoading && !error && (
           <>
             <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 text-center text-gray-700 font-['Montserrat'] leading-tight">
-              Cada gran proyecto comienza con los mejores aliados
+              Empresas destacadas
             </h2>
             
             <p className="text-sm md:text-lg text-center text-gray-500 mb-8 md:mb-12 max-w-4xl mx-auto px-4">
