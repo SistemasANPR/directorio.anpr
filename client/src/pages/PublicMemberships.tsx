@@ -90,7 +90,7 @@ export default function PublicMemberships() {
                 El Directorio está abierto a empresas de América Latina que ofrecen soluciones especializadas con sus productos o servicios para parques, espacios públicos y entornos urbanos.
               </p>
               
-              <div className="space-y-3 text-gray-700">
+              <div className="grid grid-cols-2 gap-3 text-gray-700">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
                   <span>Juegos infantiles</span>
