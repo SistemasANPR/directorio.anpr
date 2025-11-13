@@ -30,7 +30,7 @@ export default function Footer() {
             <div className="text-xs sm:text-sm mb-2">Todos los derechos reservados • ANPR 2016 - 2022</div>
             <div className="text-xs sm:text-sm mb-1">Tel. +52 9999 44 4060</div>
             <div className="text-xs sm:text-sm">
-              <a href="mailto:conexion@anpr.org.mx" className="hover:text-green-400 transition-colors break-all">
+              <a href="mailto:conexion@anpr.org.mx" className="text-white hover:text-green-400 transition-colors break-all">
                 conexion@anpr.org.mx
               </a>
             </div>
@@ -97,7 +97,7 @@ export default function Footer() {
       <div className="border-t border-blue-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="text-center text-xs sm:text-sm text-white flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0">
-            <a href="/privacy" className="hover:text-white transition-colors sm:mr-4">
+            <a href="/privacy" className="text-white hover:text-green-400 transition-colors sm:mr-4">
               Aviso de Privacidad
             </a>
             <span className="hidden sm:inline mr-4">•</span>
