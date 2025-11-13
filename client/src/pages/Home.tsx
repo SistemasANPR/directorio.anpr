@@ -853,17 +853,12 @@ export default function Home() {
           }}>
             {/* Beneficio 1 */}
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-              <div style={{
-                width: "60px",
-                height: "60px",
-                backgroundColor: "#4dd0e1",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0
-              }}>
-                <LucideIcons.Target size={32} color="#fff" />
+              <div style={{ flexShrink: 0 }}>
+                <img 
+                  src="/attached_assets/Rectangle 10.png"
+                  alt="Tu marca donde importa"
+                  style={{ width: "60px", height: "60px" }}
+                />
               </div>
               <div>
                 <h3 style={{
@@ -887,17 +882,12 @@ export default function Home() {
 
             {/* Beneficio 2 */}
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-              <div style={{
-                width: "60px",
-                height: "60px",
-                backgroundColor: "#ab47bc",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0
-              }}>
-                <LucideIcons.Lightbulb size={32} color="#fff" />
+              <div style={{ flexShrink: 0 }}>
+                <img 
+                  src="/attached_assets/Rectangle 11.png"
+                  alt="Presencia que convierte"
+                  style={{ width: "60px", height: "60px" }}
+                />
               </div>
               <div>
                 <h3 style={{
@@ -921,17 +911,12 @@ export default function Home() {
 
             {/* Beneficio 3 */}
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-              <div style={{
-                width: "60px",
-                height: "60px",
-                backgroundColor: "#26c6da",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0
-              }}>
-                <LucideIcons.Globe size={32} color="#fff" />
+              <div style={{ flexShrink: 0 }}>
+                <img 
+                  src="/attached_assets/Rectangle 12.png"
+                  alt="Visibilidad regional"
+                  style={{ width: "60px", height: "60px" }}
+                />
               </div>
               <div>
                 <h3 style={{
@@ -955,17 +940,12 @@ export default function Home() {
 
             {/* Beneficio 4 */}
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-              <div style={{
-                width: "60px",
-                height: "60px",
-                backgroundColor: "#5c6bc0",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0
-              }}>
-                <LucideIcons.Search size={32} color="#fff" />
+              <div style={{ flexShrink: 0 }}>
+                <img 
+                  src="/attached_assets/Rectangle 13.png"
+                  alt="Aparición en buscadores"
+                  style={{ width: "60px", height: "60px" }}
+                />
               </div>
               <div>
                 <h3 style={{
@@ -989,17 +969,12 @@ export default function Home() {
 
             {/* Beneficio 5 */}
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-              <div style={{
-                width: "60px",
-                height: "60px",
-                backgroundColor: "#ef5350",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0
-              }}>
-                <LucideIcons.Megaphone size={32} color="#fff" />
+              <div style={{ flexShrink: 0 }}>
+                <img 
+                  src="/attached_assets/Rectangle 14.png"
+                  alt="Promoción cruzada"
+                  style={{ width: "60px", height: "60px" }}
+                />
               </div>
               <div>
                 <h3 style={{
@@ -1023,17 +998,12 @@ export default function Home() {
 
             {/* Beneficio 6 */}
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-              <div style={{
-                width: "60px",
-                height: "60px",
-                backgroundColor: "#42a5f5",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0
-              }}>
-                <LucideIcons.Users size={32} color="#fff" />
+              <div style={{ flexShrink: 0 }}>
+                <img 
+                  src="/attached_assets/Rectangle 15.png"
+                  alt="Atención personalizada"
+                  style={{ width: "60px", height: "60px" }}
+                />
               </div>
               <div>
                 <h3 style={{
