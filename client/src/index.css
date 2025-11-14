@@ -419,17 +419,12 @@
   background-color: #eff6ff !important;
 }
 
-/* Ensure modals appear above Leaflet maps */
+/* Ensure modals appear above Google Maps */
 [role="dialog"],
 [data-radix-dialog-content],
 .dialog-overlay,
 .dialog-content {
   z-index: 9999 !important;
-}
-
-/* Leaflet map containers should have lower z-index */
-.leaflet-container {
-  z-index: 1 !important;
 }
 
 /* Force text color for Radix UI Select components */
