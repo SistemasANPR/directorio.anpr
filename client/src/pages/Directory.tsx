@@ -208,15 +208,18 @@ export default function Directory() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div 
-        className="relative overflow-hidden text-white"
-        style={{
-          background: `linear-gradient(rgba(15, 33, 97, 0.9), rgba(15, 33, 97, 0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed"
-        }}
-      >
+      <div className="relative overflow-hidden text-white">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/attached_assets/fondo_header_directorio.png"
+            alt="Fondo directorio"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-slate-900/50"></div>
         
         {/* Content */}
         <div className="relative max-w-7xl mx-auto px-4 py-16">
