@@ -495,6 +495,7 @@ export default function Home() {
             style={{
               textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
               textAlign: "left",
+              color: "#ffffff",
             }}
           >
             El Directorio de Equipamiento Urbano de México
@@ -504,6 +505,7 @@ export default function Home() {
             style={{
               textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
               textAlign: "left",
+              color: "#ffffff",
             }}
           >
             Explora todas las empresas registradas en nuestra plataforma. Encuentra proveedores, servicios y oportunidades de negocio.
