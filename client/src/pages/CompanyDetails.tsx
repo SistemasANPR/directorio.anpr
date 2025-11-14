@@ -201,12 +201,16 @@ export default function CompanyDetails() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-r from-blue-600 to-indigo-700"></div>
+            <img
+              src="/attached_assets/fondo_header_directorio.png"
+              alt="Fondo header"
+              className="w-full h-full object-cover"
+            />
           )}
         </div>
         
         {/* Overlay azul marino transparente */}
-        <div className="absolute inset-0 bg-slate-900/70"></div>
+        <div className="absolute inset-0 bg-slate-900/50"></div>
         
         {/* Contenido del header */}
         <div className="relative max-w-5xl mx-auto px-4 py-16">

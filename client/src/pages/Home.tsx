@@ -475,27 +475,19 @@ export default function Home() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc" }}>
       {/* Header */}
-      <div
-        className="relative text-center text-white"
-        style={{
-          background: `linear-gradient(rgba(15, 33, 97, 0.9), rgba(15, 33, 97, 0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
-          padding: "5rem 1rem 3rem 1rem",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.2)",
-            zIndex: 1,
-          }}
-        ></div>
+      <div className="relative text-center text-white" style={{ padding: "5rem 1rem 3rem 1rem" }}>
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/attached_assets/fondo_header_directorio.png"
+            alt="Fondo header"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center" }}
+          />
+        </div>
+        
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-slate-900/50"></div>
 
         <div style={{ position: "relative", zIndex: 2, maxWidth: "900px", marginLeft: "2rem", paddingRight: "2rem" }}>
           <h1
