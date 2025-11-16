@@ -1059,6 +1059,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Si NO se seleccionó un usuario de WordPress pero la empresa tiene email1, crear usuario automáticamente
+      if (!userId && parsedCompanyData.email1) {
+        try {
+          // Verificar si ya existe un usuario con ese email
+          let existingUser = await storage.getUserByEmail(parsedCompanyData.email1);
+          
+          if (!existingUser) {
+            // Crear nuevo usuario representante automáticamente
+            const newUserData = {
+              firebaseUid: `pending_${Date.now()}_${parsedCompanyData.email1}`,
+              email: parsedCompanyData.email1,
+              displayName: parsedCompanyData.nombreEmpresa || parsedCompanyData.email1,
+              role: "representante",
+              photoURL: null,
+              stripeCustomerId: null,
+              stripeSubscriptionId: null,
+              autoRenewal: false,
+              tempPassword: "ANPR2024!",
+              requirePasswordChange: true
+            };
+            
+            existingUser = await storage.createUser(newUserData);
+            
+            console.log(`[Auto User Creation] New representative account created for ${parsedCompanyData.email1}`);
+            console.log(`[Auto User Creation] Temporary password: ANPR2024!`);
+            console.log(`[Auto User Creation] User must activate account on first login`);
+          }
+          
+          userId = existingUser?.id || null;
+        } catch (autoUserError) {
+          console.error("[Auto User Creation] Error creating automatic user:", autoUserError);
+          // Continuar con la creación de la empresa sin asignar usuario
+        }
+      }
+      
       // Crear la empresa con el userId del representante si se pudo crear/encontrar
       let companyWithUser = {
         ...parsedCompanyData,
