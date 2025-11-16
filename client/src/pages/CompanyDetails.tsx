@@ -292,7 +292,7 @@ export default function CompanyDetails() {
               </CardHeader>
               <CardContent>
                 <div 
-                  className="prose max-w-none"
+                  className="prose max-w-none [&_*]:!text-gray-900 dark:[&_*]:!text-gray-100"
                   dangerouslySetInnerHTML={{ __html: company.descripcionEmpresa || 'No hay descripción disponible.' }}
                 />
               </CardContent>
