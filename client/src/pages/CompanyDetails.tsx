@@ -426,16 +426,19 @@ export default function CompanyDetails() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {videos.map((videoUrl: string, index: number) => (
-                      <div key={index} className="aspect-video">
-                        <iframe
-                          src={videoUrl}
-                          className="w-full h-full rounded-lg"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    ))}
+                    {videos.map((videoUrl: string, index: number) => {
+                      const videoId = getYouTubeVideoId(videoUrl);
+                      return (
+                        <div key={index} className="aspect-video">
+                          <iframe
+                            src={videoId ? `https://www.youtube.com/embed/${videoId}` : videoUrl}
+                            className="w-full h-full rounded-lg"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
