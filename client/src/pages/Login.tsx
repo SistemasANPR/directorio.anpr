@@ -55,9 +55,9 @@ export default function Login() {
         if (tempResponse.ok && tempResult.success) {
           // Check if user needs to activate their account (WordPress users)
           const firebaseUid = tempResult.user.firebaseUid || '';
-          const needsActivation = firebaseUid.startsWith('wp_') || firebaseUid.startsWith('pending_');
+          const needsActivation = (firebaseUid.startsWith('wp_') || firebaseUid.startsWith('pending_')) && tempResult.user.requirePasswordChange;
           
-          if (needsActivation && tempResult.user.requirePasswordChange) {
+          if (needsActivation) {
             toast({
               title: "Activa tu cuenta",
               description: "Necesitas configurar tu contraseña para continuar.",
