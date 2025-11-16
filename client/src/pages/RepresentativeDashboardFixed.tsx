@@ -826,7 +826,10 @@ export default function RepresentativeDashboard() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h3 className="font-semibold text-lg">{project.nombreProyecto}</h3>
-                            <p className="text-gray-600 mb-2">{project.descripcionProyecto}</p>
+                            <div 
+                              className="text-gray-900 mb-2 [&_*]:!text-gray-900"
+                              dangerouslySetInnerHTML={{ __html: project.descripcionProyecto }}
+                            />
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Cliente:</span>

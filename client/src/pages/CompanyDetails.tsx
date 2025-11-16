@@ -365,11 +365,12 @@ export default function CompanyDetails() {
                         <div className="p-4">
                           <h4 className="font-semibold text-lg mb-2 line-clamp-2">{project.nombreProyecto}</h4>
                           
-                          {/* Descripción sin HTML */}
+                          {/* Descripción con HTML renderizado */}
                           {project.descripcionProyecto && (
-                            <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                              {project.descripcionProyecto.replace(/<[^>]*>/g, '')}
-                            </p>
+                            <div 
+                              className="text-sm text-gray-900 mb-4 line-clamp-3 [&_*]:!text-gray-900"
+                              dangerouslySetInnerHTML={{ __html: project.descripcionProyecto }}
+                            />
                           )}
 
                           {/* Información adicional */}

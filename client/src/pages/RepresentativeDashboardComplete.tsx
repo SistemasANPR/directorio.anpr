@@ -871,9 +871,10 @@ export default function RepresentativeDashboard() {
                           </div>
                           
                           {project.descripcionProyecto && (
-                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                              {project.descripcionProyecto}
-                            </p>
+                            <div 
+                              className="text-gray-900 text-sm mb-3 line-clamp-2 [&_*]:!text-gray-900"
+                              dangerouslySetInnerHTML={{ __html: project.descripcionProyecto }}
+                            />
                           )}
                           
                           <div className="space-y-2 text-sm text-gray-500">
