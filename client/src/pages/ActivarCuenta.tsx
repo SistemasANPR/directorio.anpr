@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Mail, KeyRound, CheckCircle2, Info } from "lucide-react";
 import { useLocation } from "wouter";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -84,15 +84,27 @@ export default function ActivarCuenta() {
         throw new Error("Error al activar la cuenta");
       }
 
+      // Step 4: Sign in automatically after activation
+      await signInWithEmailAndPassword(auth, data.email, data.newPassword);
+
+      // Get user role to redirect appropriately
+      const userRole = verifyData.user.role;
+
       toast({
         title: "¡Cuenta activada!",
-        description: "Tu cuenta ha sido activada correctamente. Ya puedes iniciar sesión.",
+        description: "Tu cuenta ha sido activada correctamente. Redirigiendo...",
       });
 
-      // Redirect to login
+      // Redirect based on role
       setTimeout(() => {
-        setLocation("/login");
-      }, 2000);
+        if (userRole === 'admin') {
+          setLocation("/admin/dashboard");
+        } else if (userRole === 'representante') {
+          setLocation("/representative/dashboard");
+        } else {
+          setLocation("/");
+        }
+      }, 1500);
 
     } catch (error: any) {
       console.error("Activation error:", error);
