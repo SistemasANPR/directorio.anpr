@@ -53,6 +53,23 @@ export default function Login() {
         const tempResult = await tempResponse.json();
 
         if (tempResponse.ok && tempResult.success) {
+          // Check if user needs to activate their account (WordPress users)
+          const firebaseUid = tempResult.user.firebaseUid || '';
+          const needsActivation = firebaseUid.startsWith('wp_') || firebaseUid.startsWith('pending_');
+          
+          if (needsActivation && tempResult.user.requirePasswordChange) {
+            toast({
+              title: "Activa tu cuenta",
+              description: "Necesitas configurar tu contraseña para continuar.",
+            });
+            
+            // Redirect to activation page
+            setTimeout(() => {
+              setLocation("/activar-cuenta");
+            }, 1000);
+            return;
+          }
+          
           // Store user data for session management
           localStorage.setItem('tempUser', JSON.stringify(tempResult.user));
           

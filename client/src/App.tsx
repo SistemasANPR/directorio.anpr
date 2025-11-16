@@ -37,6 +37,7 @@ import EmailConfigurationPage from "@/pages/EmailConfigurationPage";
 import StripeConfiguration from "@/pages/StripeConfiguration";
 import FrontendConfiguration from "@/pages/FrontendConfiguration";
 import ConfigurarCuenta from "@/pages/ConfigurarCuenta";
+import ActivarCuenta from "@/pages/ActivarCuenta";
 
 import IntegrationSettings from "@/pages/IntegrationSettings";
 import WordPressMembershipTest from "@/pages/WordPressMembershipTest";
@@ -93,6 +94,10 @@ function Router() {
     <div>
       <Route path="/login">
         <Login />
+      </Route>
+      
+      <Route path="/activar-cuenta">
+        <ActivarCuenta />
       </Route>
       
       <Route path="/dashboard">
