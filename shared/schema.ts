@@ -119,8 +119,8 @@ export const roles = pgTable("roles", {
 
 export const opinions = pgTable("opinions", {
   id: serial("id").primaryKey(),
-  companyId: integer("company_id").references(() => companies.id),
-  userId: integer("user_id").references(() => users.id),
+  companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
   tipo: text("tipo").notNull().default("empresa"), // empresa, plataforma
   nombre: text("nombre").notNull(),
   email: text("email").notNull(),
@@ -130,7 +130,7 @@ export const opinions = pgTable("opinions", {
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
   estado: text("estado").notNull().default("pendiente"), // pendiente, aprobada, rechazada
   fechaAprobacion: timestamp("fecha_aprobacion"),
-  aprobadoPor: integer("aprobado_por").references(() => users.id),
+  aprobadoPor: integer("aprobado_por").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
