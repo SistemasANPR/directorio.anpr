@@ -378,10 +378,6 @@ export default function PublicMemberships() {
                   anpr.org.mx
                 </a>
               </div>
-              <div className="flex items-center gap-2">
-                <span>📱</span>
-                <span>@anprmexico</span>
-              </div>
             </div>
           </div>
         </div>
