@@ -1,7 +1,7 @@
 /// <reference types="@types/google.maps" />
 import { useEffect, useRef, useMemo } from "react";
 import { MapPin } from "lucide-react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { getGoogleMapsLoader } from "@/lib/googleMapsLoader";
 import type { CompanyWithDetails } from "@shared/schema";
 
 interface DirectoryMapProps {
@@ -60,11 +60,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
       return;
     }
 
-    const loader = new Loader({
-      apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-      version: "weekly",
-      libraries: ["places", "marker"]
-    });
+    const loader = getGoogleMapsLoader();
 
     let isMounted = true;
 

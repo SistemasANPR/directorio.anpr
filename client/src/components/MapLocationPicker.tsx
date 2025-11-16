@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Loader } from "@googlemaps/js-api-loader";
+import { getGoogleMapsLoader } from "@/lib/googleMapsLoader";
 
 interface LocationInfo {
   lat: number;
@@ -159,11 +159,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
   useEffect(() => {
     if (!mapRef.current) return;
 
-    const loader = new Loader({
-      apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-      version: "weekly",
-      libraries: ["places", "geocoding"]
-    });
+    const loader = getGoogleMapsLoader();
 
     let isMounted = true;
 
