@@ -517,7 +517,7 @@ export default function Home() {
               <div className="flex-1 md:flex-2 relative">
                 <input
                   type="text"
-                  placeholder="empresas, servicios o categorías..."
+                  placeholder="Buscar Empresas..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700"
