@@ -635,8 +635,8 @@ export default function Home() {
 
         {!isLoading && !error && (
           <>
-            <div className="flex flex-col items-center mb-4 gap-4">
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center text-[#0f2161] font-['Montserrat'] leading-tight">
+            <div className="flex flex-row justify-between items-center mb-4">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center text-[#0f2161] font-['Montserrat'] leading-tight flex-1">
                 Empresas destacadas
               </h2>
               <Link href="/directorio">
