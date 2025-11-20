@@ -645,7 +645,7 @@ export default function Home() {
                 : `Conoce a las empresas líderes que transforman espacios públicos`}
             </p>
 
-            <div className="text-center mb-8">
+            <div className="text-right mb-8">
               <Link href="/directorio">
                 <button
                   data-testid="button-ver-todas-empresas"
