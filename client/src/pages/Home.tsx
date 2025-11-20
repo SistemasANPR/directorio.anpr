@@ -292,14 +292,28 @@ function CompanyCard({ company }: { company: any }) {
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
-                width: "120px",
-                height: "120px",
-                backgroundImage: `url(${company.logotipoUrl})`,
-                backgroundPosition: "center",
-                backgroundSize: "120px",
-                backgroundRepeat: "no-repeat",
+                width: "140px",
+                height: "140px",
+                backgroundColor: "rgba(255, 255, 255, 0.7)",
+                backdropFilter: "blur(10px)",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
               }}
-            />
+            >
+              <div
+                style={{
+                  width: "120px",
+                  height: "120px",
+                  backgroundImage: `url(${company.logotipoUrl})`,
+                  backgroundPosition: "center",
+                  backgroundSize: "contain",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            </div>
           )}
           {!company.galeriaProductosUrls?.length && !company.imagenPortada && !company.logotipoUrl && (
             <div
