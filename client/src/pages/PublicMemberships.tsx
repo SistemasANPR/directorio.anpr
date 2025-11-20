@@ -91,44 +91,44 @@ export default function PublicMemberships() {
               </p>
               
               <div className="grid grid-cols-2 gap-3 text-gray-700">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Juegos infantiles</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Mobiliario urbano</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Superficies deportivas</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Señalética y accesibilidad</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Tecnología de riego y landscaping</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Iluminación y energía limpia</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Mantenimiento de áreas verdes y manejo de residuos</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Seguridad, movilidad eléctrica y accesos automatizados</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>Diseño, construcción y servicios para parques</span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                <div className="flex items-start">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
                   <span>y más...</span>
                 </div>
               </div>
