@@ -649,15 +649,16 @@ export default function CompanyDetails() {
                     <div className="space-y-3">
                       {emails.map((email, index) => {
                         const peepsoProfile = emailPeepsoProfiles?.success && emailPeepsoProfiles?.profiles?.[email];
-                        const hasProfileUrl = peepsoProfile?.has_peepso_profile && peepsoProfile?.profile_url;
+                        const hasProfile = peepsoProfile?.has_peepso_profile && peepsoProfile?.username;
+                        const peepsoUrl = hasProfile ? `https://anpr.org.mx/profile-2/?${peepsoProfile.username}` : null;
                         
                         return (
                           <div key={index} className="space-y-1">
                             <p className="text-gray-600">{email}</p>
-                            {hasProfileUrl && (
+                            {hasProfile && peepsoUrl && (
                               <div className="ml-0">
                                 <a
-                                  href={peepsoProfile.profile_url}
+                                  href={peepsoUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
