@@ -777,11 +777,11 @@ export default function Home() {
                               position: "absolute",
                               bottom: "1rem",
                               left: "1rem",
-                              width: "80px",
-                              height: "80px",
+                              width: "50px",
+                              height: "35px",
                               backgroundColor: "rgba(255, 255, 255, 0.7)",
                               backdropFilter: "blur(10px)",
-                              borderRadius: "12px",
+                              borderRadius: "8px",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -791,8 +791,8 @@ export default function Home() {
                           >
                             <div
                               style={{
-                                width: "70px",
-                                height: "70px",
+                                width: "45px",
+                                height: "30px",
                                 backgroundImage: `url(${categoryCompany.logotipoUrl})`,
                                 backgroundPosition: "center",
                                 backgroundSize: "contain",
