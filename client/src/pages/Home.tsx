@@ -512,7 +512,7 @@ export default function Home() {
               color: "#ffffff",
             }}
           >
-            El Directorio de Equipamiento Urbano de México
+            El Directorio de Equipamiento
           </h1>
           <p
             className="text-sm md:text-lg lg:text-xl mb-8 opacity-95"
