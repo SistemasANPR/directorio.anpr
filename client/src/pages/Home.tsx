@@ -354,7 +354,7 @@ function CompanyCard({ company }: { company: any }) {
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("all");
   const sliderRef = useRef<HTMLDivElement>(null);
   const categorySliderRef = useRef<HTMLDivElement>(null);
 
@@ -425,13 +425,13 @@ export default function Home() {
       const matchesCategory = selectedCategory === "" || selectedCategory === "all" || 
         company.categories?.some((cat: any) => cat.id?.toString() === selectedCategory);
       
-      const matchesLocation = selectedLocation === "" || 
+      const matchesLocation = selectedLocation === "" || selectedLocation === "all" || 
         (company.estadosPresencia && company.estadosPresencia.includes(selectedLocation));
       
       // Si NO hay búsqueda activa (sin filtros), mostrar solo empresas con membresía Empresarial
       const hasActiveSearch = searchTerm.trim() !== "" || 
                              (selectedCategory !== "" && selectedCategory !== "all") || 
-                             selectedLocation !== "";
+                             (selectedLocation !== "" && selectedLocation !== "all");
       
       const matchesMembership = hasActiveSearch || 
         company.membershipType?.nombrePlan?.toLowerCase().includes('empresarial');
@@ -535,7 +535,7 @@ export default function Home() {
               <div className="flex-1" style={{ color: "#374151 !important" }}>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger 
-                    className="w-full px-4 text-sm md:text-lg rounded-lg cursor-pointer border-none focus:ring-0 focus:ring-offset-0 [&>span]:!text-[#374151] [&>span]:font-normal [&_svg]:hidden data-[placeholder]:!text-[#374151] !text-[#374151]"
+                    className="w-full px-4 text-sm md:text-lg rounded-lg cursor-pointer border-none focus:ring-0 focus:ring-offset-0 [&>span]:!text-[#374151] [&>span]:font-normal [&_svg]:!text-[#374151] data-[placeholder]:!text-[#374151] !text-[#374151]"
                     style={{
                       height: "52px",
                       boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
@@ -569,25 +569,30 @@ export default function Home() {
               
               {/* Filtro de ubicación */}
               <div className="flex-1">
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full px-4 text-sm md:text-lg rounded-lg border-none outline-none text-gray-700 cursor-pointer"
-                  style={{
-                    height: "52px",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    backgroundColor: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(10px)",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <option value="">Todas las ubicaciones</option>
-                  {estadosMexico.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger 
+                    className="w-full px-4 text-sm md:text-lg rounded-lg cursor-pointer border-none focus:ring-0 focus:ring-offset-0 [&>span]:!text-[#374151] [&>span]:font-normal [&_svg]:!text-[#374151] data-[placeholder]:!text-[#374151] !text-[#374151]"
+                    style={{
+                      height: "52px",
+                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                      backgroundColor: "rgba(255,255,255,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: "8px",
+                      border: "none",
+                      color: "#374151 !important",
+                    }}
+                  >
+                    <SelectValue placeholder="Todas las ubicaciones" style={{ color: "#374151 !important" }} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las ubicaciones</SelectItem>
+                    {estadosMexico.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
