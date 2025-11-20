@@ -612,9 +612,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-
-
       <div className="py-8 md:py-16 px-4 max-w-6xl mx-auto">
         {isLoading && (
           <div className="text-center py-12">
@@ -706,13 +703,10 @@ export default function Home() {
           </>
         )}
       </div>
-
       {/* Nueva sección: Empresas líderes por categoría */}
       <div className="py-8 md:py-16 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-center text-[#0f2161] font-['Montserrat']">
-            Empresas líderes en las que puede confiar
-          </h2>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-center text-[#0f2161] font-['Montserrat']">Productos confiables para sus proyectos</h2>
           
           <p className="text-sm md:text-lg text-center text-gray-500 mb-8 md:mb-12 max-w-4xl mx-auto px-4">
             Haz clic y descubre más sobre las empresas líderes y cómo colaborar con ellas.
@@ -867,10 +861,8 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       {/* Sección de reseñas */}
       {/* <TestimonialsSection /> */}
-
       {/* Sección de beneficios */}
       <div style={{ 
         padding: "4rem 2rem", 
