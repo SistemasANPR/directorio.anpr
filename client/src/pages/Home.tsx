@@ -635,10 +635,17 @@ export default function Home() {
 
         {!isLoading && !error && (
           <>
-            <div className="flex flex-row justify-between items-center mb-4">
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center text-[#0f2161] font-['Montserrat'] leading-tight flex-1">
-                Empresas destacadas
-              </h2>
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-center text-[#0f2161] font-['Montserrat'] leading-tight mb-4">
+              Empresas destacadas
+            </h2>
+            
+            <p className="text-sm md:text-lg text-center text-gray-500 mb-6 max-w-4xl mx-auto px-4">
+              {searchTerm
+                ? `Resultados de búsqueda (${searchResults.length})`
+                : `Conoce a las empresas líderes que transforman espacios públicos`}
+            </p>
+
+            <div className="text-center mb-8">
               <Link href="/directorio">
                 <button
                   data-testid="button-ver-todas-empresas"
@@ -648,12 +655,6 @@ export default function Home() {
                 </button>
               </Link>
             </div>
-            
-            <p className="text-sm md:text-lg text-center text-gray-500 mb-8 md:mb-12 max-w-4xl mx-auto px-4">
-              {searchTerm
-                ? `Resultados de búsqueda (${searchResults.length})`
-                : `Conoce a las empresas líderes que transforman espacios públicos`}
-            </p>
 
             {searchResults.length === 0 ? (
               <div className="text-center py-12">
