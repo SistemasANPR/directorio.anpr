@@ -663,7 +663,7 @@ export default function CompanyDetails() {
                                   className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
                                 >
                                   <User className="h-3 w-3 mr-1" />
-                                  Ver perfil PeepSo
+                                  Ver perfil en la Comunidad
                                   <ExternalLink className="h-3 w-3 ml-1" />
                                 </a>
                               </div>
