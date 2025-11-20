@@ -129,10 +129,6 @@ export default function PublicMemberships() {
                 </div>
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  <span>Uniformes, productos promocionales</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
                   <span>y más...</span>
                 </div>
               </div>
