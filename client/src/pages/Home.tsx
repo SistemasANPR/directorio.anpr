@@ -642,7 +642,7 @@ export default function Home() {
               <Link href="/directorio">
                 <button
                   data-testid="button-ver-todas-empresas"
-                  className="bg-[#bcce16] hover:bg-[#a8b914] text-[#0f2161] font-bold py-2 px-6 rounded-full transition-colors duration-200 font-['Montserrat'] text-sm md:text-base"
+                  className="bg-[#bcce16] hover:bg-[#a8b914] text-[#0f2161] font-bold py-1 px-4 rounded-full transition-colors duration-200 font-['Montserrat'] text-xs md:text-sm"
                 >
                   Ver todas
                 </button>
