@@ -770,12 +770,43 @@ export default function Home() {
                           background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
                         }}></div>
                         
-                        {/* Botón Ver Detalles centrado */}
+                        {/* Logo en la esquina inferior izquierda */}
+                        {categoryCompany.logotipoUrl && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: "1rem",
+                              left: "1rem",
+                              width: "80px",
+                              height: "80px",
+                              backgroundColor: "rgba(255, 255, 255, 0.7)",
+                              backdropFilter: "blur(10px)",
+                              borderRadius: "12px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+                              zIndex: 10
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "70px",
+                                height: "70px",
+                                backgroundImage: `url(${categoryCompany.logotipoUrl})`,
+                                backgroundPosition: "center",
+                                backgroundSize: "contain",
+                                backgroundRepeat: "no-repeat",
+                              }}
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Botón Ver más en la esquina inferior derecha */}
                         <div style={{
                           position: "absolute",
-                          top: "50%",
-                          left: "50%",
-                          transform: "translate(-50%, -50%)",
+                          bottom: "1rem",
+                          right: "1rem",
                           zIndex: 10
                         }}>
                           <Link href={`/empresa/${categoryCompany.id}`}>
@@ -784,8 +815,8 @@ export default function Home() {
                               color: "#0f2161",
                               border: "none",
                               borderRadius: "50px",
-                              padding: "1rem 2.5rem",
-                              fontSize: "1rem",
+                              padding: "0.5rem 1.5rem",
+                              fontSize: "0.85rem",
                               fontFamily: "'Montserrat', sans-serif",
                               fontWeight: "700",
                               cursor: "pointer",
@@ -800,7 +831,7 @@ export default function Home() {
                               e.currentTarget.style.backgroundColor = "#bcce16";
                               e.currentTarget.style.transform = "scale(1)";
                             }}>
-                              Ver Detalles
+                              Ver más
                             </button>
                           </Link>
                         </div>
