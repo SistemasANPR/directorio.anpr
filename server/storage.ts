@@ -471,6 +471,18 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
+    // Si se está actualizando la fecha de vencimiento de membresía, activar automáticamente la empresa si la fecha es futura
+    if (companyData.fechaFinMembresia) {
+      const fechaVencimiento = new Date(companyData.fechaFinMembresia);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+      
+      // Si la fecha de vencimiento es posterior a hoy, activar la empresa automáticamente
+      if (fechaVencimiento >= hoy) {
+        companyData.estado = 'activo';
+      }
+    }
+
     const [company] = await db.update(companies).set({ ...companyData, updatedAt: new Date() }).where(eq(companies.id, id)).returning();
     return company || undefined;
   }
