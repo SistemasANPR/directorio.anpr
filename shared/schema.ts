@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, varchar, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, varchar, date, doublePrecision } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -203,8 +203,8 @@ export const projects = pgTable("projects", {
 export const companyLocations = pgTable("company_locations", {
   id: serial("id").primaryKey(),
   companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }).notNull(),
-  lat: decimal("lat", { precision: 10, scale: 7 }).notNull(),
-  lng: decimal("lng", { precision: 10, scale: 7 }).notNull(),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
   address: text("address").notNull(),
   country: text("country"),
   state: text("state"),
