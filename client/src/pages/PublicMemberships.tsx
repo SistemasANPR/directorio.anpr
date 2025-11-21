@@ -146,7 +146,7 @@ export default function PublicMemberships() {
       {/* Planes de Membresía */}
       <div id="membership-plans" className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 text-center mb-12">
-          <h2 className="hero-title text-3xl text-gray-700 mb-4">
+          <h2 className="hero-title text-3xl mb-4" style={{ color: '#0f2161' }}>
             Elige tu plan
           </h2>
           <p className="text-lg text-gray-500 max-w-3xl mx-auto">
