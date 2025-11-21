@@ -7,7 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema, insertFrontendConfigurationSchema } from "@shared/schema";
+import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema, insertFrontendConfigurationSchema, insertCompanyLocationSchema } from "@shared/schema";
 import { z } from "zod";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -1409,6 +1409,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete company" });
+    }
+  });
+
+  // Company Locations API
+  app.get("/api/companies/:id/locations", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const locations = await storage.getCompanyLocations(companyId);
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching company locations:", error);
+      res.status(500).json({ error: "Failed to fetch company locations" });
+    }
+  });
+
+  app.post("/api/companies/:id/locations", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const validatedData = insertCompanyLocationSchema.parse({
+        ...req.body,
+        companyId
+      });
+      const location = await storage.createCompanyLocation(validatedData);
+      res.json(location);
+    } catch (error) {
+      console.error("Error creating company location:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create company location" });
+    }
+  });
+
+  app.put("/api/companies/:id/locations/:locationId", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.locationId);
+      const validatedData = insertCompanyLocationSchema.partial().parse(req.body);
+      const location = await storage.updateCompanyLocation(locationId, validatedData);
+      if (!location) {
+        return res.status(404).json({ error: "Location not found" });
+      }
+      res.json(location);
+    } catch (error) {
+      console.error("Error updating company location:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update company location" });
+    }
+  });
+
+  app.delete("/api/companies/:id/locations/:locationId", async (req, res) => {
+    try {
+      const locationId = parseInt(req.params.locationId);
+      const deleted = await storage.deleteCompanyLocation(locationId);
+      if (!deleted) {
+        return res.status(404).json({ error: "Location not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting company location:", error);
+      res.status(500).json({ error: "Failed to delete company location" });
+    }
+  });
+
+  app.put("/api/companies/:id/locations/:locationId/set-principal", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const locationId = parseInt(req.params.locationId);
+      const location = await storage.setPrincipalLocation(companyId, locationId);
+      if (!location) {
+        return res.status(404).json({ error: "Location not found" });
+      }
+      res.json(location);
+    } catch (error) {
+      console.error("Error setting principal location:", error);
+      res.status(500).json({ error: "Failed to set principal location" });
     }
   });
 

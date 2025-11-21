@@ -42,6 +42,7 @@ import {
   Gamepad2, Book, Palette, Plane, Ship, Train, Zap, Search, Check, ChevronsUpDown, ExternalLink, User, Crown
 } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
+import MultiLocationPicker from "./MultiLocationPicker";
 import RichTextEditor from "./RichTextEditor";
 
 // Schema completo para edición 
@@ -122,6 +123,9 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
   const [galeriaFiles, setGaleriaFiles] = useState<File[]>([]);
   const [galeriaPreviews, setGaleriaPreviews] = useState<string[]>([]);
   const [videosUrls, setVideosUrls] = useState<string[]>([]);
+  
+  // Estado para ubicaciones múltiples
+  const [companyLocations, setCompanyLocations] = useState<any[]>([]);
   
   // Estados para el buscador de usuarios de WordPress
   const [wordPressUserSearch, setWordPressUserSearch] = useState("");
@@ -513,6 +517,26 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
     }
   }, [company, open, form]);
 
+  // Cargar ubicaciones existentes de la empresa
+  useEffect(() => {
+    const loadCompanyLocations = async () => {
+      if (company?.id && open) {
+        try {
+          const response = await fetch(`/api/companies/${company.id}/locations`);
+          if (response.ok) {
+            const locations = await response.json();
+            setCompanyLocations(locations);
+          }
+        } catch (error) {
+          console.error('Error loading company locations:', error);
+          setCompanyLocations([]);
+        }
+      }
+    };
+    
+    loadCompanyLocations();
+  }, [company?.id, open]);
+
   // Queries para obtener datos
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -583,7 +607,42 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Actualizar las ubicaciones: eliminar todas las existentes y crear las nuevas
+      if (company?.id && companyLocations.length > 0) {
+        try {
+          // Primero, eliminar todas las ubicaciones existentes
+          const existingLocations = await fetch(`/api/companies/${company.id}/locations`);
+          if (existingLocations.ok) {
+            const locations = await existingLocations.json();
+            for (const location of locations) {
+              await fetch(`/api/companies/${company.id}/locations/${location.id}`, {
+                method: 'DELETE'
+              });
+            }
+          }
+          
+          // Luego, crear las nuevas ubicaciones
+          for (const location of companyLocations) {
+            await fetch(`/api/companies/${company.id}/locations`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lat: location.lat,
+                lng: location.lng,
+                address: location.address,
+                country: location.country,
+                state: location.state,
+                city: location.city,
+                isPrincipal: location.isPrincipal
+              })
+            });
+          }
+        } catch (error) {
+          console.error('Error updating company locations:', error);
+        }
+      }
+      
       toast({
         title: "Empresa actualizada",
         description: "La información de la empresa ha sido actualizada exitosamente",
@@ -1134,65 +1193,29 @@ export default function EditCompanyModal({ open, onOpenChange, company, userRole
                   )}
                 />
 
-                {/* Dirección Física */}
-                <FormField
-                  control={form.control}
-                  name="direccionFisica"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Dirección Física *</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Dirección completa de la empresa"
-                          className="min-h-[80px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Mapa de ubicación */}
-                <div className="md:col-span-2">
-                  <FormLabel>Ubicación en el Mapa</FormLabel>
-                  <div className="mt-2">
-                    <MapLocationPicker
-                      ciudad="México"
-                      onLocationSelect={(location) => {
-                        form.setValue("ubicacionGeografica", JSON.stringify(location));
-                        // Actualizar también el campo direccionFisica con la dirección geocodificada
-                        if (location.address) {
-                          form.setValue("direccionFisica", location.address);
-                        }
-                      }}
-                      initialLocation={(() => {
-                        const ubicacion = form.watch("ubicacionGeografica");
-                        if (!ubicacion) return null;
-                        
-                        // Si ya es un objeto, devolverlo directamente
-                        if (typeof ubicacion === 'object' && ubicacion !== null) {
-                          return ubicacion;
-                        }
-                        
-                        // Si es una cadena, intentar parsear como JSON
-                        if (typeof ubicacion === 'string') {
-                          try {
-                            return JSON.parse(ubicacion);
-                          } catch (e) {
-                            console.warn('Error parsing ubicacionGeografica:', e);
-                            return null;
-                          }
-                        }
-                        
-                        return null;
-                      })()}
-                      direccionFisica={form.watch("direccionFisica")}
-                    />
+                {/* Ubicaciones Geográficas - Múltiples */}
+                <div className="md:col-span-2 mb-8">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Ubicaciones de la Empresa
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Agrega una o más ubicaciones físicas de tu empresa. La ubicación principal será la destacada en búsquedas y en el perfil.
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    La ubicación se actualizará automáticamente basándose en la dirección física
-                  </p>
+                  <MultiLocationPicker
+                    companyId={company?.id}
+                    initialLocations={companyLocations}
+                    onChange={(locations) => {
+                      setCompanyLocations(locations);
+                      // Actualizar direccionFisica con la ubicación principal
+                      const principalLocation = locations.find(loc => loc.isPrincipal);
+                      if (principalLocation && principalLocation.address) {
+                        form.setValue("direccionFisica", principalLocation.address);
+                      }
+                    }}
+                  />
                 </div>
 
                 {/* Email adicional */}

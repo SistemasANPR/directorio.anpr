@@ -10,6 +10,7 @@ import {
   membershipPayments,
   systemSettings,
   projects,
+  companyLocations,
   integrationSettings,
   pdfSettings,
   stripeConfigurationTable,
@@ -34,6 +35,8 @@ import {
   type InsertRole,
   type InsertOpinion,
   type InsertProject,
+  type SelectCompanyLocation,
+  type InsertCompanyLocation,
   type IntegrationSettings,
   type InsertIntegrationSettings,
   type PdfSettings,
@@ -83,6 +86,13 @@ export interface IStorage {
   updateCompany(id: number, company: Partial<InsertCompany>): Promise<Company | undefined>;
   deleteCompany(id: number): Promise<boolean>;
   getCompaniesByUser(userId: number): Promise<CompanyWithDetails[]>;
+
+  // Company Locations
+  getCompanyLocations(companyId: number): Promise<SelectCompanyLocation[]>;
+  createCompanyLocation(location: InsertCompanyLocation): Promise<SelectCompanyLocation>;
+  updateCompanyLocation(locationId: number, location: Partial<InsertCompanyLocation>): Promise<SelectCompanyLocation | undefined>;
+  deleteCompanyLocation(locationId: number): Promise<boolean>;
+  setPrincipalLocation(companyId: number, locationId: number): Promise<SelectCompanyLocation | undefined>;
 
   // Categories
   getCategory(id: number): Promise<Category | undefined>;
@@ -511,6 +521,70 @@ export class DatabaseStorage implements IStorage {
     );
 
     return enrichedCompanies;
+  }
+
+  // Company Locations
+  async getCompanyLocations(companyId: number): Promise<SelectCompanyLocation[]> {
+    const locations = await db
+      .select()
+      .from(companyLocations)
+      .where(eq(companyLocations.companyId, companyId))
+      .orderBy(sql`CASE WHEN ${companyLocations.isPrincipal} THEN 0 ELSE 1 END`);
+    return locations;
+  }
+
+  async createCompanyLocation(location: InsertCompanyLocation): Promise<SelectCompanyLocation> {
+    // Si la nueva ubicación es principal, desmarcar otras ubicaciones principales
+    if (location.isPrincipal) {
+      await db
+        .update(companyLocations)
+        .set({ isPrincipal: false })
+        .where(eq(companyLocations.companyId, location.companyId));
+    }
+    
+    const [newLocation] = await db
+      .insert(companyLocations)
+      .values(location)
+      .returning();
+    return newLocation;
+  }
+
+  async updateCompanyLocation(
+    locationId: number, 
+    locationData: Partial<InsertCompanyLocation>
+  ): Promise<SelectCompanyLocation | undefined> {
+    const [location] = await db
+      .update(companyLocations)
+      .set({ ...locationData, updatedAt: new Date() })
+      .where(eq(companyLocations.id, locationId))
+      .returning();
+    return location || undefined;
+  }
+
+  async deleteCompanyLocation(locationId: number): Promise<boolean> {
+    const result = await db
+      .delete(companyLocations)
+      .where(eq(companyLocations.id, locationId));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async setPrincipalLocation(companyId: number, locationId: number): Promise<SelectCompanyLocation | undefined> {
+    // Desmarcar todas las ubicaciones de esta empresa como principal
+    await db
+      .update(companyLocations)
+      .set({ isPrincipal: false })
+      .where(eq(companyLocations.companyId, companyId));
+    
+    // Marcar la ubicación especificada como principal
+    const [location] = await db
+      .update(companyLocations)
+      .set({ isPrincipal: true, updatedAt: new Date() })
+      .where(and(
+        eq(companyLocations.id, locationId),
+        eq(companyLocations.companyId, companyId)
+      ))
+      .returning();
+    return location || undefined;
   }
 
   // Categories
