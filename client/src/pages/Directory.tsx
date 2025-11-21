@@ -508,7 +508,7 @@ export default function Directory() {
       <div className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold mb-4" style={{ color: '#0f2161' }}>
               Mapa de Empresas
             </h2>
             <p className="text-gray-600 mb-8">
