@@ -353,7 +353,7 @@ export default function PublicMemberships() {
                 e.currentTarget.style.setProperty('border-color', '#ffffff', 'important');
               }}
               onClick={() => {
-                window.location.href = 'mailto:vinculacion@anpr.org.mx';
+                window.open('https://wa.me/529999444060', '_blank');
               }}
             >
               Solicitar Información
