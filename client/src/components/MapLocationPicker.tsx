@@ -595,10 +595,16 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
               placeholder="Ej: Av. Insurgentes 123, Ciudad de México"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSearch();
+                }
+              }}
               className="flex-1"
             />
             <Button 
+              type="button"
               onClick={handleSearch} 
               disabled={isGeocoding}
               data-testid="button-search-address"
@@ -658,6 +664,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
           </div>
 
           <Button 
+            type="button"
             onClick={handleManualCoordUpdate} 
             variant="outline" 
             size="sm" 
