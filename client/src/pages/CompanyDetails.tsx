@@ -891,47 +891,218 @@ export default function CompanyDetails() {
         </div>
 
         {/* Sección del Mapa - Nuestra Ubicación */}
-        <div className="mt-12">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Nuestra Ubicación
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {company.direccionFisica ? (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-700 font-medium">{company.direccionFisica}</p>
-                    {company.ciudad && company.estado && (
-                      <p className="text-gray-600 text-sm mt-1">
-                        {company.ciudad}, {company.estado}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-500">Dirección o descripción no disponible</p>
-                    {company.ciudad && company.estado && (
-                      <p className="text-gray-600 text-sm mt-1">
-                        {company.ciudad}, {company.estado}
-                      </p>
-                    )}
-                  </div>
-                )}
+        {(() => {
+          // Helper function to validate coordinates
+          const isValidCoordinate = (lat: any, lng: any) => {
+            return typeof lat === 'number' && 
+                   typeof lng === 'number' &&
+                   !isNaN(lat) &&
+                   !isNaN(lng) &&
+                   lat !== 0 &&
+                   lng !== 0 &&
+                   lat >= -90 && lat <= 90 &&
+                   lng >= -180 && lng <= 180;
+          };
+
+          // Helper function to get primary location with validation
+          const getPrimaryLocation = () => {
+            if (company.ubicaciones) {
+              try {
+                let ubicaciones: any[];
+                if (typeof company.ubicaciones === 'string') {
+                  ubicaciones = JSON.parse(company.ubicaciones);
+                } else {
+                  ubicaciones = Array.isArray(company.ubicaciones) ? company.ubicaciones : [];
+                }
                 
-                {/* Mapa */}
-                <CompanyLocationMap 
-                  ubicacionGeografica={company.ubicacionGeografica}
-                  direccionFisica={company.direccionFisica}
-                  nombreEmpresa={company.nombreEmpresa}
-                  ciudadesPresencia={company.ciudadesPresencia}
-                />
+                if (ubicaciones.length > 0) {
+                  const primaryLocation = ubicaciones.find((loc: any) => loc.isPrimary) || ubicaciones[0];
+                  // Validate that location has valid coordinates
+                  if (primaryLocation && isValidCoordinate(primaryLocation.lat, primaryLocation.lng)) {
+                    return primaryLocation;
+                  }
+                }
+              } catch {
+                // Fall through to legacy location
+              }
+            }
+            return null;
+          };
+
+          const primaryLocation = getPrimaryLocation();
+          
+          // Build displayLocation with validation
+          let displayLocation = null;
+          if (primaryLocation) {
+            displayLocation = { 
+              lat: primaryLocation.lat, 
+              lng: primaryLocation.lng 
+            };
+          } else {
+            // Try legacy ubicacionGeografica field (could be object or JSON string)
+            let legacyLocation = null;
+            if (company.ubicacionGeografica) {
+              try {
+                if (typeof company.ubicacionGeografica === 'string') {
+                  legacyLocation = JSON.parse(company.ubicacionGeografica);
+                } else {
+                  legacyLocation = company.ubicacionGeografica;
+                }
+                
+                // Validate parsed/existing location
+                if (legacyLocation && isValidCoordinate(legacyLocation.lat, legacyLocation.lng)) {
+                  displayLocation = legacyLocation;
+                }
+              } catch {
+                // Invalid JSON or data, displayLocation remains null
+              }
+            }
+          }
+
+          // If no valid location data at all, don't render this section
+          if (!displayLocation && !company.direccionFisica && !company.ciudad && !company.estado) {
+            return null;
+          }
+
+          return (
+            <div className="mt-12">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <MapPin className="h-5 w-5 mr-2" />
+                    Nuestra Ubicación Principal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Address information */}
+                    {primaryLocation ? (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-gray-700 font-medium">
+                          {primaryLocation.nombre || company.direccionFisica || 'Ubicación principal'}
+                        </p>
+                        {(primaryLocation.address || company.ciudad || company.estado) && (
+                          <p className="text-gray-600 text-sm mt-1">
+                            {primaryLocation.address || `${company.ciudad || ''}${company.ciudad && company.estado ? ', ' : ''}${company.estado || ''}`}
+                          </p>
+                        )}
+                      </div>
+                    ) : company.direccionFisica ? (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-gray-700 font-medium">{company.direccionFisica}</p>
+                        {company.ciudad && company.estado && (
+                          <p className="text-gray-600 text-sm mt-1">
+                            {company.ciudad}, {company.estado}
+                          </p>
+                        )}
+                      </div>
+                    ) : (company.ciudad || company.estado) ? (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-gray-600">
+                          {company.ciudad}{company.ciudad && company.estado ? ', ' : ''}{company.estado}
+                        </p>
+                      </div>
+                    ) : null}
+                    
+                    {/* Map - only render if we have valid coordinates */}
+                    {displayLocation && (
+                      <CompanyLocationMap 
+                        ubicacionGeografica={displayLocation}
+                        direccionFisica={primaryLocation?.address || company.direccionFisica}
+                        nombreEmpresa={company.nombreEmpresa}
+                        ciudadesPresencia={company.ciudadesPresencia}
+                      />
+                    )}
+                    
+                    {!displayLocation && (company.direccionFisica || company.ciudad || company.estado) && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-gray-500 text-sm">Ubicación en el mapa no disponible</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
+
+        {/* Sección de Todas las Ubicaciones - Solo si hay múltiples ubicaciones */}
+        {(() => {
+          const ubicaciones = (() => {
+            if (!company.ubicaciones) return [];
+            try {
+              if (typeof company.ubicaciones === 'string') {
+                return JSON.parse(company.ubicaciones);
+              }
+              return Array.isArray(company.ubicaciones) ? company.ubicaciones : [];
+            } catch {
+              return [];
+            }
+          })();
+
+          if (ubicaciones.length > 1) {
+            return (
+              <div className="mt-12">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <MapPin className="h-5 w-5 mr-2" />
+                      Todas Nuestras Ubicaciones
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {ubicaciones.map((ubicacion: any, index: number) => (
+                        <div
+                          key={ubicacion.id || index}
+                          className={`p-4 rounded-lg border ${
+                            ubicacion.isPrimary
+                              ? "border-blue-300 bg-blue-50"
+                              : "border-gray-200 bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold text-gray-900">
+                                  {ubicacion.nombre || `Ubicación ${index + 1}`}
+                                </h4>
+                                {ubicacion.isPrimary && (
+                                  <span className="flex items-center gap-1 text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
+                                    <Star className="h-3 w-3" />
+                                    Principal
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 mb-1">
+                                {ubicacion.address}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Lat: {ubicacion.lat.toFixed(6)}, Lng: {ubicacion.lng.toFixed(6)}
+                              </p>
+                            </div>
+                            <div className="ml-4">
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${ubicacion.lat},${ubicacion.lng}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                              >
+                                <MapPin className="h-4 w-4" />
+                                Ver en mapa
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Sección de Empresas Relacionadas */}
         {relatedCompanies.length > 0 && (

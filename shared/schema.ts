@@ -66,7 +66,8 @@ export const companies = pgTable("companies", {
   email1: text("email1").notNull(),
   email2: text("email2"),
   direccionFisica: text("direccion_fisica").notNull(), // Dirección física única de la empresa
-  ubicacionGeografica: jsonb("ubicacion_geografica"), // {lat: number, lng: number, address: string}
+  ubicacionGeografica: jsonb("ubicacion_geografica"), // {lat: number, lng: number, address: string} - Ubicación principal (para compatibilidad)
+  ubicaciones: jsonb("ubicaciones"), // Array of {id: string, nombre: string, lat: number, lng: number, address: string, isPrimary: boolean}
   representantesVentas: jsonb("representantes_ventas"), // Array of user IDs
   descripcionEmpresa: text("descripcion_empresa"),
   galeriaProductosUrls: jsonb("galeria_productos_urls"), // Array of image URLs
