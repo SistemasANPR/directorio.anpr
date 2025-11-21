@@ -3221,8 +3221,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Log ubicacionGeografica for debugging
-      console.log("Complete Registration - ubicacionGeografica received:", companyData.ubicacionGeografica);
+      // Log locations for debugging
+      console.log("Complete Registration - locations received:", companyData.locations);
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
@@ -3242,7 +3242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: 'representante', // Always assign representative role for paid users
       });
 
-      // Create company with ubicacionGeografica
+      // Create company (ubicacionGeografica deprecated, using locations table now)
       const company = await storage.createCompany({
         nombreEmpresa: companyData.nombreEmpresa,
         email1: companyData.email1,
@@ -3250,7 +3250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         direccionFisica: companyData.direccionFisica,
         descripcionEmpresa: companyData.descripcionEmpresa,
         sitioWeb: companyData.sitioWeb,
-        ubicacionGeografica: companyData.ubicacionGeografica || null,
+        ubicacionGeografica: null, // Deprecated field
         membershipTypeId: membershipTypeId,
         membershipPeriodicidad: selectedPeriod,
         formaPago: "tarjeta",
@@ -3259,6 +3259,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         estado: "activo"
       });
+
+      // Create company locations
+      if (companyData.locations && Array.isArray(companyData.locations)) {
+        for (const location of companyData.locations) {
+          await storage.createCompanyLocation({
+            companyId: company.id,
+            address: location.address,
+            lat: location.lat,
+            lng: location.lng,
+            isPrincipal: location.isPrincipal || false
+          });
+        }
+      }
 
       // Get membership type for amount
       const membershipType = await storage.getMembershipType(membershipTypeId);

@@ -31,7 +31,7 @@ import {
   Upload
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import MapLocationPicker from "@/components/MapLocationPicker";
+import MultiLocationPicker from "@/components/MultiLocationPicker";
 
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('VITE_STRIPE_PUBLIC_KEY no está configurada');
@@ -58,9 +58,12 @@ const companySchema = z.object({
   telefono1: z.string().min(10, "Teléfono debe tener al menos 10 dígitos"),
   descripcionEmpresa: z.string().min(20, "La descripción debe tener al menos 20 caracteres"),
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
-  ubicacionGeografica: z.any().refine((val) => val && val.lat && val.lng, {
-    message: "Debes seleccionar una ubicación en el mapa haciendo clic",
-  }),
+  locations: z.array(z.object({
+    lat: z.number(),
+    lng: z.number(),
+    address: z.string(),
+    isPrincipal: z.boolean()
+  })).min(1, "Debes agregar al menos una ubicación"),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -171,7 +174,12 @@ export default function RegisterAndPay() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [ubicacionGeografica, setUbicacionGeografica] = useState<any>(null);
+  const [locations, setLocations] = useState<Array<{
+    lat: number;
+    lng: number;
+    address: string;
+    isPrincipal: boolean;
+  }>>([]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -221,7 +229,7 @@ export default function RegisterAndPay() {
       telefono1: "",
       descripcionEmpresa: "",
       sitioWeb: "",
-      ubicacionGeografica: null,
+      locations: [],
     },
   });
 
@@ -234,9 +242,9 @@ export default function RegisterAndPay() {
         telefono1: "",
         descripcionEmpresa: "",
         sitioWeb: "",
-        ubicacionGeografica: null,
+        locations: [],
       });
-      setUbicacionGeografica(null);
+      setLocations([]);
     }
   }, [currentStep, companyForm]);
 
@@ -426,10 +434,11 @@ export default function RegisterAndPay() {
   };
 
   const handleCompanySubmit = (data: CompanyFormData) => {
+    // Encontrar la ubicación principal
+    const principalLocation = data.locations.find(loc => loc.isPrincipal) || data.locations[0];
     const companyDataWithLocation = {
       ...data,
-      direccionFisica: data.ubicacionGeografica?.address || "Ubicación seleccionada en el mapa",
-      ubicacionGeografica: data.ubicacionGeografica,
+      direccionFisica: principalLocation?.address || "Ubicación seleccionada en el mapa",
     };
     setCompanyData(companyDataWithLocation);
     // Siempre ir al paso 3 para verificación del plan
@@ -687,51 +696,33 @@ export default function RegisterAndPay() {
                 )}
               />
 
-              {/* Sección de Selección de Ubicación en Mapa */}
+              {/* Sección de Selección de Ubicaciones en Mapa */}
               <FormField
                 control={companyForm.control}
-                name="ubicacionGeografica"
+                name="locations"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <MapPin className="w-5 h-5" />
-                      Ubicación de la Empresa
+                      Ubicaciones de la Empresa
                     </FormLabel>
                     <FormControl>
                       <div className="space-y-4">
                         {/* Instrucciones */}
                         <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
                           <p className="text-sm text-blue-700 dark:text-blue-300">
-                            📍 Haz clic en el mapa para seleccionar la ubicación exacta de tu empresa. Puedes mover el marcador haciendo clic en otra posición.
+                            📍 Agrega una o más ubicaciones para tu empresa. La primera ubicación será marcada como principal por defecto.
                           </p>
                         </div>
 
-                        {/* Mapa */}
-                        <div className="w-full h-96 rounded-lg overflow-hidden border-2 border-gray-300 dark:border-gray-600">
-                          <MapLocationPicker
-                            ciudad="México"
-                            onLocationSelect={(location) => {
-                              setUbicacionGeografica(location);
-                              field.onChange(location);
-                            }}
-                            initialLocation={ubicacionGeografica}
-                          />
-                        </div>
-
-                        {/* Mostrar ubicación seleccionada */}
-                        {ubicacionGeografica && (
-                          <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
-                            <p className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">
-                              ✓ Ubicación seleccionada:
-                            </p>
-                            <p className="text-sm text-green-700 dark:text-green-300">
-                              {ubicacionGeografica.address || `${ubicacionGeografica.lat}, ${ubicacionGeografica.lng}`}
-                            </p>
-                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                              Coordenadas: {ubicacionGeografica.lat.toFixed(6)}, {ubicacionGeografica.lng.toFixed(6)}
-                            </p>
-                          </div>
-                        )}
+                        {/* MultiLocationPicker */}
+                        <MultiLocationPicker
+                          initialLocations={locations}
+                          onChange={(newLocations) => {
+                            setLocations(newLocations);
+                            field.onChange(newLocations);
+                          }}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
