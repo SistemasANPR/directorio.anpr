@@ -54,7 +54,7 @@ const companySchema = insertCompanySchema.extend({
   sitioWeb: z.string().url("URL inválida").optional().or(z.literal("")),
   catalogoDigitalUrl: z.string().optional().or(z.literal("")),
   videosUrls: z.array(z.string()).optional(),
-  categoriesIds: z.array(z.number()).min(1, "Selecciona al menos una categoría"),
+  categoriesIds: z.array(z.number()).optional(),
   tagIds: z.array(z.number()).optional(),
   certificateIds: z.array(z.number()).optional(),
   redesSociales: z.array(z.object({
