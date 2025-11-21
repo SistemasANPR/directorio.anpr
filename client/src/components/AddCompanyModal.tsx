@@ -1708,7 +1708,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         Haz clic en el mapa o arrastra el marcador para seleccionar la ubicación exacta de tu empresa
                       </FormDescription>
                       <FormControl>
-                        <div className="h-[500px] bg-white border-2 border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                        <div className="h-[600px] bg-white border-2 border-gray-200 rounded-lg overflow-hidden shadow-sm">
                           <MapLocationPicker
                             ciudad={"México"}
                             onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
