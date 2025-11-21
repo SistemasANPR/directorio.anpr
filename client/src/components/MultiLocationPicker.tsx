@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapPin, Plus, Trash2, Star, StarOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,7 +59,33 @@ export default function MultiLocationPicker({
   const [locations, setLocations] = useState<Location[]>(() => normalizeLocations(initialLocations));
   const [showAddLocation, setShowAddLocation] = useState(false);
 
+  // Ref para rastrear si es la primera vez que se ejecuta el efecto
+  const isFirstRender = useRef(true);
+  const prevInitialLocations = useRef(initialLocations);
+
   useEffect(() => {
+    // Solo actualizar si initialLocations realmente cambió desde afuera
+    // (no por el onChange que nosotros mismos disparamos)
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      prevInitialLocations.current = initialLocations;
+      return;
+    }
+
+    // Verificar si initialLocations cambió de verdad (comparación profunda simple por longitud y IDs)
+    const hasChanged = 
+      initialLocations.length !== prevInitialLocations.current.length ||
+      initialLocations.some((loc, idx) => {
+        const prev = prevInitialLocations.current[idx];
+        return !prev || loc.id !== prev.id || loc.lat !== prev.lat || loc.lng !== prev.lng;
+      });
+
+    if (!hasChanged) {
+      return; // No hacer nada si no cambió realmente
+    }
+
+    prevInitialLocations.current = initialLocations;
+
     // Actualizar ubicaciones cuando initialLocations cambie, preservando localId existentes
     // Crear dos mapas: uno por localId (prioridad) y otro por DB id (fallback)
     const byLocalId = new Map(locations.map(loc => [loc.localId, loc]));
@@ -67,8 +93,8 @@ export default function MultiLocationPicker({
     
     const normalized = normalizeLocations(initialLocations).map(loc => {
       // Prioridad 1: Si ya tiene localId, preservarlo
-      if (loc.localId && byLocalId.has(loc.localId)) {
-        return { ...loc, localId: byLocalId.get(loc.localId)!.localId };
+      if ((loc as any).localId && byLocalId.has((loc as any).localId)) {
+        return { ...loc, localId: byLocalId.get((loc as any).localId)!.localId };
       }
       // Prioridad 2: Si tiene DB id y existe en el estado previo, usar su localId
       if (loc.id && byDbId.has(loc.id)) {
@@ -83,7 +109,7 @@ export default function MultiLocationPicker({
 
   useEffect(() => {
     onChange(locations);
-  }, [locations, onChange]);
+  }, [locations]);
 
   const addLocation = () => {
     const newLocation: Location = {
