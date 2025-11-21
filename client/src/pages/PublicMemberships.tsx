@@ -153,6 +153,10 @@ export default function PublicMemberships() {
             Elige el plan que mejor se adapte a las necesidades de tu empresa. 
             Todos nuestros planes incluyen beneficios exclusivos para hacer crecer tu negocio.
           </p>
+          <div className="mt-4 inline-flex items-center gap-2 bg-blue-50 border-2 border-blue-200 text-blue-800 px-6 py-3 rounded-lg font-semibold">
+            <span className="text-xl">💵</span>
+            <span>Todos los precios están en dólares estadounidenses (USD)</span>
+          </div>
         </div>
       </div>
 
