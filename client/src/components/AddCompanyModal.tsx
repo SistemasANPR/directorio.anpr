@@ -1708,7 +1708,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         Haz clic en el mapa o arrastra el marcador para seleccionar la ubicación exacta de tu empresa
                       </FormDescription>
                       <FormControl>
-                        <div className="h-96">
+                        <div className="h-96 bg-white border-2 border-gray-200 rounded-lg overflow-hidden shadow-sm">
                           <MapLocationPicker
                             ciudad={"México"}
                             onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
@@ -1743,13 +1743,13 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                 />
 
                 {/* Sección: Información de Membresía */}
-                <div className="md:col-span-2 mt-16 space-y-6 p-6 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
-                  <div className="border-b border-amber-300 pb-4">
-                    <h3 className="text-lg font-semibold text-amber-800 flex items-center gap-2">
-                      <Crown className="h-5 w-5" />
+                <div className="md:col-span-2 mt-16 space-y-6 p-6 bg-white border-2 border-blue-200 rounded-lg shadow-sm">
+                  <div className="border-b border-gray-200 pb-4">
+                    <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+                      <Crown className="h-5 w-5 text-blue-600" />
                       Información del Plan
                     </h3>
-                    <p className="text-sm text-amber-700">Configuración del plan y método de pago</p>
+                    <p className="text-sm text-gray-600">Configuración del plan y método de pago</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
