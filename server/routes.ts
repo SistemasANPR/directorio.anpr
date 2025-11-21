@@ -1188,12 +1188,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Procesar campos normales del formulario
       for (const [key, value] of Object.entries(req.body)) {
         if (key !== 'logoFile' && key !== 'fotoPortadaFile' && key !== 'catalogoFile' && key !== 'galeriaFiles') {
-          try {
-            // Intentar parsear como JSON para arrays y objetos
-            updateData[key] = JSON.parse(value as string);
-          } catch {
-            // Si no es JSON válido, usar como string
+          // Mantener campos de teléfono como strings
+          if (key === 'telefono1' || key === 'telefono2') {
             updateData[key] = value;
+          } else {
+            try {
+              // Intentar parsear como JSON para arrays y objetos
+              updateData[key] = JSON.parse(value as string);
+            } catch {
+              // Si no es JSON válido, usar como string
+              updateData[key] = value;
+            }
           }
         }
       }
