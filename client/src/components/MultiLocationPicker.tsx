@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import MapLocationPicker from "./MapLocationPicker";
 
-interface Location {
+// Tipo para ubicaciones que vienen del backend o props (sin localId)
+interface LocationInput {
   id?: number;
+  localId?: string;
   lat: number;
   lng: number;
   address: string;
@@ -15,32 +17,68 @@ interface Location {
   isPrincipal: boolean;
 }
 
+// Tipo interno con localId obligatorio para renderizado estable
+interface Location extends LocationInput {
+  localId: string; // ID local OBLIGATORIO para el key de React
+}
+
 interface MultiLocationPickerProps {
   companyId?: number;
-  initialLocations?: Location[];
-  onChange: (locations: Location[]) => void;
+  initialLocations?: LocationInput[];
+  onChange: (locations: LocationInput[]) => void;
 }
+
+// Generar ID único para ubicaciones locales
+const generateLocalId = () => `loc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+// Normalizar ubicaciones: garantizar que TODAS tengan localId
+const normalizeLocations = (locs: LocationInput[]): Location[] => {
+  if (locs.length === 0) {
+    // Si no hay ubicaciones, crear una ubicación principal vacía
+    return [{
+      lat: 19.4326,
+      lng: -99.1332,
+      address: "",
+      isPrincipal: true,
+      localId: generateLocalId()
+    }];
+  }
+  
+  return locs.map(loc => ({
+    ...loc,
+    localId: loc.localId || generateLocalId()
+  }));
+};
 
 export default function MultiLocationPicker({ 
   companyId, 
   initialLocations = [], 
   onChange 
 }: MultiLocationPickerProps) {
-  const [locations, setLocations] = useState<Location[]>(initialLocations);
+  // Normalizar ubicaciones ANTES del primer render para keys estables
+  const [locations, setLocations] = useState<Location[]>(() => normalizeLocations(initialLocations));
   const [showAddLocation, setShowAddLocation] = useState(false);
 
   useEffect(() => {
-    if (initialLocations.length > 0) {
-      setLocations(initialLocations);
-    } else {
-      // Si no hay ubicaciones iniciales, agregar una ubicación principal vacía
-      setLocations([{
-        lat: 19.4326,
-        lng: -99.1332,
-        address: "",
-        isPrincipal: true
-      }]);
-    }
+    // Actualizar ubicaciones cuando initialLocations cambie, preservando localId existentes
+    // Crear dos mapas: uno por localId (prioridad) y otro por DB id (fallback)
+    const byLocalId = new Map(locations.map(loc => [loc.localId, loc]));
+    const byDbId = new Map(locations.filter(loc => loc.id).map(loc => [loc.id!, loc]));
+    
+    const normalized = normalizeLocations(initialLocations).map(loc => {
+      // Prioridad 1: Si ya tiene localId, preservarlo
+      if (loc.localId && byLocalId.has(loc.localId)) {
+        return { ...loc, localId: byLocalId.get(loc.localId)!.localId };
+      }
+      // Prioridad 2: Si tiene DB id y existe en el estado previo, usar su localId
+      if (loc.id && byDbId.has(loc.id)) {
+        return { ...loc, localId: byDbId.get(loc.id)!.localId };
+      }
+      // Prioridad 3: Es una ubicación nueva, mantener su localId recién generado
+      return loc;
+    });
+    
+    setLocations(normalized);
   }, [initialLocations]);
 
   useEffect(() => {
@@ -52,7 +90,8 @@ export default function MultiLocationPicker({
       lat: 19.4326,
       lng: -99.1332,
       address: "",
-      isPrincipal: false
+      isPrincipal: false,
+      localId: generateLocalId()
     };
     setLocations([...locations, newLocation]);
     setShowAddLocation(false);
@@ -91,7 +130,7 @@ export default function MultiLocationPicker({
     <div className="space-y-6">
       {locations.map((location, index) => (
         <Card 
-          key={index} 
+          key={location.localId} 
           className={`${location.isPrincipal ? 'border-2 border-blue-500 shadow-lg' : 'border border-gray-200'}`}
         >
           <CardHeader className="pb-4">
