@@ -200,6 +200,20 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const companyLocations = pgTable("company_locations", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }).notNull(),
+  lat: decimal("lat", { precision: 10, scale: 7 }).notNull(),
+  lng: decimal("lng", { precision: 10, scale: 7 }).notNull(),
+  address: text("address").notNull(),
+  country: text("country"),
+  state: text("state"),
+  city: text("city"),
+  isPrincipal: boolean("is_principal").notNull().default(false), // Marca si es la ubicación principal
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 
 
 // Insert schemas
@@ -304,7 +318,14 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   updatedAt: true,
 });
 
+export const insertCompanyLocationSchema = createInsertSchema(companyLocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
+export type InsertCompanyLocation = z.infer<typeof insertCompanyLocationSchema>;
+export type SelectCompanyLocation = typeof companyLocations.$inferSelect;
 
 export const integrationSettings = pgTable("integration_settings", {
   id: serial("id").primaryKey(),
