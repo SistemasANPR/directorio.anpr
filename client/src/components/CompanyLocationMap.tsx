@@ -3,18 +3,39 @@ import { useEffect, useRef } from "react";
 import { MapPin } from "lucide-react";
 import { getGoogleMapsLoader } from "@/lib/googleMapsLoader";
 
+interface CompanyLocation {
+  id?: number;
+  lat: number;
+  lng: number;
+  address: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  isPrincipal: boolean;
+}
+
+interface MapLocation {
+  lat: number;
+  lng: number;
+  name: string;
+  address: string;
+  isMain: boolean;
+}
+
 interface CompanyLocationMapProps {
   ubicacionGeografica?: { lat: number; lng: number; address?: string } | null;
   direccionFisica?: string;
   nombreEmpresa: string;
   ciudadesPresencia?: string[];
+  locations?: CompanyLocation[];
 }
 
 export default function CompanyLocationMap({ 
   ubicacionGeografica, 
   direccionFisica, 
   nombreEmpresa,
-  ciudadesPresencia = []
+  ciudadesPresencia = [],
+  locations = []
 }: CompanyLocationMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -77,7 +98,11 @@ export default function CompanyLocationMap({
   };
 
   useEffect(() => {
-    if (!mapRef.current || !normalizedUbicacion) {
+    // Si hay ubicaciones de la base de datos, usarlas. Si no, usar ubicacionGeografica
+    const hasLocations = locations && locations.length > 0;
+    const hasUbicacion = normalizedUbicacion !== null;
+    
+    if (!mapRef.current || (!hasLocations && !hasUbicacion)) {
       return;
     }
 
@@ -90,57 +115,66 @@ export default function CompanyLocationMap({
         
         if (!isMounted || !mapRef.current) return;
 
-        // Geocodificar todas las ubicaciones
-        const locations = [];
+        // Preparar ubicaciones para mostrar en el mapa
+        const mapLocations: MapLocation[] = [];
         
-        // Agregar ubicación principal si existe
-        if (normalizedUbicacion?.lat && normalizedUbicacion?.lng) {
-          locations.push({
+        // PRIORIDAD 1: Usar ubicaciones de la base de datos si existen
+        if (hasLocations) {
+          locations.forEach((loc, index) => {
+            mapLocations.push({
+              lat: loc.lat,
+              lng: loc.lng,
+              name: loc.isPrincipal ? 'Ubicación Principal' : `Ubicación ${index + 1}`,
+              address: loc.address || '',
+              isMain: loc.isPrincipal
+            });
+          });
+        } 
+        // PRIORIDAD 2: Fallback a ubicacionGeografica antigua si no hay ubicaciones
+        else if (normalizedUbicacion?.lat && normalizedUbicacion?.lng) {
+          mapLocations.push({
             lat: normalizedUbicacion.lat,
             lng: normalizedUbicacion.lng,
-            name: 'Oficina Principal',
+            name: 'Ubicación Principal',
             address: direccionFisica || normalizedUbicacion.address || '',
             isMain: true
           });
-        }
 
-        // Crear geocoder
-        const geocoder = new google.maps.Geocoder();
-
-        // Geocodificar ciudades de presencia (máximo 10 para evitar sobrecarga)
-        if (ciudadesPresencia && ciudadesPresencia.length > 0) {
-          const ciudadesAGeocod = ciudadesPresencia.slice(0, 10);
-          for (const ciudad of ciudadesAGeocod) {
-            const location = await geocodeCity(ciudad, geocoder);
-            if (location) {
-              // Evitar duplicados muy cercanos a la oficina principal (más de 5km de distancia)
-              const isDuplicate = locations.some(loc => {
-                const distance = google.maps.geometry.spherical.computeDistanceBetween(
-                  new google.maps.LatLng(loc.lat, loc.lng),
-                  new google.maps.LatLng(location.lat, location.lng)
-                );
-                return distance < 5000; // 5km en metros
-              });
-              
-              if (!isDuplicate) {
-                locations.push({
-                  lat: location.lat,
-                  lng: location.lng,
-                  name: ciudad,
-                  address: location.display_name,
-                  isMain: false
+          // Solo geocodificar ciudades si NO hay ubicaciones en la base de datos
+          const geocoder = new google.maps.Geocoder();
+          if (ciudadesPresencia && ciudadesPresencia.length > 0) {
+            const ciudadesAGeocod = ciudadesPresencia.slice(0, 10);
+            for (const ciudad of ciudadesAGeocod) {
+              const location = await geocodeCity(ciudad, geocoder);
+              if (location) {
+                const isDuplicate = mapLocations.some(loc => {
+                  const distance = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(loc.lat, loc.lng),
+                    new google.maps.LatLng(location.lat, location.lng)
+                  );
+                  return distance < 5000;
                 });
+                
+                if (!isDuplicate) {
+                  mapLocations.push({
+                    lat: location.lat,
+                    lng: location.lng,
+                    name: ciudad,
+                    address: location.display_name,
+                    isMain: false
+                  });
+                }
               }
             }
           }
         }
 
-        if (locations.length === 0) return;
+        if (mapLocations.length === 0) return;
 
         // Crear el mapa solo si no existe
         if (!mapInstanceRef.current) {
           mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-            center: { lat: locations[0].lat, lng: locations[0].lng },
+            center: { lat: mapLocations[0].lat, lng: mapLocations[0].lng },
             zoom: 15,
             mapTypeControl: true,
             streetViewControl: true,
@@ -158,7 +192,7 @@ export default function CompanyLocationMap({
         const bounds = new google.maps.LatLngBounds();
 
         // Crear marcadores para todas las ubicaciones
-        locations.forEach((location) => {
+        mapLocations.forEach((location) => {
           const position = { lat: location.lat, lng: location.lng };
 
           const infoContent = `
@@ -200,10 +234,10 @@ export default function CompanyLocationMap({
         });
 
         // Ajustar el mapa para mostrar todos los marcadores
-        if (locations.length === 1) {
+        if (mapLocations.length === 1) {
           map.setCenter(bounds.getCenter());
           map.setZoom(15);
-        } else if (locations.length > 1) {
+        } else if (mapLocations.length > 1) {
           map.fitBounds(bounds);
         }
 
@@ -219,9 +253,10 @@ export default function CompanyLocationMap({
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
     };
-  }, [normalizedUbicacion, direccionFisica, nombreEmpresa, ciudadesPresencia]);
+  }, [normalizedUbicacion, direccionFisica, nombreEmpresa, ciudadesPresencia, locations]);
 
-  if (!normalizedUbicacion) {
+  // Mostrar mensaje si no hay ubicaciones de ningún tipo
+  if (!normalizedUbicacion && (!locations || locations.length === 0)) {
     return (
       <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
         <div className="text-center text-gray-500">
