@@ -13,83 +13,45 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   
-  // Helper function to get primary location from company
-  const getPrimaryLocation = (company: CompanyWithDetails): { lat: number; lng: number; address?: string } | null => {
-    try {
-      // First try to get from ubicaciones array
-      if (company.ubicaciones) {
-        let ubicaciones: any[];
-        
-        if (typeof company.ubicaciones === 'string') {
-          try {
-            ubicaciones = JSON.parse(company.ubicaciones);
-          } catch {
-            ubicaciones = [];
-          }
-        } else {
-          ubicaciones = company.ubicaciones as any[];
-        }
-        
-        if (Array.isArray(ubicaciones) && ubicaciones.length > 0) {
-          // Try to find primary location first, fallback to first location
-          const primaryLocation = ubicaciones.find((loc: any) => loc.isPrimary) || ubicaciones[0];
-          if (primaryLocation && typeof primaryLocation.lat === 'number' && typeof primaryLocation.lng === 'number') {
-            return {
-              lat: primaryLocation.lat,
-              lng: primaryLocation.lng,
-              address: primaryLocation.address || primaryLocation.nombre || ''
-            };
-          }
-        }
-      }
-      
-      // Fallback to ubicacionGeografica
-      if (!company.ubicacionGeografica) {
-        return null;
-      }
-      
-      let ubicacion;
-      
-      if (typeof company.ubicacionGeografica === 'string') {
-        if (company.ubicacionGeografica.trim() === '' || 
-            company.ubicacionGeografica.trim() === '""' || 
-            company.ubicacionGeografica.trim() === "''") {
-          return null;
-        }
-        
-        try {
-          ubicacion = JSON.parse(company.ubicacionGeografica);
-        } catch {
-          return null;
-        }
-      } else if (typeof company.ubicacionGeografica === 'object') {
-        ubicacion = company.ubicacionGeografica;
-      } else {
-        return null;
-      }
-      
-      if (ubicacion && 
-          typeof ubicacion.lat === 'number' && 
-          typeof ubicacion.lng === 'number' && 
-          !isNaN(ubicacion.lat) && 
-          !isNaN(ubicacion.lng) &&
-          ubicacion.lat !== 0 && 
-          ubicacion.lng !== 0) {
-        return ubicacion;
-      }
-      
-      return null;
-    } catch (error) {
-      console.warn(`Error getting primary location for company ${company.id}:`, error);
-      return null;
-    }
-  };
-  
   // Filtrar empresas que tienen ubicación geográfica válida (memoizado para evitar recálculos innecesarios)
   const companiesWithLocation = useMemo(() => {
     return companies.filter(company => {
-      const location = getPrimaryLocation(company);
-      return location !== null;
+      try {
+        if (!company.ubicacionGeografica) {
+          return false;
+        }
+        
+        let ubicacion;
+        
+        if (typeof company.ubicacionGeografica === 'string') {
+          if (company.ubicacionGeografica.trim() === '' || 
+              company.ubicacionGeografica.trim() === '""' || 
+              company.ubicacionGeografica.trim() === "''") {
+            return false;
+          }
+          
+          try {
+            ubicacion = JSON.parse(company.ubicacionGeografica);
+          } catch {
+            return false;
+          }
+        } else if (typeof company.ubicacionGeografica === 'object') {
+          ubicacion = company.ubicacionGeografica;
+        } else {
+          return false;
+        }
+        
+        return ubicacion && 
+               typeof ubicacion.lat === 'number' && 
+               typeof ubicacion.lng === 'number' && 
+               !isNaN(ubicacion.lat) && 
+               !isNaN(ubicacion.lng) &&
+               ubicacion.lat !== 0 && 
+               ubicacion.lng !== 0;
+      } catch (error) {
+        console.warn(`Error filtering company ${company.id} (${company.nombreEmpresa}):`, error);
+        return false;
+      }
     });
   }, [companies]);
 
@@ -132,8 +94,17 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
 
         // Agregar marcadores para cada empresa
         companiesWithLocation.forEach(company => {
-          const ubicacion = getPrimaryLocation(company);
-          if (!ubicacion) return;
+          let ubicacion: { lat: number; lng: number; address?: string };
+          
+          if (typeof company.ubicacionGeografica === 'string') {
+            try {
+              ubicacion = JSON.parse(company.ubicacionGeografica);
+            } catch {
+              return;
+            }
+          } else {
+            ubicacion = company.ubicacionGeografica as { lat: number; lng: number; address?: string };
+          }
           
           // Verificar si estas coordenadas ya se usaron y agregar offset si es necesario
           const coordKey = `${ubicacion.lat.toFixed(6)},${ubicacion.lng.toFixed(6)}`;
