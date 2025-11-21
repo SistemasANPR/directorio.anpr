@@ -635,6 +635,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
                 placeholder="19.4326"
                 value={manualCoords.lat}
                 onChange={(e) => setManualCoords({ ...manualCoords, lat: e.target.value })}
+                onKeyPress={(e) => e.key === 'Enter' && e.preventDefault()}
                 className="text-sm"
               />
             </div>
@@ -646,6 +647,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
                 placeholder="-99.1332"
                 value={manualCoords.lng}
                 onChange={(e) => setManualCoords({ ...manualCoords, lng: e.target.value })}
+                onKeyPress={(e) => e.key === 'Enter' && e.preventDefault()}
                 className="text-sm"
               />
             </div>
@@ -659,6 +661,7 @@ export default function MapLocationPicker({ ciudad, onLocationSelect, initialLoc
               placeholder="Dirección completa"
               value={manualCoords.address}
               onChange={(e) => setManualCoords({ ...manualCoords, address: e.target.value })}
+              onKeyPress={(e) => e.key === 'Enter' && e.preventDefault()}
               className="text-sm"
             />
           </div>
