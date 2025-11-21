@@ -1,8 +1,21 @@
 /// <reference types="@types/google.maps" />
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
 import { getGoogleMapsLoader } from "@/lib/googleMapsLoader";
+import { useQuery } from "@tanstack/react-query";
 import type { CompanyWithDetails } from "@shared/schema";
+
+interface CompanyLocation {
+  id: number;
+  companyId: number;
+  lat: number;
+  lng: number;
+  address: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  isPrincipal: boolean;
+}
 
 interface DirectoryMapProps {
   companies: CompanyWithDetails[];
@@ -13,9 +26,36 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   
+  // Cargar ubicaciones de todas las empresas
+  const { data: allLocations = [] } = useQuery<CompanyLocation[]>({
+    queryKey: ["/api/companies/locations/all"],
+    queryFn: async () => {
+      const response = await fetch("/api/companies/locations/all");
+      if (!response.ok) return [];
+      return response.json();
+    },
+  });
+  
+  // Crear un mapa de ubicaciones principales por empresa
+  const principalLocationsMap = useMemo(() => {
+    const map = new Map<number, CompanyLocation>();
+    allLocations.forEach(loc => {
+      if (loc.isPrincipal) {
+        map.set(loc.companyId, loc);
+      }
+    });
+    return map;
+  }, [allLocations]);
+
   // Filtrar empresas que tienen ubicación geográfica válida (memoizado para evitar recálculos innecesarios)
   const companiesWithLocation = useMemo(() => {
     return companies.filter(company => {
+      // Prioridad 1: Verificar si tiene ubicación principal en la tabla company_locations
+      if (principalLocationsMap.has(company.id)) {
+        return true;
+      }
+      
+      // Prioridad 2: Verificar ubicacionGeografica (campo antiguo)
       try {
         if (!company.ubicacionGeografica) {
           return false;
@@ -53,7 +93,7 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         return false;
       }
     });
-  }, [companies]);
+  }, [companies, principalLocationsMap]);
 
   useEffect(() => {
     if (!mapRef.current || companiesWithLocation.length === 0) {
@@ -96,7 +136,17 @@ export default function DirectoryMap({ companies }: DirectoryMapProps) {
         companiesWithLocation.forEach(company => {
           let ubicacion: { lat: number; lng: number; address?: string };
           
-          if (typeof company.ubicacionGeografica === 'string') {
+          // Prioridad 1: Usar ubicación principal de la tabla company_locations
+          const principalLocation = principalLocationsMap.get(company.id);
+          if (principalLocation) {
+            ubicacion = {
+              lat: principalLocation.lat,
+              lng: principalLocation.lng,
+              address: principalLocation.address
+            };
+          } 
+          // Prioridad 2: Usar ubicacionGeografica (campo antiguo)
+          else if (typeof company.ubicacionGeografica === 'string') {
             try {
               ubicacion = JSON.parse(company.ubicacionGeografica);
             } catch {

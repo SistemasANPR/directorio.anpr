@@ -1413,6 +1413,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Company Locations API
+  // Obtener todas las ubicaciones de todas las empresas
+  app.get("/api/companies/locations/all", async (req, res) => {
+    try {
+      const allLocations = await storage.getAllCompanyLocations();
+      res.json(allLocations);
+    } catch (error) {
+      console.error("Error fetching all company locations:", error);
+      res.status(500).json({ error: "Failed to fetch all company locations" });
+    }
+  });
+
   app.get("/api/companies/:id/locations", async (req, res) => {
     try {
       const companyId = parseInt(req.params.id);

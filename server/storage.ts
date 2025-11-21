@@ -89,6 +89,7 @@ export interface IStorage {
 
   // Company Locations
   getCompanyLocations(companyId: number): Promise<SelectCompanyLocation[]>;
+  getAllCompanyLocations(): Promise<SelectCompanyLocation[]>;
   createCompanyLocation(location: InsertCompanyLocation): Promise<SelectCompanyLocation>;
   updateCompanyLocation(locationId: number, location: Partial<InsertCompanyLocation>): Promise<SelectCompanyLocation | undefined>;
   deleteCompanyLocation(locationId: number): Promise<boolean>;
@@ -542,6 +543,14 @@ export class DatabaseStorage implements IStorage {
       .from(companyLocations)
       .where(eq(companyLocations.companyId, companyId))
       .orderBy(sql`CASE WHEN ${companyLocations.isPrincipal} THEN 0 ELSE 1 END`);
+    return locations;
+  }
+
+  async getAllCompanyLocations(): Promise<SelectCompanyLocation[]> {
+    const locations = await db
+      .select()
+      .from(companyLocations)
+      .orderBy(companyLocations.companyId, sql`CASE WHEN ${companyLocations.isPrincipal} THEN 0 ELSE 1 END`);
     return locations;
   }
 
