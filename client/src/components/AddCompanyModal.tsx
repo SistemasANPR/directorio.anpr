@@ -1699,7 +1699,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                   control={form.control}
                   name="ubicacionGeografica"
                   render={({ field }) => (
-                    <FormItem className="md:col-span-2">
+                    <FormItem className="md:col-span-2 mb-8">
                       <FormLabel className="flex items-center gap-2">
                         <MapPin className="h-5 w-5" />
                         Ubicación de la Empresa
@@ -1708,7 +1708,7 @@ export default function AddCompanyModal({ open, onOpenChange }: AddCompanyModalP
                         Haz clic en el mapa o arrastra el marcador para seleccionar la ubicación exacta de tu empresa
                       </FormDescription>
                       <FormControl>
-                        <div className="h-96 bg-white border-2 border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                        <div className="h-[500px] bg-white border-2 border-gray-200 rounded-lg overflow-hidden shadow-sm">
                           <MapLocationPicker
                             ciudad={"México"}
                             onLocationSelect={(location: { lat: number; lng: number; address: string; country?: string; state?: string; city?: string }) => {
