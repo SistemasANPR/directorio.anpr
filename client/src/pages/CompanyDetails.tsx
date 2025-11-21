@@ -577,7 +577,7 @@ export default function CompanyDetails() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Certificados y Reconocimientos */}
-            {company.certificates && company.certificates.length > 0 && (
+            {company.certificates && Array.isArray(company.certificates) && company.certificates.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -709,7 +709,7 @@ export default function CompanyDetails() {
                 <Separator />
 
                 {/* Redes Sociales */}
-                {company.redesSociales && company.redesSociales.length > 0 && (
+                {company.redesSociales && Array.isArray(company.redesSociales) && company.redesSociales.length > 0 && (
                   <div>
                     <h4 className="font-semibold mb-3">Redes Sociales</h4>
                     <div className="space-y-3">
@@ -789,7 +789,7 @@ export default function CompanyDetails() {
             )}
 
             {/* Categorías */}
-            {company.categories && company.categories.length > 0 && (
+            {company.categories && Array.isArray(company.categories) && company.categories.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
