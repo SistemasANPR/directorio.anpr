@@ -96,6 +96,18 @@ export default function CompanyDetails() {
     enabled: !!id,
   });
 
+  // Query para ubicaciones de la empresa
+  const { data: companyLocations = [] } = useQuery({
+    queryKey: ["/api/companies", id, "locations"],
+    queryFn: async () => {
+      if (!id) return [];
+      const response = await fetch(`/api/companies/${id}/locations`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
   // Query para verificar URLs de PeepSo por emails
   const { data: emailPeepsoProfiles } = useQuery({
     queryKey: ["/api/emails/peepso-profiles", company?.email1, company?.email2],
@@ -927,6 +939,7 @@ export default function CompanyDetails() {
                   direccionFisica={company.direccionFisica}
                   nombreEmpresa={company.nombreEmpresa}
                   ciudadesPresencia={company.ciudadesPresencia}
+                  locations={companyLocations}
                 />
               </div>
             </CardContent>
