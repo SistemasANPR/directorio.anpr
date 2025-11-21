@@ -160,9 +160,7 @@ export default function Login() {
           </div>
           
           {/* Título AdminPlat */}
-          <CardTitle className="text-2xl text-center font-semibold text-gray-900">
-            AdminPlat
-          </CardTitle>
+          <CardTitle className="text-2xl text-center font-semibold text-gray-900">Directorio Anpr</CardTitle>
           
           {/* Subtítulo */}
           <CardDescription className="text-center text-gray-600 text-sm">
