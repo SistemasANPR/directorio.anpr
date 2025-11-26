@@ -3256,6 +3256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         descripcionEmpresa: companyData.descripcionEmpresa,
         sitioWeb: companyData.sitioWeb,
         logotipoUrl: companyData.logotipoUrl || null, // Company logo
+        fotoPortadaUrl: companyData.fotoPortadaUrl || null, // Company banner/cover photo
         ubicacionGeografica: null, // Deprecated field
         membershipTypeId: membershipTypeId,
         membershipPeriodicidad: selectedPeriod,

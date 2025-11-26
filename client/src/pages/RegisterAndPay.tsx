@@ -177,6 +177,9 @@ export default function RegisterAndPay() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [companyLogoUrl, setCompanyLogoUrl] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [companyBannerUrl, setCompanyBannerUrl] = useState<string | null>(null);
   const [locations, setLocations] = useState<Array<{
     lat: number;
     lng: number;
@@ -250,6 +253,8 @@ export default function RegisterAndPay() {
       setLocations([]);
       setLogoPreview(null);
       setCompanyLogoUrl(null);
+      setBannerPreview(null);
+      setCompanyBannerUrl(null);
     }
   }, [currentStep, companyForm]);
 
@@ -474,6 +479,71 @@ export default function RegisterAndPay() {
     }
   };
 
+  const handleBannerUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Solo se permiten archivos de imagen",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast({
+        title: "Error", 
+        description: "La imagen no puede ser mayor a 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingBanner(true);
+      
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al subir la imagen');
+      }
+      
+      const data = await response.json();
+      
+      // Guardar la URL del banner
+      setCompanyBannerUrl(data.imageUrl);
+      
+      // Set preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBannerPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      toast({
+        title: "Banner subido exitosamente",
+        description: "La foto de portada de tu empresa ha sido guardada",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error al subir banner",
+        description: error.message || "No se pudo subir la imagen",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
+
   const handleUserSubmit = async (data: UserFormData) => {
     try {
       // Verificar si el correo ya está registrado
@@ -510,6 +580,7 @@ export default function RegisterAndPay() {
       ...data,
       direccionFisica: principalLocation?.address || "Ubicación seleccionada en el mapa",
       logotipoUrl: companyLogoUrl,
+      fotoPortadaUrl: companyBannerUrl,
     };
     setCompanyData(companyDataWithLocation as any);
     // Siempre ir al paso 3 para verificación del plan
@@ -838,6 +909,85 @@ export default function RegisterAndPay() {
                     <p className="text-sm text-green-600 flex items-center gap-1">
                       <CheckCircle className="w-4 h-4" />
                       Logo guardado correctamente
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Campo de Banner/Foto de Portada de la Empresa */}
+              <div className="space-y-2">
+                <FormLabel className="flex items-center gap-2">
+                  <Upload className="w-5 h-5" />
+                  Banner / Foto de Portada
+                </FormLabel>
+                <div className="flex flex-col items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#bcce16] transition-colors">
+                  {bannerPreview ? (
+                    <div className="relative w-full">
+                      <img 
+                        src={bannerPreview} 
+                        alt="Banner preview" 
+                        className="w-full h-32 object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBannerPreview(null);
+                          setCompanyBannerUrl(null);
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 w-full">
+                      <div className="w-full h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="flex flex-col items-center">
+                          <Upload className="w-8 h-8 text-gray-400" />
+                          <span className="text-xs text-gray-400 mt-1">1200 x 400 px recomendado</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-500 text-center">
+                        Arrastra una imagen o haz clic para seleccionar
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          handleBannerUpload(e.target.files[0]);
+                        }
+                      }}
+                      className="hidden"
+                      id="banner-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('banner-upload')?.click()}
+                      disabled={isUploadingBanner}
+                    >
+                      {isUploadingBanner ? (
+                        <>
+                          <div className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full mr-2" />
+                          Subiendo...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          {bannerPreview ? 'Cambiar Banner' : 'Subir Banner'}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {companyBannerUrl && (
+                    <p className="text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" />
+                      Banner guardado correctamente
                     </p>
                   )}
                 </div>
