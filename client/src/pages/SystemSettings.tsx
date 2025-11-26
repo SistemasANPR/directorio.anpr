@@ -56,6 +56,10 @@ const socialMediaSchema = z.object({
   iconColor: z.string().min(1, "Color de ícono requerido"),
 });
 
+const notificationEmailSchema = z.object({
+  email: z.string().email("Email válido requerido"),
+});
+
 const systemSettingsSchema = z.object({
   systemName: z.string().min(1, "Nombre del sistema es requerido"),
   systemDescription: z.string().optional(),
@@ -67,6 +71,7 @@ const systemSettingsSchema = z.object({
   contactEmail: z.string().email("Email válido requerido").optional(),
   contactPhone: z.string().optional(),
   socialMediaList: z.array(socialMediaSchema).optional(),
+  notificationEmailsList: z.array(notificationEmailSchema).optional(),
 });
 
 type SystemSettingsFormData = z.infer<typeof systemSettingsSchema>;
@@ -82,6 +87,7 @@ interface SystemSettingsData {
   contactEmail?: string;
   contactPhone?: string;
   socialMedia?: string;
+  notificationEmails?: string[];
 }
 
 const socialMediaPlatforms = [
@@ -148,6 +154,12 @@ export default function SystemSettings() {
     }
   }, [settings]);
 
+  // Parse notification emails array to form format
+  const parseNotificationEmails = (emails: string[] | undefined) => {
+    if (!emails || !Array.isArray(emails)) return [];
+    return emails.map(email => ({ email }));
+  };
+
   const form = useForm<SystemSettingsFormData>({
     resolver: zodResolver(systemSettingsSchema),
     values: settings ? {
@@ -161,6 +173,7 @@ export default function SystemSettings() {
       contactEmail: settings.contactEmail || "",
       contactPhone: settings.contactPhone || "",
       socialMediaList: parseSocialMedia(settings.socialMedia || ""),
+      notificationEmailsList: parseNotificationEmails(settings.notificationEmails),
     } : {
       systemName: "Mi Organización",
       systemDescription: "",
@@ -172,12 +185,18 @@ export default function SystemSettings() {
       contactEmail: "",
       contactPhone: "",
       socialMediaList: [],
+      notificationEmailsList: [],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "socialMediaList",
+  });
+
+  const { fields: notificationFields, append: appendNotification, remove: removeNotification } = useFieldArray({
+    control: form.control,
+    name: "notificationEmailsList",
   });
 
   const updateMutation = useMutation({
@@ -188,10 +207,15 @@ export default function SystemSettings() {
         return acc;
       }, {} as Record<string, string>);
 
+      // Convert notificationEmailsList to array of strings
+      const notificationEmailsArray = data.notificationEmailsList?.map(item => item.email) || [];
+
       const apiData = {
         ...data,
         socialMedia: JSON.stringify(socialMediaJson || {}),
         socialMediaList: undefined, // Remove this field from API call
+        notificationEmails: notificationEmailsArray,
+        notificationEmailsList: undefined, // Remove this field from API call
       };
 
       const response = await apiRequest("PUT", "/api/system-settings", apiData);
@@ -717,6 +741,72 @@ export default function SystemSettings() {
                     </FormItem>
                   )}
                 />
+              </CardContent>
+            </Card>
+
+            {/* Correos de Notificación */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Notificaciones de Nuevos Registros
+                </CardTitle>
+                <CardDescription>
+                  Correos electrónicos que recibirán alertas cuando se registre una nueva empresa
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {notificationFields.map((field, index) => (
+                  <div key={field.id} className="flex gap-3 items-end">
+                    <FormField
+                      control={form.control}
+                      name={`notificationEmailsList.${index}.email`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel className={index > 0 ? "sr-only" : ""}>
+                            Email de Notificación
+                          </FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="email" 
+                              placeholder="email@ejemplo.com" 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => removeNotification(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+
+                {notificationFields.length === 0 && (
+                  <div className="text-center py-6 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                    <Mail className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">No hay correos de notificación configurados</p>
+                    <p className="text-xs text-gray-400 mt-1">Agrega correos para recibir alertas de nuevos registros</p>
+                  </div>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendNotification({ email: "" })}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Correo de Notificación
+                </Button>
               </CardContent>
             </Card>
           </div>

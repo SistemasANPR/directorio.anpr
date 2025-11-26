@@ -167,6 +167,7 @@ export const systemSettings = pgTable("system_settings", {
   socialMedia: jsonb("social_media"), // {facebook, twitter, linkedin, instagram}
   seoSettings: jsonb("seo_settings"), // {metaTitle, metaDescription, keywords}
   emailSettings: jsonb("email_settings"), // {smtpHost, smtpPort, smtpUser, fromEmail}
+  notificationEmails: jsonb("notification_emails").default([]), // Array of emails to notify on new registrations
   paymentSettings: jsonb("payment_settings"), // {enableStripe, stripeCurrency}
   maintenanceMode: boolean("maintenance_mode").default(false).notNull(),
   registrationEnabled: boolean("registration_enabled").default(true).notNull(),

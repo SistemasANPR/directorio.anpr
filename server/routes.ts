@@ -3331,6 +3331,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail the registration if certificate assignment fails
       }
 
+      // Send notification emails to configured admin emails
+      try {
+        const systemSettings = await storage.getSystemSettings();
+        const notificationEmails = systemSettings.notificationEmails as string[] || [];
+        
+        if (notificationEmails.length > 0) {
+          const emailConfig = await storage.getEmailConfiguration();
+          
+          if (emailConfig) {
+            const nodemailer = await import('nodemailer');
+            
+            const transporterConfig: any = {
+              host: emailConfig.smtpHost,
+              port: emailConfig.smtpPort,
+              secure: emailConfig.encryption === 'ssl',
+              auth: {
+                user: emailConfig.username,
+                pass: emailConfig.password,
+              },
+            };
+            
+            if (emailConfig.encryption === 'tls') {
+              transporterConfig.requireTLS = true;
+              transporterConfig.tls = { rejectUnauthorized: false };
+            } else if (emailConfig.encryption === 'ssl') {
+              transporterConfig.secure = true;
+              transporterConfig.tls = { rejectUnauthorized: false };
+            }
+            
+            const transporter = nodemailer.default.createTransport(transporterConfig);
+            
+            const htmlContent = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #0f2161; border-bottom: 2px solid #bcce16; padding-bottom: 10px;">
+                  🎉 Nueva Empresa Registrada
+                </h2>
+                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="color: #333; margin-top: 0;">Datos de la Empresa</h3>
+                  <p><strong>Nombre:</strong> ${company.nombreEmpresa}</p>
+                  <p><strong>Email:</strong> ${companyData.email1}</p>
+                  <p><strong>Teléfono:</strong> ${companyData.telefono1 || 'No proporcionado'}</p>
+                  <p><strong>Plan:</strong> ${membershipType.nombrePlan}</p>
+                  <p><strong>Periodicidad:</strong> ${selectedPeriod}</p>
+                </div>
+                <div style="background-color: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="color: #333; margin-top: 0;">Datos del Representante</h3>
+                  <p><strong>Nombre:</strong> ${userData.nombre}</p>
+                  <p><strong>Email:</strong> ${userData.email}</p>
+                </div>
+                <p style="color: #666; font-size: 12px; text-align: center; margin-top: 30px;">
+                  Este es un correo automático generado por el sistema de registro de ANPR México.
+                </p>
+              </div>
+            `;
+            
+            // Send to all notification emails
+            for (const email of notificationEmails) {
+              try {
+                await transporter.sendMail({
+                  from: `"${emailConfig.fromName}" <${emailConfig.fromEmail}>`,
+                  to: email,
+                  subject: `Nueva Empresa Registrada: ${company.nombreEmpresa}`,
+                  html: htmlContent,
+                });
+                console.log(`Registration notification sent to ${email}`);
+              } catch (sendError) {
+                console.error(`Failed to send notification to ${email}:`, sendError);
+              }
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.error("Error sending registration notifications:", notificationError);
+        // Don't fail the registration if notification sending fails
+      }
+
       res.json({ 
         success: true, 
         user: { id: user.id, email: user.email, password: userData.password },
