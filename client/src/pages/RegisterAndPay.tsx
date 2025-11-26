@@ -174,6 +174,9 @@ export default function RegisterAndPay() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [companyLogoUrl, setCompanyLogoUrl] = useState<string | null>(null);
   const [locations, setLocations] = useState<Array<{
     lat: number;
     lng: number;
@@ -245,6 +248,8 @@ export default function RegisterAndPay() {
         locations: [],
       });
       setLocations([]);
+      setLogoPreview(null);
+      setCompanyLogoUrl(null);
     }
   }, [currentStep, companyForm]);
 
@@ -404,6 +409,71 @@ export default function RegisterAndPay() {
     }
   };
 
+  const handleLogoUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Solo se permiten archivos de imagen",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast({
+        title: "Error", 
+        description: "La imagen no puede ser mayor a 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+      
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al subir la imagen');
+      }
+      
+      const data = await response.json();
+      
+      // Guardar la URL del logo
+      setCompanyLogoUrl(data.imageUrl);
+      
+      // Set preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      toast({
+        title: "Logo subido exitosamente",
+        description: "El logo de tu empresa ha sido guardado",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error al subir logo",
+        description: error.message || "No se pudo subir la imagen",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   const handleUserSubmit = async (data: UserFormData) => {
     try {
       // Verificar si el correo ya está registrado
@@ -439,8 +509,9 @@ export default function RegisterAndPay() {
     const companyDataWithLocation = {
       ...data,
       direccionFisica: principalLocation?.address || "Ubicación seleccionada en el mapa",
+      logotipoUrl: companyLogoUrl,
     };
-    setCompanyData(companyDataWithLocation);
+    setCompanyData(companyDataWithLocation as any);
     // Siempre ir al paso 3 para verificación del plan
     setCurrentStep(3);
   };
@@ -695,6 +766,82 @@ export default function RegisterAndPay() {
                   </FormItem>
                 )}
               />
+
+              {/* Campo de Logo de la Empresa */}
+              <div className="space-y-2">
+                <FormLabel className="flex items-center gap-2">
+                  <Camera className="w-5 h-5" />
+                  Logo de la Empresa
+                </FormLabel>
+                <div className="flex flex-col items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#bcce16] transition-colors">
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img 
+                        src={logoPreview} 
+                        alt="Logo preview" 
+                        className="w-32 h-32 object-contain rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLogoPreview(null);
+                          setCompanyLogoUrl(null);
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Building className="w-12 h-12 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-500 text-center">
+                        Arrastra una imagen o haz clic para seleccionar
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          handleLogoUpload(e.target.files[0]);
+                        }
+                      }}
+                      className="hidden"
+                      id="logo-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('logo-upload')?.click()}
+                      disabled={isUploadingLogo}
+                    >
+                      {isUploadingLogo ? (
+                        <>
+                          <div className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full mr-2" />
+                          Subiendo...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          {logoPreview ? 'Cambiar Logo' : 'Subir Logo'}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {companyLogoUrl && (
+                    <p className="text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" />
+                      Logo guardado correctamente
+                    </p>
+                  )}
+                </div>
+              </div>
 
               {/* Sección de Selección de Ubicaciones en Mapa */}
               <FormField
