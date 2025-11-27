@@ -639,7 +639,7 @@ export default function Home() {
             <p className="text-sm md:text-lg text-center text-gray-500 mb-6 max-w-4xl mx-auto px-4">
               {searchTerm
                 ? `Resultados de búsqueda (${searchResults.length})`
-                : `Conoce a las empresas líderes que transforman espacios públicos`}
+                : `Descubre a las empresas que están marcando tendencia en la creación y mejora de parques y espacios públicos.`}
             </p>
 
             <div className="text-right mb-8">
