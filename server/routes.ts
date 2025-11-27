@@ -5501,39 +5501,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`[Email PeepSo Profiles] Usuario encontrado: ${matchingUser.username} (ID: ${matchingUser.id})`);
 
-          // Verificar si el usuario tiene URL en sus metadatos
-          const userMeta = matchingUser.meta || {};
+          // Construir la URL del perfil de PeepSo usando el username
+          // PeepSo usa el formato: /members/username/
+          const peepsoProfileUrl = `${baseUrl}/members/${matchingUser.slug || matchingUser.username}/`;
           
-          // Buscar URL en diferentes campos posibles
-          const profileUrl = userMeta['url'] || 
-                           userMeta['website'] || 
-                           userMeta['user_url'] || 
-                           userMeta['profile_url'] ||
-                           matchingUser.link ||
-                           null;
-
-          if (profileUrl && profileUrl.trim() !== '') {
-            console.log(`[Email PeepSo Profiles] URL de perfil encontrada para ${email}: ${profileUrl}`);
-            
-            emailProfiles[email] = {
-              wordpress_user_id: matchingUser.id,
-              username: matchingUser.username,
-              display_name: matchingUser.name,
-              avatar_url: matchingUser.avatar_urls ? matchingUser.avatar_urls['96'] || matchingUser.avatar_urls['48'] : null,
-              profile_url: profileUrl,
-              has_peepso_profile: true
-            };
-          } else {
-            console.log(`[Email PeepSo Profiles] No se encontró URL de perfil para ${email}`);
-            emailProfiles[email] = {
-              wordpress_user_id: matchingUser.id,
-              username: matchingUser.username,
-              display_name: matchingUser.name,
-              avatar_url: matchingUser.avatar_urls ? matchingUser.avatar_urls['96'] || matchingUser.avatar_urls['48'] : null,
-              profile_url: null,
-              has_peepso_profile: false
-            };
-          }
+          console.log(`[Email PeepSo Profiles] URL de perfil PeepSo para ${email}: ${peepsoProfileUrl}`);
+          
+          emailProfiles[email] = {
+            wordpress_user_id: matchingUser.id,
+            username: matchingUser.username,
+            display_name: matchingUser.name,
+            avatar_url: matchingUser.avatar_urls ? matchingUser.avatar_urls['96'] || matchingUser.avatar_urls['48'] : null,
+            profile_url: peepsoProfileUrl,
+            has_peepso_profile: true
+          };
 
         } catch (error) {
           console.log(`[Email PeepSo Profiles] Error al procesar email ${email}:`, error.message);
