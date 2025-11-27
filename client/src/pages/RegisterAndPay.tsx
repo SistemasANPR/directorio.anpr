@@ -1158,7 +1158,7 @@ export default function RegisterAndPay() {
                       <div className="flex justify-between text-xl">
                         <span className="font-bold">Precio Final:</span>
                         <span className="font-bold text-[#bcce16] text-2xl">
-                          ${getSelectedPrice(selectedMembership).toLocaleString()} {selectedPeriod === "anual" ? "MXN/año" : "MXN/mes"}
+                          ${getSelectedPrice(selectedMembership).toLocaleString()} {selectedPeriod === "anual" ? "USD/año" : "USD/mes"}
                         </span>
                       </div>
                       {selectedPeriod === "anual" && (

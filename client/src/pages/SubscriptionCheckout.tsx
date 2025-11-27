@@ -155,7 +155,7 @@ const SubscriptionForm = ({ planDetails, selectedOption, autoRenewal }: Subscrip
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold">
-                ${selectedOption.costo.toLocaleString()} MXN
+                ${selectedOption.costo.toLocaleString()} USD
               </div>
               <div className="text-sm text-gray-600">
                 por {selectedOption.periodicidad === "mensual" ? "mes" : "año"}
