@@ -3378,7 +3378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   <h3 style="color: #333; margin-top: 0;">💳 Información del Pago</h3>
                   <p><strong>Plan contratado:</strong> ${membershipType.nombrePlan}</p>
                   <p><strong>Periodicidad:</strong> ${selectedPeriod === 'anual' ? 'Anual (12 meses)' : selectedPeriod === 'mensual' ? 'Mensual' : selectedPeriod}</p>
-                  <p><strong>Monto pagado:</strong> $${amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN</p>
+                  <p><strong>Monto pagado:</strong> $${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</p>
                   <p><strong>Forma de pago:</strong> Tarjeta de crédito/débito</p>
                   <p><strong>Vigencia:</strong> ${new Date().toLocaleDateString('es-MX')} - ${new Date(Date.now() + (selectedPeriod === 'anual' ? 365 : 30) * 24 * 60 * 60 * 1000).toLocaleDateString('es-MX')}</p>
                 </div>
