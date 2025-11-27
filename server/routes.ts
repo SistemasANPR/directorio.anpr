@@ -3372,8 +3372,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   <p><strong>Nombre:</strong> ${company.nombreEmpresa}</p>
                   <p><strong>Email:</strong> ${companyData.email1}</p>
                   <p><strong>Teléfono:</strong> ${companyData.telefono1 || 'No proporcionado'}</p>
-                  <p><strong>Plan:</strong> ${membershipType.nombrePlan}</p>
-                  <p><strong>Periodicidad:</strong> ${selectedPeriod}</p>
+                  <p><strong>Dirección:</strong> ${companyData.direccionFisica || 'No proporcionada'}</p>
+                </div>
+                <div style="background-color: #e6f7e6; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
+                  <h3 style="color: #333; margin-top: 0;">💳 Información del Pago</h3>
+                  <p><strong>Plan contratado:</strong> ${membershipType.nombrePlan}</p>
+                  <p><strong>Periodicidad:</strong> ${selectedPeriod === 'anual' ? 'Anual (12 meses)' : selectedPeriod === 'mensual' ? 'Mensual' : selectedPeriod}</p>
+                  <p><strong>Monto pagado:</strong> $${amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN</p>
+                  <p><strong>Forma de pago:</strong> Tarjeta de crédito/débito</p>
+                  <p><strong>Vigencia:</strong> ${new Date().toLocaleDateString('es-MX')} - ${new Date(Date.now() + (selectedPeriod === 'anual' ? 365 : 30) * 24 * 60 * 60 * 1000).toLocaleDateString('es-MX')}</p>
                 </div>
                 <div style="background-color: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <h3 style="color: #333; margin-top: 0;">Datos del Representante</h3>
