@@ -3815,6 +3815,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test notification emails endpoint
+  app.post("/api/test-notification-emails", async (req, res) => {
+    try {
+      const systemSettings = await storage.getSystemSettings();
+      const notificationEmails = systemSettings.notificationEmails as string[] || [];
+      
+      if (notificationEmails.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "No hay correos de notificación configurados. Agrega al menos un correo y guarda la configuración antes de probar." 
+        });
+      }
+      
+      const emailConfig = await storage.getEmailConfiguration();
+      
+      if (!emailConfig) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "No hay configuración de correo SMTP. Configura el servidor de correo primero en la sección de Email." 
+        });
+      }
+      
+      const nodemailer = await import('nodemailer');
+      
+      const transporterConfig: any = {
+        host: emailConfig.smtpHost,
+        port: emailConfig.smtpPort,
+        secure: emailConfig.encryption === 'ssl',
+        auth: {
+          user: emailConfig.username,
+          pass: emailConfig.password,
+        },
+      };
+      
+      if (emailConfig.encryption === 'tls') {
+        transporterConfig.requireTLS = true;
+        transporterConfig.tls = { rejectUnauthorized: false };
+      } else if (emailConfig.encryption === 'ssl') {
+        transporterConfig.secure = true;
+        transporterConfig.tls = { rejectUnauthorized: false };
+      }
+      
+      const transporter = nodemailer.default.createTransport(transporterConfig);
+      
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #0f2161; border-bottom: 2px solid #bcce16; padding-bottom: 10px;">
+            🧪 Correo de Prueba - Notificaciones de Registro
+          </h2>
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">¡La configuración funciona!</h3>
+            <p>Este es un correo de prueba para verificar que las notificaciones de nuevos registros están funcionando correctamente.</p>
+            <p><strong>Fecha de prueba:</strong> ${new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}</p>
+          </div>
+          <div style="background-color: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">Ejemplo de Datos de Empresa</h3>
+            <p><strong>Nombre:</strong> Empresa de Prueba S.A. de C.V.</p>
+            <p><strong>Email:</strong> prueba@empresa.com</p>
+            <p><strong>Teléfono:</strong> +52 55 1234 5678</p>
+            <p><strong>Plan:</strong> Membresía Empresarial</p>
+            <p><strong>Periodicidad:</strong> Anual</p>
+          </div>
+          <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">Ejemplo de Representante</h3>
+            <p><strong>Nombre:</strong> Juan Pérez García</p>
+            <p><strong>Email:</strong> juan.perez@empresa.com</p>
+          </div>
+          <p style="color: #666; font-size: 12px; text-align: center; margin-top: 30px;">
+            Este es un correo de prueba generado desde la configuración del sistema ANPR México.
+          </p>
+        </div>
+      `;
+      
+      const results: { email: string; success: boolean; error?: string }[] = [];
+      
+      // Send to all notification emails
+      for (const email of notificationEmails) {
+        try {
+          await transporter.sendMail({
+            from: `"${emailConfig.fromName}" <${emailConfig.fromEmail}>`,
+            to: email,
+            subject: `🧪 Prueba de Notificación - ANPR México`,
+            html: htmlContent,
+          });
+          console.log(`Test notification sent to ${email}`);
+          results.push({ email, success: true });
+        } catch (sendError: any) {
+          console.error(`Failed to send test notification to ${email}:`, sendError);
+          results.push({ email, success: false, error: sendError.message });
+        }
+      }
+      
+      const allSuccessful = results.every(r => r.success);
+      const successCount = results.filter(r => r.success).length;
+      
+      res.json({ 
+        success: allSuccessful,
+        message: allSuccessful 
+          ? `Correos de prueba enviados exitosamente a ${successCount} destinatario(s)` 
+          : `Se enviaron ${successCount} de ${results.length} correos. Algunos fallaron.`,
+        results 
+      });
+    } catch (error: any) {
+      console.error("Error testing notification emails:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Error al enviar correos de prueba" 
+      });
+    }
+  });
+
   // Email Templates Routes
   app.get("/api/email-templates", async (req, res) => {
     try {

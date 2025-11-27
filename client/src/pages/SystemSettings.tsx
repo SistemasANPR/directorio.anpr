@@ -122,6 +122,7 @@ export default function SystemSettings() {
   const [isUploading, setIsUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+  const [isTestingNotifications, setIsTestingNotifications] = useState(false);
 
   const { data: settings, isLoading } = useQuery<SystemSettingsData>({
     queryKey: ["/api/system-settings"],
@@ -244,6 +245,57 @@ export default function SystemSettings() {
 
   const onSubmit = async (data: SystemSettingsFormData) => {
     updateMutation.mutate(data);
+  };
+
+  // Test notification emails
+  const handleTestNotifications = async () => {
+    setIsTestingNotifications(true);
+    try {
+      const response = await fetch('/api/test-notification-emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        Swal.fire({
+          title: "¡Correos enviados!",
+          html: `
+            <p>${result.message}</p>
+            <div style="margin-top: 15px; text-align: left;">
+              ${result.results?.map((r: any) => `
+                <div style="padding: 8px; margin: 4px 0; background: ${r.success ? '#d1fae5' : '#fee2e2'}; border-radius: 4px;">
+                  <strong>${r.email}</strong>: ${r.success ? '✓ Enviado' : '✗ Fallido - ' + r.error}
+                </div>
+              `).join('')}
+            </div>
+          `,
+          icon: "success",
+          confirmButtonText: "Aceptar",
+          confirmButtonColor: "#10b981",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: result.error || "No se pudieron enviar los correos de prueba",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+          confirmButtonColor: "#ef4444",
+        });
+      }
+    } catch (error: any) {
+      Swal.fire({
+        title: "Error",
+        text: error.message || "Error al enviar correos de prueba",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setIsTestingNotifications(false);
+    }
   };
 
   // Handle file upload for logos and favicons
@@ -797,16 +849,43 @@ export default function SystemSettings() {
                   </div>
                 )}
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => appendNotification({ email: "" })}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Correo de Notificación
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendNotification({ email: "" })}
+                    className="flex-1"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar Correo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={handleTestNotifications}
+                    disabled={isTestingNotifications || notificationFields.length === 0}
+                    className="flex-1 bg-[#0f2161] hover:bg-[#1a3280] text-white"
+                  >
+                    {isTestingNotifications ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Enviar Prueba
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {notificationFields.length > 0 && (
+                  <p className="text-xs text-gray-500 text-center">
+                    Guarda los cambios antes de enviar una prueba si has agregado nuevos correos
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
