@@ -277,12 +277,42 @@ export default function SystemSettings() {
           confirmButtonColor: "#10b981",
         });
       } else {
+        // Show detailed error with SMTP config info if available
+        let errorHtml = `<p>${result.message || result.error || "No se pudieron enviar los correos de prueba"}</p>`;
+        
+        if (result.smtpConfig) {
+          errorHtml += `
+            <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 8px; text-align: left;">
+              <strong>Configuración SMTP actual:</strong><br/>
+              <small>Host: ${result.smtpConfig.host}</small><br/>
+              <small>Puerto: ${result.smtpConfig.port}</small><br/>
+              <small>Encriptación: ${result.smtpConfig.encryption}</small>
+            </div>
+            <p style="margin-top: 10px; font-size: 14px; color: #666;">
+              Ve a <strong>Email → Configuración SMTP</strong> para verificar o corregir estos valores.
+            </p>
+          `;
+        }
+        
+        if (result.results && result.results.length > 0) {
+          errorHtml += `
+            <div style="margin-top: 15px; text-align: left;">
+              ${result.results.map((r: any) => `
+                <div style="padding: 8px; margin: 4px 0; background: #fee2e2; border-radius: 4px; font-size: 12px;">
+                  <strong>${r.email}</strong>: ✗ Fallido
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+        
         Swal.fire({
-          title: "Error",
-          text: result.error || "No se pudieron enviar los correos de prueba",
+          title: "Error de Conexión SMTP",
+          html: errorHtml,
           icon: "error",
-          confirmButtonText: "Aceptar",
+          confirmButtonText: "Entendido",
           confirmButtonColor: "#ef4444",
+          width: 500,
         });
       }
     } catch (error: any) {

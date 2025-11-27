@@ -3910,6 +3910,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allSuccessful = results.every(r => r.success);
       const successCount = results.filter(r => r.success).length;
       
+      if (successCount === 0) {
+        // All failed - likely SMTP configuration issue
+        const firstError = results[0]?.error || "Error desconocido";
+        let userFriendlyError = "Error de conexión SMTP. ";
+        
+        if (firstError.includes('ETIMEDOUT') || firstError.includes('Greeting never received')) {
+          userFriendlyError += `No se pudo conectar al servidor de correo (${emailConfig.smtpHost}:${emailConfig.smtpPort}). Verifica que el host, puerto y tipo de encriptación sean correctos en la configuración de Email.`;
+        } else if (firstError.includes('AUTH') || firstError.includes('authentication')) {
+          userFriendlyError += "Las credenciales de autenticación son incorrectas. Verifica el usuario y contraseña SMTP.";
+        } else if (firstError.includes('certificate') || firstError.includes('SSL')) {
+          userFriendlyError += "Error de certificado SSL/TLS. Intenta cambiar el tipo de encriptación en la configuración.";
+        } else {
+          userFriendlyError += firstError;
+        }
+        
+        return res.json({ 
+          success: false,
+          message: userFriendlyError,
+          smtpConfig: {
+            host: emailConfig.smtpHost,
+            port: emailConfig.smtpPort,
+            encryption: emailConfig.encryption
+          },
+          results 
+        });
+      }
+      
       res.json({ 
         success: allSuccessful,
         message: allSuccessful 
