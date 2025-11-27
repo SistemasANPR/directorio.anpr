@@ -661,8 +661,8 @@ export default function CompanyDetails() {
                     <div className="space-y-3">
                       {emails.map((email, index) => {
                         const peepsoProfile = emailPeepsoProfiles?.success && emailPeepsoProfiles?.profiles?.[email];
-                        const hasProfile = peepsoProfile?.has_peepso_profile && peepsoProfile?.username;
-                        const peepsoUrl = hasProfile ? `https://anpr.org.mx/profile-2/?${peepsoProfile.username}` : null;
+                        const hasProfile = peepsoProfile?.has_peepso_profile && peepsoProfile?.profile_url;
+                        const peepsoUrl = hasProfile ? peepsoProfile.profile_url : null;
                         
                         return (
                           <div key={index} className="space-y-1">
