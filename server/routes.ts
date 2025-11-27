@@ -5502,8 +5502,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`[Email PeepSo Profiles] Usuario encontrado: ${matchingUser.username} (ID: ${matchingUser.id})`);
 
           // Construir la URL del perfil de PeepSo usando el username
-          // PeepSo usa el formato: /profile-2/?username
-          const peepsoProfileUrl = `${baseUrl}/profile-2/?${matchingUser.slug || matchingUser.username}`;
+          // PeepSo usa el formato: /members/username/
+          const peepsoProfileUrl = `${baseUrl}/members/${matchingUser.slug || matchingUser.username}/`;
           
           console.log(`[Email PeepSo Profiles] URL de perfil PeepSo para ${email}: ${peepsoProfileUrl}`);
           
