@@ -9,6 +9,7 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { insertUserSchema, insertCompanySchema, insertCategorySchema, insertTagSchema, insertMembershipTypeSchema, insertCertificateSchema, insertRoleSchema, insertOpinionSchema, insertMembershipPaymentSchema, insertProjectSchema, insertIntegrationSettingsSchema, insertPdfSettingsSchema, insertEmailConfigurationSchema, insertEmailTemplateSchema, insertFrontendConfigurationSchema, insertCompanyLocationSchema } from "@shared/schema";
 import { z } from "zod";
+import { uploadFromBuffer, deleteFile as deleteCloudinaryFile } from "./cloudinary";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -17,35 +18,41 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
 
-// Configuración de multer para imágenes
-const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), 'uploads', 'images');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}_${Date.now()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
+// Configuración de multer - usa memoria para Cloudinary, disco para local
+const useCloudinary = !!process.env.CLOUDINARY_CLOUD_NAME;
+
+const imageStorage = useCloudinary 
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(process.cwd(), 'uploads', 'images');
+        if (!fs.existsSync(uploadPath)) {
+          fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueName = `${uuidv4()}_${Date.now()}${path.extname(file.originalname)}`;
+        cb(null, uniqueName);
+      }
+    });
 
 // Configuración de multer para documentos
-const documentStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), 'uploads', 'documents');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}_${Date.now()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
+const documentStorage = useCloudinary 
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(process.cwd(), 'uploads', 'documents');
+        if (!fs.existsSync(uploadPath)) {
+          fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueName = `${uuidv4()}_${Date.now()}${path.extname(file.originalname)}`;
+        cb(null, uniqueName);
+      }
+    });
 
 const uploadImage = multer({
   storage: imageStorage,
@@ -180,98 +187,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Servir archivos estáticos desde la carpeta attached_assets
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
 
-  // Ruta para subir una sola imagen
+  // Ruta para subir una sola imagen - Cloudinary
   app.post("/api/upload-image", uploadImage.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No se recibió ningún archivo" });
       }
       
-      const imageUrl = `/uploads/images/${req.file.filename}`;
-      res.json({ 
-        success: true, 
-        imageUrl,
-        filename: req.file.filename
-      });
+      // Check if Cloudinary is configured
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
+        const result = await uploadFromBuffer(req.file.buffer, 'anpr/images', 'image');
+        res.json({ 
+          success: true, 
+          imageUrl: result.url,
+          publicId: result.publicId,
+          filename: result.publicId
+        });
+      } else {
+        // Fallback to local storage
+        const imageUrl = `/uploads/images/${req.file.filename}`;
+        res.json({ 
+          success: true, 
+          imageUrl,
+          filename: req.file.filename
+        });
+      }
     } catch (error) {
       console.error("Error al subir imagen:", error);
       res.status(500).json({ error: "Error al procesar la imagen" });
     }
   });
 
-  // Ruta para subir múltiples imágenes
+  // Ruta para subir múltiples imágenes - Cloudinary
   app.post("/api/upload-images", uploadImage.array('images', 10), async (req, res) => {
     try {
       if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
         return res.status(400).json({ error: "No se recibieron archivos" });
       }
       
-      const imageUrls = req.files.map(file => ({
-        imageUrl: `/uploads/images/${file.filename}`,
-        filename: file.filename
-      }));
-      
-      res.json({ 
-        success: true, 
-        images: imageUrls
-      });
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
+        const uploadPromises = req.files.map(file => 
+          uploadFromBuffer(file.buffer, 'anpr/images', 'image')
+        );
+        const results = await Promise.all(uploadPromises);
+        const imageUrls = results.map(result => ({
+          imageUrl: result.url,
+          publicId: result.publicId,
+          filename: result.publicId
+        }));
+        res.json({ 
+          success: true, 
+          images: imageUrls
+        });
+      } else {
+        const imageUrls = req.files.map(file => ({
+          imageUrl: `/uploads/images/${file.filename}`,
+          filename: file.filename
+        }));
+        res.json({ 
+          success: true, 
+          images: imageUrls
+        });
+      }
     } catch (error) {
       console.error("Error al subir imágenes:", error);
       res.status(500).json({ error: "Error al procesar las imágenes" });
     }
   });
 
-  // Ruta para subir documentos PDF
+  // Ruta para subir documentos PDF - Cloudinary
   app.post("/api/upload-document", uploadDocument.single('document'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No se recibió ningún archivo" });
       }
       
-
-      
-      const documentUrl = `/uploads/documents/${req.file.filename}`;
-      res.json({ 
-        success: true, 
-        documentUrl,
-        filename: req.file.filename
-      });
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
+        const result = await uploadFromBuffer(req.file.buffer, 'anpr/documents', 'raw');
+        res.json({ 
+          success: true, 
+          documentUrl: result.url,
+          publicId: result.publicId,
+          filename: result.publicId
+        });
+      } else {
+        const documentUrl = `/uploads/documents/${req.file.filename}`;
+        res.json({ 
+          success: true, 
+          documentUrl,
+          filename: req.file.filename
+        });
+      }
     } catch (error) {
       console.error("Error al subir documento:", error);
       res.status(500).json({ error: "Error al procesar el documento" });
     }
   });
 
-  // Ruta para subir imagen de perfil (usado por configuración de cuenta)
+  // Ruta para subir imagen de perfil (usado por configuración de cuenta) - Cloudinary
   app.post("/api/upload", uploadImage.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No se recibió ningún archivo" });
       }
       
-      const imageUrl = `/uploads/images/${req.file.filename}`;
-      res.json({ 
-        success: true, 
-        url: imageUrl, // El frontend espera 'url', no 'imageUrl'
-        filename: req.file.filename
-      });
+      if (process.env.CLOUDINARY_CLOUD_NAME) {
+        const result = await uploadFromBuffer(req.file.buffer, 'anpr/profiles', 'image');
+        res.json({ 
+          success: true, 
+          url: result.url,
+          publicId: result.publicId,
+          filename: result.publicId
+        });
+      } else {
+        const imageUrl = `/uploads/images/${req.file.filename}`;
+        res.json({ 
+          success: true, 
+          url: imageUrl,
+          filename: req.file.filename
+        });
+      }
     } catch (error) {
       console.error("Error al subir imagen de perfil:", error);
       res.status(500).json({ error: "Error al procesar la imagen de perfil" });
     }
   });
 
-  // Ruta para eliminar imagen
+  // Ruta para eliminar imagen - Cloudinary
   app.delete("/api/delete-image/:filename", async (req, res) => {
     try {
       const { filename } = req.params;
-      const filePath = path.join(process.cwd(), 'uploads', 'images', filename);
       
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        res.json({ success: true, message: "Imagen eliminada correctamente" });
+      // Check if it's a Cloudinary public ID (contains '/')
+      if (process.env.CLOUDINARY_CLOUD_NAME && filename.includes('/')) {
+        const deleted = await deleteCloudinaryFile(filename);
+        if (deleted) {
+          res.json({ success: true, message: "Imagen eliminada correctamente" });
+        } else {
+          res.status(404).json({ error: "Imagen no encontrada" });
+        }
       } else {
-        res.status(404).json({ error: "Imagen no encontrada" });
+        // Local file deletion
+        const filePath = path.join(process.cwd(), 'uploads', 'images', filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          res.json({ success: true, message: "Imagen eliminada correctamente" });
+        } else {
+          res.status(404).json({ error: "Imagen no encontrada" });
+        }
       }
     } catch (error) {
       console.error("Error al eliminar imagen:", error);

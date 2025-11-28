@@ -28,6 +28,46 @@ import {
 } from "../shared/schema";
 import nodemailer from "nodemailer";
 import path from "path";
+import { v2 as cloudinary } from 'cloudinary';
+import multer from 'multer';
+
+// Configure Cloudinary
+if (process.env.CLOUDINARY_CLOUD_NAME) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+  });
+}
+
+// Multer memory storage for Cloudinary
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+});
+
+// Upload to Cloudinary helper
+async function uploadToCloudinary(buffer: Buffer, folder: string = 'anpr', resourceType: 'image' | 'raw' | 'auto' = 'image'): Promise<{url: string, publicId: string}> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: resourceType,
+        transformation: resourceType === 'image' ? [
+          { quality: 'auto:good' },
+          { fetch_format: 'auto' }
+        ] : undefined
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else if (result) resolve({ url: result.secure_url, publicId: result.public_id });
+        else reject(new Error('No result from Cloudinary'));
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
 
 // Database connection
 if (!process.env.DATABASE_URL) {
@@ -625,6 +665,123 @@ app.get('/api/roles', async (req, res) => {
   } catch (error) {
     console.error('Error fetching roles:', error);
     res.status(500).json({ message: 'Error fetching roles' });
+  }
+});
+
+// ============ UPLOAD ENDPOINTS ============
+app.post('/api/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se recibió ningún archivo' });
+    }
+    
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      return res.status(500).json({ error: 'Cloudinary no está configurado' });
+    }
+    
+    const result = await uploadToCloudinary(req.file.buffer, 'anpr/images', 'image');
+    res.json({ 
+      success: true, 
+      imageUrl: result.url,
+      publicId: result.publicId,
+      filename: result.publicId
+    });
+  } catch (error) {
+    console.error('Error al subir imagen:', error);
+    res.status(500).json({ error: 'Error al procesar la imagen' });
+  }
+});
+
+app.post('/api/upload-images', upload.array('images', 10), async (req, res) => {
+  try {
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      return res.status(400).json({ error: 'No se recibieron archivos' });
+    }
+    
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      return res.status(500).json({ error: 'Cloudinary no está configurado' });
+    }
+    
+    const uploadPromises = req.files.map(file => 
+      uploadToCloudinary(file.buffer, 'anpr/images', 'image')
+    );
+    const results = await Promise.all(uploadPromises);
+    const imageUrls = results.map(result => ({
+      imageUrl: result.url,
+      publicId: result.publicId,
+      filename: result.publicId
+    }));
+    
+    res.json({ success: true, images: imageUrls });
+  } catch (error) {
+    console.error('Error al subir imágenes:', error);
+    res.status(500).json({ error: 'Error al procesar las imágenes' });
+  }
+});
+
+app.post('/api/upload-document', upload.single('document'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se recibió ningún archivo' });
+    }
+    
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      return res.status(500).json({ error: 'Cloudinary no está configurado' });
+    }
+    
+    const result = await uploadToCloudinary(req.file.buffer, 'anpr/documents', 'raw');
+    res.json({ 
+      success: true, 
+      documentUrl: result.url,
+      publicId: result.publicId,
+      filename: result.publicId
+    });
+  } catch (error) {
+    console.error('Error al subir documento:', error);
+    res.status(500).json({ error: 'Error al procesar el documento' });
+  }
+});
+
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se recibió ningún archivo' });
+    }
+    
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      return res.status(500).json({ error: 'Cloudinary no está configurado' });
+    }
+    
+    const result = await uploadToCloudinary(req.file.buffer, 'anpr/profiles', 'image');
+    res.json({ 
+      success: true, 
+      url: result.url,
+      publicId: result.publicId,
+      filename: result.publicId
+    });
+  } catch (error) {
+    console.error('Error al subir archivo:', error);
+    res.status(500).json({ error: 'Error al procesar el archivo' });
+  }
+});
+
+app.delete('/api/delete-image/:publicId(*)', async (req, res) => {
+  try {
+    const { publicId } = req.params;
+    
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      return res.status(500).json({ error: 'Cloudinary no está configurado' });
+    }
+    
+    const result = await cloudinary.uploader.destroy(publicId);
+    if (result.result === 'ok') {
+      res.json({ success: true, message: 'Imagen eliminada correctamente' });
+    } else {
+      res.status(404).json({ error: 'Imagen no encontrada' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar imagen:', error);
+    res.status(500).json({ error: 'Error al eliminar la imagen' });
   }
 });
 
