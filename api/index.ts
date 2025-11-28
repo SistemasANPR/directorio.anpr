@@ -91,7 +91,7 @@ app.get('/api/companies', async (req, res) => {
     const conditions: any[] = [];
 
     if (!includeInactive) {
-      conditions.push(eq(companies.activo, true));
+      conditions.push(eq(companies.estado, "activo"));
     }
 
     if (search) {
@@ -104,7 +104,7 @@ app.get('/api/companies', async (req, res) => {
     }
 
     if (categoryId) {
-      conditions.push(sql`${companies.categorias} @> ARRAY[${parseInt(categoryId as string)}]::integer[]`);
+      conditions.push(sql`${companies.categoriesIds} @> '[${parseInt(categoryId as string)}]'::jsonb`);
     }
 
     if (estado) {
@@ -112,7 +112,7 @@ app.get('/api/companies', async (req, res) => {
     }
 
     if (membershipTypeId) {
-      conditions.push(eq(companies.tipoMembresiaId, parseInt(membershipTypeId as string)));
+      conditions.push(eq(companies.membershipTypeId, parseInt(membershipTypeId as string)));
     }
 
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
@@ -134,12 +134,13 @@ app.get('/api/companies', async (req, res) => {
     // Enrich with categories and membership types
     const enrichedCompanies = await Promise.all(
       companiesResult.map(async (company) => {
-        const companyCategories = company.categorias && Array.isArray(company.categorias)
-          ? await db.select().from(categories).where(inArray(categories.id, company.categorias as number[]))
+        const catIds = company.categoriesIds as number[] | null;
+        const companyCategories = catIds && Array.isArray(catIds) && catIds.length > 0
+          ? await db.select().from(categories).where(inArray(categories.id, catIds))
           : [];
         
-        const membershipType = company.tipoMembresiaId
-          ? await db.select().from(membershipTypes).where(eq(membershipTypes.id, company.tipoMembresiaId)).then(r => r[0])
+        const membershipType = company.membershipTypeId
+          ? await db.select().from(membershipTypes).where(eq(membershipTypes.id, company.membershipTypeId)).then(r => r[0])
           : null;
 
         return {
@@ -169,12 +170,13 @@ app.get('/api/companies/:id', async (req, res) => {
       return res.status(404).json({ message: 'Company not found' });
     }
 
-    const companyCategories = company.categorias && Array.isArray(company.categorias)
-      ? await db.select().from(categories).where(inArray(categories.id, company.categorias as number[]))
+    const catIds = company.categoriesIds as number[] | null;
+    const companyCategories = catIds && Array.isArray(catIds) && catIds.length > 0
+      ? await db.select().from(categories).where(inArray(categories.id, catIds))
       : [];
     
-    const membershipType = company.tipoMembresiaId
-      ? await db.select().from(membershipTypes).where(eq(membershipTypes.id, company.tipoMembresiaId)).then(r => r[0])
+    const membershipType = company.membershipTypeId
+      ? await db.select().from(membershipTypes).where(eq(membershipTypes.id, company.membershipTypeId)).then(r => r[0])
       : null;
 
     const locations = await db.select().from(companyLocations).where(eq(companyLocations.companyId, id));
@@ -271,7 +273,7 @@ app.delete('/api/categories/:id', async (req, res) => {
 // ============ MEMBERSHIP TYPES ============
 app.get('/api/membership-types', async (req, res) => {
   try {
-    const allTypes = await db.select().from(membershipTypes).orderBy(asc(membershipTypes.orden));
+    const allTypes = await db.select().from(membershipTypes).orderBy(asc(membershipTypes.id));
     res.json(allTypes);
   } catch (error) {
     console.error('Error fetching membership types:', error);
@@ -364,7 +366,7 @@ app.get('/api/opinions', async (req, res) => {
     const conditions: any[] = [];
 
     if (companyId) {
-      conditions.push(eq(opinions.empresaId, parseInt(companyId as string)));
+      conditions.push(eq(opinions.companyId, parseInt(companyId as string)));
     }
     if (estado) {
       conditions.push(eq(opinions.estado, estado as string));
@@ -395,7 +397,7 @@ app.get('/api/projects', async (req, res) => {
     const { companyId } = req.query;
     let allProjects;
     if (companyId) {
-      allProjects = await db.select().from(projects).where(eq(projects.empresaId, parseInt(companyId as string)));
+      allProjects = await db.select().from(projects).where(eq(projects.companyId, parseInt(companyId as string)));
     } else {
       allProjects = await db.select().from(projects);
     }
@@ -485,7 +487,7 @@ app.get('/api/company-locations', async (req, res) => {
 // ============ MEMBERSHIP PAYMENTS ============
 app.get('/api/membership-payments', async (req, res) => {
   try {
-    const payments = await db.select().from(membershipPayments).orderBy(desc(membershipPayments.fechaPago));
+    const payments = await db.select().from(membershipPayments).orderBy(desc(membershipPayments.createdAt));
     res.json(payments);
   } catch (error) {
     console.error('Error fetching membership payments:', error);
@@ -593,15 +595,15 @@ app.post('/api/emails/send', async (req, res) => {
       port: emailConfig.smtpPort,
       secure: emailConfig.smtpPort === 465,
       auth: {
-        user: emailConfig.smtpUser,
-        pass: emailConfig.smtpPassword
+        user: emailConfig.username,
+        pass: emailConfig.password
       }
     });
 
     const { to, subject, html, text } = req.body;
 
     await transporter.sendMail({
-      from: emailConfig.emailFrom,
+      from: emailConfig.fromEmail,
       to,
       subject,
       html,
