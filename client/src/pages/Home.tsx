@@ -892,7 +892,7 @@ export default function Home() {
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
               <div style={{ flexShrink: 0 }}>
                 <img 
-                  src="/attached_assets/Rectangle 10.png"
+                  src="https://anpr.org.mx/wp-content/uploads/2025/11/lapiz.jpg"
                   alt="Tu marca donde importa"
                   style={{ width: "60px", height: "60px" }}
                 />
