@@ -979,7 +979,7 @@ export default function Home() {
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
               <div style={{ flexShrink: 0 }}>
                 <img 
-                  src="/attached_assets/Rectangle 13.png"
+                  src="https://anpr.org.mx/wp-content/uploads/2025/11/lupa.jpg"
                   alt="Aparición en buscadores"
                   style={{ width: "60px", height: "60px" }}
                 />
