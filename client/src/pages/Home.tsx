@@ -921,7 +921,7 @@ export default function Home() {
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
               <div style={{ flexShrink: 0 }}>
                 <img 
-                  src="/attached_assets/Rectangle 11.png"
+                  src="https://anpr.org.mx/wp-content/uploads/2025/11/Corazon.jpg"
                   alt="Presencia que convierte"
                   style={{ width: "60px", height: "60px" }}
                 />
@@ -950,7 +950,7 @@ export default function Home() {
             <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
               <div style={{ flexShrink: 0 }}>
                 <img 
-                  src="/attached_assets/Rectangle 12.png"
+                  src="https://anpr.org.mx/wp-content/uploads/2025/11/Tierra.jpg"
                   alt="Visibilidad regional"
                   style={{ width: "60px", height: "60px" }}
                 />
