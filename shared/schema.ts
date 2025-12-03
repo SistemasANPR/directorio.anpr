@@ -1,221 +1,218 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, varchar, date, doublePrecision } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { mysqlTable, text, int, boolean, timestamp, decimal, json, varchar, date, double } from "drizzle-orm/mysql-core";
+import { relations, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  firebaseUid: text("firebase_uid").notNull().unique(),
-  email: text("email").notNull().unique(),
-  displayName: text("display_name"),
+export const users = mysqlTable("users", {
+  id: int("id").primaryKey().autoincrement(),
+  firebaseUid: varchar("firebase_uid", { length: 255 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 255 }),
   photoURL: text("photo_url"),
-  role: text("role").notNull().default("user"), // "admin" or "user"
-  tempPassword: text("temp_password"), // Temporary password for admin accounts
+  role: varchar("role", { length: 50 }).notNull().default("user"),
+  tempPassword: varchar("temp_password", { length: 255 }),
   requirePasswordChange: boolean("require_password_change").notNull().default(false),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
   autoRenewal: boolean("auto_renewal").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  nombreCategoria: text("nombre_categoria").notNull(),
+export const categories = mysqlTable("categories", {
+  id: int("id").primaryKey().autoincrement(),
+  nombreCategoria: varchar("nombre_categoria", { length: 255 }).notNull(),
   descripcion: text("descripcion"),
-  icono: text("icono").default("Tag"), // Lucide icon name
-  iconoUrl: text("icono_url"), // Custom icon URL
+  icono: varchar("icono", { length: 100 }).default("Tag"),
+  iconoUrl: text("icono_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const tags = pgTable("tags", {
-  id: serial("id").primaryKey(),
-  nombre: text("nombre").notNull().unique(),
+export const tags = mysqlTable("tags", {
+  id: int("id").primaryKey().autoincrement(),
+  nombre: varchar("nombre", { length: 255 }).notNull().unique(),
   descripcion: text("descripcion"),
-  color: text("color").default("#3B82F6"), // Hex color for visual representation
+  color: varchar("color", { length: 20 }).default("#3B82F6"),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const membershipTypes = pgTable("membership_types", {
-  id: serial("id").primaryKey(),
-  nombrePlan: text("nombre_plan").notNull(),
+export const membershipTypes = mysqlTable("membership_types", {
+  id: int("id").primaryKey().autoincrement(),
+  nombrePlan: varchar("nombre_plan", { length: 255 }).notNull(),
   descripcionPlan: text("descripcion_plan"),
-  opcionesPrecios: jsonb("opciones_precios"), // Array of {periodicidad: string, costo: number}
-  beneficios: jsonb("beneficios"), // Array of benefits
-  visibilidad: text("visibilidad").notNull().default("publica"), // "publica" o "privada"
-  stripePriceId: text("stripe_price_id"), // ID del precio en Stripe
-  stripeProductId: text("stripe_product_id"), // ID del producto en Stripe
-  cantidadProductosAdmitidos: integer("cantidad_productos_admitidos").default(0), // Cantidad de productos permitidos
-  cantidadProyectosAdmitidos: integer("cantidad_proyectos_admitidos").default(0), // Cantidad de proyectos permitidos
-  cantidadFotosPorProyecto: integer("cantidad_fotos_por_proyecto").default(5), // Cantidad de fotos permitidas por proyecto
-  masPopular: boolean("mas_popular").default(false).notNull(), // Marcar como plan más popular
+  opcionesPrecios: json("opciones_precios"),
+  beneficios: json("beneficios"),
+  visibilidad: varchar("visibilidad", { length: 50 }).notNull().default("publica"),
+  stripePriceId: varchar("stripe_price_id", { length: 255 }),
+  stripeProductId: varchar("stripe_product_id", { length: 255 }),
+  cantidadProductosAdmitidos: int("cantidad_productos_admitidos").default(0),
+  cantidadProyectosAdmitidos: int("cantidad_proyectos_admitidos").default(0),
+  cantidadFotosPorProyecto: int("cantidad_fotos_por_proyecto").default(5),
+  masPopular: boolean("mas_popular").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const companies = pgTable("companies", {
-  id: serial("id").primaryKey(),
-  nombreEmpresa: text("nombre_empresa").notNull(),
+export const companies = mysqlTable("companies", {
+  id: int("id").primaryKey().autoincrement(),
+  nombreEmpresa: varchar("nombre_empresa", { length: 255 }).notNull(),
   logotipoUrl: text("logotipo_url"),
   fotoPortadaUrl: text("foto_portada_url"),
-  telefono1: text("telefono1"),
-  telefono2: text("telefono2"),
-  email1: text("email1").notNull(),
-  email2: text("email2"),
-  direccionFisica: text("direccion_fisica").notNull(), // Dirección física única de la empresa
-  ubicacionGeografica: jsonb("ubicacion_geografica"), // {lat: number, lng: number, address: string}
-  representantesVentas: jsonb("representantes_ventas"), // Array of user IDs
+  telefono1: varchar("telefono1", { length: 50 }),
+  telefono2: varchar("telefono2", { length: 50 }),
+  email1: varchar("email1", { length: 255 }).notNull(),
+  email2: varchar("email2", { length: 255 }),
+  direccionFisica: text("direccion_fisica").notNull(),
+  ubicacionGeografica: json("ubicacion_geografica"),
+  representantesVentas: json("representantes_ventas"),
   descripcionEmpresa: text("descripcion_empresa"),
-  galeriaProductosUrls: jsonb("galeria_productos_urls"), // Array of image URLs
-  categoriesIds: jsonb("categories_ids"), // Array of category IDs
-  redesSociales: jsonb("redes_sociales"), // Object with social media URLs
+  galeriaProductosUrls: json("galeria_productos_urls"),
+  categoriesIds: json("categories_ids"),
+  redesSociales: json("redes_sociales"),
   catalogoDigitalUrl: text("catalogo_digital_url"),
-  videosUrls: jsonb("videos_urls"), // Array of video URLs
-  membershipTypeId: integer("membership_type_id").references(() => membershipTypes.id),
-  sitioWeb: text("sitio_web"),
-  certificateIds: jsonb("certificate_ids"), // Array of certificate IDs
-  tagIds: jsonb("tag_ids"), // Array of tag IDs for keywords/search enhancement
-  // Campos de información de membresía
-  membershipPeriodicidad: text("membership_periodicidad", { enum: ["mensual", "anual"] }),
-  formaPago: text("forma_pago"), // "efectivo", "transferencia", "otro"
-  fechaInicioMembresia: text("fecha_inicio_membresia"),
-  fechaFinMembresia: text("fecha_fin_membresia"),
+  videosUrls: json("videos_urls"),
+  membershipTypeId: int("membership_type_id").references(() => membershipTypes.id),
+  sitioWeb: varchar("sitio_web", { length: 500 }),
+  certificateIds: json("certificate_ids"),
+  tagIds: json("tag_ids"),
+  membershipPeriodicidad: varchar("membership_periodicidad", { length: 20 }),
+  formaPago: varchar("forma_pago", { length: 50 }),
+  fechaInicioMembresia: varchar("fecha_inicio_membresia", { length: 20 }),
+  fechaFinMembresia: varchar("fecha_fin_membresia", { length: 20 }),
   notasMembresia: text("notas_membresia"),
-  userId: integer("user_id").references(() => users.id), // Owner of the company
-  estado: text("estado").notNull().default("activo"), // "activo", "inactivo", "pendiente"
+  userId: int("user_id").references(() => users.id),
+  estado: varchar("estado", { length: 50 }).notNull().default("activo"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const certificates = pgTable("certificates", {
-  id: serial("id").primaryKey(),
-  nombreCertificado: text("nombre_certificado").notNull(),
+export const certificates = mysqlTable("certificates", {
+  id: int("id").primaryKey().autoincrement(),
+  nombreCertificado: varchar("nombre_certificado", { length: 255 }).notNull(),
   imagenUrl: text("imagen_url").notNull(),
   descripcion: text("descripcion"),
-  fechaEmision: text("fecha_emision"),
-  fechaVencimiento: text("fecha_vencimiento"),
-  entidadEmisora: text("entidad_emisora"),
-  estado: text("estado").notNull().default("activo"),
-  asignacionAutomatica: boolean("asignacion_automatica").notNull().default(false), // Si se asigna automáticamente a los planes seleccionados
-  membershipPlanIds: jsonb("membership_plan_ids"), // Array of membership plan IDs that include this certificate by default
-  creadoPorAdmin: boolean("creado_por_admin").notNull().default(false), // If true, only visible to admins
+  fechaEmision: varchar("fecha_emision", { length: 20 }),
+  fechaVencimiento: varchar("fecha_vencimiento", { length: 20 }),
+  entidadEmisora: varchar("entidad_emisora", { length: 255 }),
+  estado: varchar("estado", { length: 50 }).notNull().default("activo"),
+  asignacionAutomatica: boolean("asignacion_automatica").notNull().default(false),
+  membershipPlanIds: json("membership_plan_ids"),
+  creadoPorAdmin: boolean("creado_por_admin").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const roles = pgTable("roles", {
-  id: serial("id").primaryKey(),
-  nombre: text("nombre").notNull().unique(),
+export const roles = mysqlTable("roles", {
+  id: int("id").primaryKey().autoincrement(),
+  nombre: varchar("nombre", { length: 255 }).notNull().unique(),
   descripcion: text("descripcion"),
-  permisos: jsonb("permisos"), // Array of permissions
-  esRolSistema: boolean("es_rol_sistema").notNull().default(false), // Prevents deletion of system roles
-  estado: text("estado").notNull().default("activo"),
+  permisos: json("permisos"),
+  esRolSistema: boolean("es_rol_sistema").notNull().default(false),
+  estado: varchar("estado", { length: 50 }).notNull().default("activo"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const opinions = pgTable("opinions", {
-  id: serial("id").primaryKey(),
-  companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
-  tipo: text("tipo").notNull().default("empresa"), // empresa, plataforma
-  nombre: text("nombre").notNull(),
-  email: text("email").notNull(),
-  cargo: text("cargo"), // Position/title for platform testimonials
-  calificacion: integer("calificacion").notNull(), // 1-5 estrellas
+export const opinions = mysqlTable("opinions", {
+  id: int("id").primaryKey().autoincrement(),
+  companyId: int("company_id").references(() => companies.id),
+  userId: int("user_id").references(() => users.id),
+  tipo: varchar("tipo", { length: 50 }).notNull().default("empresa"),
+  nombre: varchar("nombre", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  cargo: varchar("cargo", { length: 255 }),
+  calificacion: int("calificacion").notNull(),
   comentario: text("comentario").notNull(),
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
-  estado: text("estado").notNull().default("pendiente"), // pendiente, aprobada, rechazada
+  estado: varchar("estado", { length: 50 }).notNull().default("pendiente"),
   fechaAprobacion: timestamp("fecha_aprobacion"),
-  aprobadoPor: integer("aprobado_por").references(() => users.id, { onDelete: "set null" }),
+  aprobadoPor: int("aprobado_por").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const membershipPayments = pgTable("membership_payments", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }).notNull(),
-  membershipTypeId: integer("membership_type_id").references(() => membershipTypes.id).notNull(),
-  stripePaymentIntentId: text("stripe_payment_intent_id").notNull().unique(),
+export const membershipPayments = mysqlTable("membership_payments", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("user_id").references(() => users.id).notNull(),
+  companyId: int("company_id").references(() => companies.id).notNull(),
+  membershipTypeId: int("membership_type_id").references(() => membershipTypes.id).notNull(),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }).notNull().unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  currency: text("currency").notNull().default("mxn"),
-  status: text("status").notNull().default("pending"), // pending, succeeded, failed, canceled
+  currency: varchar("currency", { length: 10 }).notNull().default("mxn"),
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const systemSettings = pgTable("system_settings", {
-  id: serial("id").primaryKey(),
-  siteName: text("site_name").default("Directorio Industrial").notNull(),
-  siteDescription: text("site_description").default("Plataforma de administración web para organizaciones"),
+export const systemSettings = mysqlTable("system_settings", {
+  id: int("id").primaryKey().autoincrement(),
+  siteName: varchar("site_name", { length: 255 }).default("Directorio Industrial").notNull(),
+  siteDescription: text("site_description"),
   logoUrl: text("logo_url"),
   faviconUrl: text("favicon_url"),
-  primaryColor: text("primary_color").default("#2563eb").notNull(),
-  secondaryColor: text("secondary_color").default("#f97316").notNull(),
-  accentColor: text("accent_color").default("#10b981").notNull(),
-  currency: text("currency").default("USD").notNull(),
-  currencySymbol: text("currency_symbol").default("$").notNull(),
-  language: text("language").default("es").notNull(),
-  timezone: text("timezone").default("America/Mexico_City").notNull(),
-  contactEmail: text("contact_email"),
-  contactPhone: text("contact_phone"),
+  primaryColor: varchar("primary_color", { length: 20 }).default("#2563eb").notNull(),
+  secondaryColor: varchar("secondary_color", { length: 20 }).default("#f97316").notNull(),
+  accentColor: varchar("accent_color", { length: 20 }).default("#10b981").notNull(),
+  currency: varchar("currency", { length: 10 }).default("USD").notNull(),
+  currencySymbol: varchar("currency_symbol", { length: 10 }).default("$").notNull(),
+  language: varchar("language", { length: 10 }).default("es").notNull(),
+  timezone: varchar("timezone", { length: 100 }).default("America/Mexico_City").notNull(),
+  contactEmail: varchar("contact_email", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 50 }),
   address: text("address"),
-  socialMedia: jsonb("social_media"), // {facebook, twitter, linkedin, instagram}
-  seoSettings: jsonb("seo_settings"), // {metaTitle, metaDescription, keywords}
-  emailSettings: jsonb("email_settings"), // {smtpHost, smtpPort, smtpUser, fromEmail}
-  notificationEmails: jsonb("notification_emails").default([]), // Array of emails to notify on new registrations
-  paymentSettings: jsonb("payment_settings"), // {enableStripe, stripeCurrency}
+  socialMedia: json("social_media"),
+  seoSettings: json("seo_settings"),
+  emailSettings: json("email_settings"),
+  notificationEmails: json("notification_emails"),
+  paymentSettings: json("payment_settings"),
   maintenanceMode: boolean("maintenance_mode").default(false).notNull(),
   registrationEnabled: boolean("registration_enabled").default(true).notNull(),
-  maxFileSize: integer("max_file_size").default(10485760).notNull(), // 10MB in bytes
-  allowedFileTypes: jsonb("allowed_file_types").default(['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']).notNull(),
+  maxFileSize: int("max_file_size").default(10485760).notNull(),
+  allowedFileTypes: json("allowed_file_types"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const projects = pgTable("projects", {
-  id: serial("id").primaryKey(),
-  companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }).notNull(),
-  nombreProyecto: text("nombre_proyecto").notNull(),
+export const projects = mysqlTable("projects", {
+  id: int("id").primaryKey().autoincrement(),
+  companyId: int("company_id").references(() => companies.id).notNull(),
+  nombreProyecto: varchar("nombre_proyecto", { length: 255 }).notNull(),
   descripcionProyecto: text("descripcion_proyecto"),
-  categoryId: integer("category_id").references(() => categories.id),
+  categoryId: int("category_id").references(() => categories.id),
   fechaInicio: date("fecha_inicio"),
   fechaFinalizacion: date("fecha_finalizacion"),
-  ubicacionPais: text("ubicacion_pais"),
-  ubicacionEstado: text("ubicacion_estado"),
-  ubicacionCiudad: text("ubicacion_ciudad"),
-  clienteContratante: text("cliente_contratante"),
-  areaSuperficie: text("area_superficie"),
-  serviciosProductos: text("servicios_productos").array(),
-  galeriaImagenes: text("galeria_imagenes").array(),
+  ubicacionPais: varchar("ubicacion_pais", { length: 100 }),
+  ubicacionEstado: varchar("ubicacion_estado", { length: 100 }),
+  ubicacionCiudad: varchar("ubicacion_ciudad", { length: 100 }),
+  clienteContratante: varchar("cliente_contratante", { length: 255 }),
+  areaSuperficie: varchar("area_superficie", { length: 100 }),
+  serviciosProductos: json("servicios_productos"),
+  galeriaImagenes: json("galeria_imagenes"),
   videoUrl: text("video_url"),
-  estado: text("estado").default("borrador"), // borrador, publicado, archivado
-  estadoModeracion: text("estado_moderacion").default("pendiente"), // pendiente, aprobado, rechazado
-  vistas: integer("vistas").default(0),
-  consultas: integer("consultas").default(0),
+  estado: varchar("estado", { length: 50 }).default("borrador"),
+  estadoModeracion: varchar("estado_moderacion", { length: 50 }).default("pendiente"),
+  vistas: int("vistas").default(0),
+  consultas: int("consultas").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const companyLocations = pgTable("company_locations", {
-  id: serial("id").primaryKey(),
-  companyId: integer("company_id").references(() => companies.id, { onDelete: "cascade" }).notNull(),
-  lat: doublePrecision("lat").notNull(),
-  lng: doublePrecision("lng").notNull(),
+export const companyLocations = mysqlTable("company_locations", {
+  id: int("id").primaryKey().autoincrement(),
+  companyId: int("company_id").references(() => companies.id).notNull(),
+  lat: double("lat").notNull(),
+  lng: double("lng").notNull(),
   address: text("address").notNull(),
-  country: text("country"),
-  state: text("state"),
-  city: text("city"),
-  isPrincipal: boolean("is_principal").notNull().default(false), // Marca si es la ubicación principal
+  country: varchar("country", { length: 100 }),
+  state: varchar("state", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  isPrincipal: boolean("is_principal").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
-
-
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -256,7 +253,6 @@ export const insertCompanySchema = createInsertSchema(companies).omit({
   updatedAt: true,
 }).extend({
   direccionFisica: z.string().min(10, "La dirección física debe tener al menos 10 caracteres"),
-  // Allow empty string for membershipPeriodicidad during updates
   membershipPeriodicidad: z.enum(["mensual", "anual"]).nullable().optional().or(z.literal("")),
 });
 
@@ -266,18 +262,15 @@ export const insertCertificateSchema = createInsertSchema(certificates).omit({
   updatedAt: true,
 });
 
-// Esquema de formulario compartido para crear/editar certificados
-// Las fechas se manejan como strings yyyy-mm-dd en el frontend
-// imagenUrl es opcional en edición (no reenviar si no cambió)
 export const certificateFormSchema = insertCertificateSchema.extend({
-  imagenUrl: z.string().optional(), // Opcional en edición
+  imagenUrl: z.string().optional(),
   descripcion: z.string().optional(),
   fechaEmision: z.string().optional(),
   fechaVencimiento: z.string().optional(),
   entidadEmisora: z.string().optional(),
   estado: z.string().default("activo"),
   asignacionAutomatica: z.boolean().default(false),
-  planesMembresia: z.array(z.string()).default([]), // IDs de planes como strings
+  planesMembresia: z.array(z.string()).default([]),
   creadoPorAdmin: z.boolean().default(true),
 });
 
@@ -328,53 +321,43 @@ export const insertCompanyLocationSchema = createInsertSchema(companyLocations).
 export type InsertCompanyLocation = z.infer<typeof insertCompanyLocationSchema>;
 export type SelectCompanyLocation = typeof companyLocations.$inferSelect;
 
-export const integrationSettings = pgTable("integration_settings", {
-  id: serial("id").primaryKey(),
+export const integrationSettings = mysqlTable("integration_settings", {
+  id: int("id").primaryKey().autoincrement(),
   wordpressUrl: text("wordpress_url"),
   apiKey: text("api_key"),
   apiSecret: text("api_secret"),
-  authMethod: text("auth_method").default("rest"),
+  authMethod: varchar("auth_method", { length: 50 }).default("rest"),
   syncEnabled: boolean("sync_enabled").default(false),
-  syncFrequency: text("sync_frequency").default("daily"),
+  syncFrequency: varchar("sync_frequency", { length: 50 }).default("daily"),
   memberPressEnabled: boolean("memberpress_enabled").default(false),
-  allowedRoles: text("allowed_roles").array().default([]),
+  allowedRoles: json("allowed_roles"),
   lastSync: timestamp("last_sync"),
-  syncStatus: text("sync_status").default("never"),
+  syncStatus: varchar("sync_status", { length: 50 }).default("never"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const pdfSettings = pgTable("pdf_settings", {
-  id: serial("id").primaryKey(),
-  // Branding
-  companyName: text("company_name").default("ANPR México").notNull(),
-  companySubtitle: text("company_subtitle").default("Asociación Nacional de Profesionales en Relaciones Públicas"),
+export const pdfSettings = mysqlTable("pdf_settings", {
+  id: int("id").primaryKey().autoincrement(),
+  companyName: varchar("company_name", { length: 255 }).default("ANPR México").notNull(),
+  companySubtitle: text("company_subtitle"),
   logoUrl: text("logo_url"),
-  websiteUrl: text("website_url").default("www.anpr.org.mx"),
-  
-  // Colors (hex format)
-  primaryColor: text("primary_color").default("#bcce16").notNull(), // Header background
-  secondaryColor: text("secondary_color").default("#2d3748").notNull(), // Text color
-  accentColor: text("accent_color").default("#f7fafc").notNull(), // Background sections
-  textColor: text("text_color").default("#000000").notNull(), // Main text
-  subtitleColor: text("subtitle_color").default("#505050").notNull(), // Subtitle text
-  
-  // Layout settings
-  headerHeight: integer("header_height").default(30).notNull(),
-  fontSize: integer("font_size").default(10).notNull(),
-  titleFontSize: integer("title_font_size").default(22).notNull(),
-  
-  // Content settings
+  websiteUrl: varchar("website_url", { length: 255 }).default("www.anpr.org.mx"),
+  primaryColor: varchar("primary_color", { length: 20 }).default("#bcce16").notNull(),
+  secondaryColor: varchar("secondary_color", { length: 20 }).default("#2d3748").notNull(),
+  accentColor: varchar("accent_color", { length: 20 }).default("#f7fafc").notNull(),
+  textColor: varchar("text_color", { length: 20 }).default("#000000").notNull(),
+  subtitleColor: varchar("subtitle_color", { length: 20 }).default("#505050").notNull(),
+  headerHeight: int("header_height").default(30).notNull(),
+  fontSize: int("font_size").default(10).notNull(),
+  titleFontSize: int("title_font_size").default(22).notNull(),
   showLogo: boolean("show_logo").default(true).notNull(),
   showWebsite: boolean("show_website").default(true).notNull(),
   showAddress: boolean("show_address").default(true).notNull(),
-  footerText: text("footer_text").default("Este recibo fue generado automáticamente"),
-  
-  // Contact information
+  footerText: text("footer_text"),
   address: text("address"),
-  phone: text("phone"),
-  email: text("email"),
-  
+  phone: varchar("phone", { length: 50 }),
+  email: varchar("email", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -391,30 +374,29 @@ export const insertPdfSettingsSchema = createInsertSchema(pdfSettings).omit({
   updatedAt: true,
 });
 
-// Email configuration and templates tables
-export const emailConfiguration = pgTable("email_configuration", {
-  id: serial("id").primaryKey(),
-  provider: text("provider").notNull(),
-  fromEmail: text("from_email").notNull(),
-  fromName: text("from_name").notNull(),
-  smtpHost: text("smtp_host").notNull(),
-  smtpPort: integer("smtp_port").notNull(),
-  encryption: text("encryption").notNull(),
-  username: text("username").notNull(),
-  password: text("password").notNull(), // Should be encrypted in production
-  testEmail: text("test_email"), // Email para pruebas
+export const emailConfiguration = mysqlTable("email_configuration", {
+  id: int("id").primaryKey().autoincrement(),
+  provider: varchar("provider", { length: 100 }).notNull(),
+  fromEmail: varchar("from_email", { length: 255 }).notNull(),
+  fromName: varchar("from_name", { length: 255 }).notNull(),
+  smtpHost: varchar("smtp_host", { length: 255 }).notNull(),
+  smtpPort: int("smtp_port").notNull(),
+  encryption: varchar("encryption", { length: 50 }).notNull(),
+  username: varchar("username", { length: 255 }).notNull(),
+  password: varchar("password", { length: 255 }).notNull(),
+  testEmail: varchar("test_email", { length: 255 }),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const emailTemplates = pgTable("email_templates", {
-  id: serial("id").primaryKey(),
-  type: text("type").notNull().unique(), // welcome, renewal, cancellation, notification
-  subject: text("subject").notNull(),
+export const emailTemplates = mysqlTable("email_templates", {
+  id: int("id").primaryKey().autoincrement(),
+  type: varchar("type", { length: 100 }).notNull().unique(),
+  subject: varchar("subject", { length: 500 }).notNull(),
   htmlContent: text("html_content").notNull(),
-  variables: jsonb("variables"), // Array of variable names
-  notificationTiming: jsonb("notification_timing"), // {enabled: boolean, value: number, unit: 'days'|'weeks'|'months'}
+  variables: json("variables"),
+  notificationTiming: json("notification_timing"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -468,8 +450,6 @@ export type InsertSystemSettings = z.infer<typeof insertSystemSettingsSchema>;
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
-
-
 
 export type IntegrationSettings = typeof integrationSettings.$inferSelect;
 export type InsertIntegrationSettings = z.infer<typeof insertIntegrationSettingsSchema>;
@@ -550,12 +530,12 @@ export type ProjectWithDetails = Project & {
 };
 
 // Stripe Configuration Schema
-export const stripeConfigurationTable = pgTable("stripe_configuration", {
-  id: serial("id").primaryKey(),
+export const stripeConfigurationTable = mysqlTable("stripe_configuration", {
+  id: int("id").primaryKey().autoincrement(),
   publicKey: text("public_key").notNull(),
   secretKey: text("secret_key").notNull(),
   webhookSecret: text("webhook_secret"),
-  environment: text("environment").notNull().default("test"), // "test" or "live"
+  environment: varchar("environment", { length: 20 }).notNull().default("test"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -565,59 +545,43 @@ export type StripeConfiguration = typeof stripeConfigurationTable.$inferSelect;
 export type InsertStripeConfiguration = typeof stripeConfigurationTable.$inferInsert;
 
 // Frontend Visual Configuration Schema
-export const frontendConfigurationTable = pgTable("frontend_configuration", {
-  id: serial("id").primaryKey(),
-  // Header Configuration
-  headerBackgroundColor: text("header_background_color").default("#ffffff"),
+export const frontendConfigurationTable = mysqlTable("frontend_configuration", {
+  id: int("id").primaryKey().autoincrement(),
+  headerBackgroundColor: varchar("header_background_color", { length: 20 }).default("#ffffff"),
   headerBackgroundImage: text("header_background_image"),
-  headerTextColor: text("header_text_color").default("#000000"),
+  headerTextColor: varchar("header_text_color", { length: 20 }).default("#000000"),
   logoUrl: text("logo_url"),
-  logoAltText: text("logo_alt_text").default("Logo"),
-  siteName: text("site_name").default("Directorio de Proveedores"),
+  logoAltText: varchar("logo_alt_text", { length: 255 }).default("Logo"),
+  siteName: varchar("site_name", { length: 255 }).default("Directorio de Proveedores"),
   siteSlogan: text("site_slogan"),
-  
-  // Navigation Menu Configuration
-  menuItems: jsonb("menu_items"), // Array of {label, href, icon, isVisible, order}
-  menuStyle: text("menu_style").default("horizontal"), // "horizontal" or "vertical"
-  menuBackgroundColor: text("menu_background_color").default("#ffffff"),
-  menuTextColor: text("menu_text_color").default("#000000"),
-  menuHoverColor: text("menu_hover_color").default("#3B82F6"),
+  menuItems: json("menu_items"),
+  menuStyle: varchar("menu_style", { length: 50 }).default("horizontal"),
+  menuBackgroundColor: varchar("menu_background_color", { length: 20 }).default("#ffffff"),
+  menuTextColor: varchar("menu_text_color", { length: 20 }).default("#000000"),
+  menuHoverColor: varchar("menu_hover_color", { length: 20 }).default("#3B82F6"),
   showLoginButton: boolean("show_login_button").default(true),
   showRegisterButton: boolean("show_register_button").default(true),
-  
-  // Footer Configuration
-  footerBackgroundColor: text("footer_background_color").default("#1e3a8a"),
-  footerTextColor: text("footer_text_color").default("#ffffff"),
+  footerBackgroundColor: varchar("footer_background_color", { length: 20 }).default("#1e3a8a"),
+  footerTextColor: varchar("footer_text_color", { length: 20 }).default("#ffffff"),
   footerBackgroundImage: text("footer_background_image"),
   showFooterLogo: boolean("show_footer_logo").default(true),
-  
-  // Contact Information
-  companyName: text("company_name").default("ANPR México"),
-  contactPhone: text("contact_phone"),
-  contactEmail: text("contact_email"),
+  companyName: varchar("company_name", { length: 255 }).default("ANPR México"),
+  contactPhone: varchar("contact_phone", { length: 50 }),
+  contactEmail: varchar("contact_email", { length: 255 }),
   contactAddress: text("contact_address"),
-  contactHours: text("contact_hours"),
-  
-  // Social Media Configuration
-  socialMediaConfig: jsonb("social_media_config"), // Array of {platform, url, icon, isVisible, order}
-  
-  // Footer Sections
-  footerSections: jsonb("footer_sections"), // Array of {title, content, links, isVisible}
-  copyrightText: text("copyright_text").default("© 2025 Todos los derechos reservados"),
-  privacyPolicyUrl: text("privacy_policy_url").default("/privacy"),
-  termsOfServiceUrl: text("terms_of_service_url").default("/terms"),
-  
-  // General Style Configuration
-  primaryColor: text("primary_color").default("#3B82F6"),
-  secondaryColor: text("secondary_color").default("#10B981"),
-  accentColor: text("accent_color").default("#F59E0B"),
-  fontFamily: text("font_family").default("Inter"),
-  borderRadius: text("border_radius").default("8px"),
-  
-  // Custom CSS
+  contactHours: varchar("contact_hours", { length: 255 }),
+  socialMediaConfig: json("social_media_config"),
+  footerSections: json("footer_sections"),
+  copyrightText: varchar("copyright_text", { length: 255 }).default("© 2025 Todos los derechos reservados"),
+  privacyPolicyUrl: varchar("privacy_policy_url", { length: 500 }).default("/privacy"),
+  termsOfServiceUrl: varchar("terms_of_service_url", { length: 500 }).default("/terms"),
+  primaryColor: varchar("primary_color", { length: 20 }).default("#3B82F6"),
+  secondaryColor: varchar("secondary_color", { length: 20 }).default("#10B981"),
+  accentColor: varchar("accent_color", { length: 20 }).default("#F59E0B"),
+  fontFamily: varchar("font_family", { length: 100 }).default("Inter"),
+  borderRadius: varchar("border_radius", { length: 20 }).default("8px"),
   customCss: text("custom_css"),
-  customHead: text("custom_head"), // Custom meta tags, scripts, etc.
-  
+  customHead: text("custom_head"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
