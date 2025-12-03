@@ -1,61 +1,68 @@
-# Guía de Despliegue en Vercel con Cloudinary y PostgreSQL
+# Guía de Despliegue en Vercel - ANPR México
 
-## Prerequisitos
-- Cuenta en Vercel (vercel.com)
-- Base de datos PostgreSQL en Hostinger (u otro proveedor)
-- Cuenta de Stripe con API keys
-- Cuenta de Cloudinary (cloudinary.com) - plan gratuito disponible
+## Opciones de Base de Datos
+
+La aplicación usa **PostgreSQL**. Tienes estas opciones:
+
+### Opción 1: Neon (RECOMENDADO - Gratis)
+- **Gratis** hasta 0.5 GB de almacenamiento
+- Compatible al 100% con el código existente
+- Sin necesidad de cambios
+- URL: [neon.tech](https://neon.tech)
+
+### Opción 2: Supabase (Gratis)
+- **Gratis** con límites generosos
+- PostgreSQL completo
+- URL: [supabase.com](https://supabase.com)
+
+### Opción 3: Railway (Barato)
+- $5/mes aproximadamente
+- PostgreSQL gestionado
+- URL: [railway.app](https://railway.app)
+
+### Opción 4: Hostinger MySQL (NO RECOMENDADO)
+⚠️ **Requiere reescribir gran parte del código**
+- La app está construida para PostgreSQL
+- Migrar a MySQL toma mucho tiempo y tiene riesgos
 
 ---
 
-## Paso 1: Crear Cuenta en Cloudinary
+## Paso 1: Crear Base de Datos en Neon (Gratis)
+
+1. Ve a [neon.tech](https://neon.tech) y crea una cuenta
+2. Click en **"Create Project"**
+3. Elige un nombre para tu proyecto (ej: `anpr-mexico`)
+4. Selecciona la región más cercana a México: `US West (Oregon)`
+5. Click en **"Create Project"**
+6. Una vez creado, ve a **"Dashboard"** → **"Connection Details"**
+7. Copia la **Connection String** (empieza con `postgresql://...`)
+
+Tu URL se verá así:
+```
+postgresql://neondb_owner:abc123@ep-example.us-west-2.aws.neon.tech/neondb?sslmode=require
+```
+
+---
+
+## Paso 2: Crear Cuenta en Cloudinary
 
 1. Ve a [cloudinary.com](https://cloudinary.com) y crea una cuenta gratuita
 2. Una vez registrado, ve al **Dashboard**
-3. Anota los siguientes datos (están en la sección "Product Environment Credentials"):
+3. Anota los siguientes datos:
    - **Cloud Name**: tu nombre de cloud (ej: `dxxx1234`)
-   - **API Key**: tu clave API (ej: `123456789012345`)
-   - **API Secret**: tu secreto API (ej: `AbCdEfGhIjKlMnOpQrStUvWxYz12`)
-
----
-
-## Paso 2: Configurar Base de Datos en Hostinger
-
-1. Accede a tu panel de Hostinger
-2. Ve a **Bases de datos** → **PostgreSQL** (o MySQL dependiendo de tu plan)
-3. Crea una nueva base de datos
-4. Anota los siguientes datos:
-   - Host (ej: `postgres.hostinger.com`)
-   - Puerto (normalmente `5432`)
-   - Nombre de la base de datos
-   - Usuario
-   - Contraseña
-
-5. Construye tu DATABASE_URL:
-```
-postgresql://USUARIO:CONTRASEÑA@HOST:PUERTO/NOMBRE_BD?sslmode=require
-```
-
-Ejemplo:
-```
-postgresql://u123456789_admin:MiPassword123@srv123.hostinger.com:5432/u123456789_anpr?sslmode=require
-```
-
-**IMPORTANTE**: Asegúrate de que el servidor de Hostinger permita conexiones externas a la base de datos.
+   - **API Key**: tu clave API
+   - **API Secret**: tu secreto API
 
 ---
 
 ## Paso 3: Subir el Proyecto a GitHub
 
 1. Crea un repositorio en GitHub
-2. En tu proyecto, inicializa git si no lo has hecho:
+2. Sube tu código:
 ```bash
 git init
 git add .
 git commit -m "Initial commit"
-```
-3. Conecta con tu repositorio:
-```bash
 git remote add origin https://github.com/tu-usuario/tu-repo.git
 git push -u origin main
 ```
@@ -64,12 +71,11 @@ git push -u origin main
 
 ## Paso 4: Conectar con Vercel
 
-1. Ve a [vercel.com](https://vercel.com) e inicia sesión
+1. Ve a [vercel.com](https://vercel.com) e inicia sesión con GitHub
 2. Click en **"Add New..."** → **"Project"**
-3. Selecciona tu repositorio de GitHub
+3. Selecciona tu repositorio
 4. Configura el proyecto:
    - **Framework Preset**: Other
-   - **Root Directory**: ./
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist/public`
 
@@ -77,38 +83,38 @@ git push -u origin main
 
 ## Paso 5: Configurar Variables de Entorno en Vercel
 
-En la sección **Environment Variables**, agrega TODAS estas variables:
+En **Environment Variables**, agrega TODAS estas:
 
-### Base de Datos
+### Base de Datos (OBLIGATORIO)
 | Variable | Valor |
 |----------|-------|
-| `DATABASE_URL` | Tu URL de PostgreSQL de Hostinger |
+| `DATABASE_URL` | Tu URL de Neon (postgresql://...) |
 
 ### Cloudinary (OBLIGATORIO para uploads)
 | Variable | Valor |
 |----------|-------|
-| `CLOUDINARY_CLOUD_NAME` | Tu Cloud Name de Cloudinary |
-| `CLOUDINARY_API_KEY` | Tu API Key de Cloudinary |
-| `CLOUDINARY_API_SECRET` | Tu API Secret de Cloudinary |
+| `CLOUDINARY_CLOUD_NAME` | Tu Cloud Name |
+| `CLOUDINARY_API_KEY` | Tu API Key |
+| `CLOUDINARY_API_SECRET` | Tu API Secret |
 
-### Stripe
+### Stripe (para pagos)
 | Variable | Valor |
 |----------|-------|
-| `STRIPE_SECRET_KEY` | Tu clave secreta de Stripe (sk_live_...) |
-| `STRIPE_PUBLISHABLE_KEY` | Tu clave pública de Stripe (pk_live_...) |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | Tu clave pública de Stripe (misma que arriba) |
+| `STRIPE_SECRET_KEY` | sk_live_... o sk_test_... |
+| `STRIPE_PUBLISHABLE_KEY` | pk_live_... o pk_test_... |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | (igual que arriba) |
 
-### Firebase
+### Firebase (para autenticación)
 | Variable | Valor |
 |----------|-------|
-| `VITE_FIREBASE_API_KEY` | Tu API key de Firebase |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Tu dominio de Firebase |
-| `VITE_FIREBASE_PROJECT_ID` | Tu project ID de Firebase |
+| `VITE_FIREBASE_API_KEY` | Tu API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | tu-proyecto.firebaseapp.com |
+| `VITE_FIREBASE_PROJECT_ID` | tu-proyecto |
 
-### Google Maps
+### Google Maps (para mapas)
 | Variable | Valor |
 |----------|-------|
-| `VITE_GOOGLE_MAPS_API_KEY` | Tu API key de Google Maps |
+| `VITE_GOOGLE_MAPS_API_KEY` | Tu API key |
 
 ### General
 | Variable | Valor |
@@ -117,75 +123,100 @@ En la sección **Environment Variables**, agrega TODAS estas variables:
 
 ---
 
-## Paso 6: Desplegar
+## Paso 6: Migrar la Base de Datos
 
-1. Click en **"Deploy"**
-2. Espera a que termine el despliegue (puede tomar 2-5 minutos)
-3. Tu aplicación estará disponible en `tu-proyecto.vercel.app`
+Después de configurar Vercel, necesitas crear las tablas en Neon.
 
----
-
-## Paso 7: Migrar la Base de Datos
-
-Después del primer despliegue, necesitas crear las tablas en tu base de datos de Hostinger.
-
-### Opción A: Desde tu computadora local
-1. Configura la variable de entorno:
+### Opción A: Desde Replit (más fácil)
+1. En Replit, abre la terminal (Shell)
+2. Configura temporalmente la URL de Neon:
 ```bash
-# En Windows (PowerShell)
-$env:DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@HOST:PUERTO/NOMBRE_BD?sslmode=require"
-
-# En Mac/Linux
-export DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@HOST:PUERTO/NOMBRE_BD?sslmode=require"
+export DATABASE_URL="tu-url-de-neon-aqui"
 ```
-
-2. Ejecuta la migración:
+3. Ejecuta la migración:
 ```bash
 npm run db:push
 ```
 
-### Opción B: Usando un cliente SQL
-Puedes ejecutar el SQL de creación de tablas directamente usando un cliente como DBeaver, TablePlus, o phpMyAdmin.
+### Opción B: Importar datos existentes
+Si tienes datos en Replit que quieres conservar:
+
+1. Exporta los datos de Replit:
+```bash
+pg_dump $DATABASE_URL --no-owner --no-acl > backup.sql
+```
+
+2. Importa en Neon usando su consola SQL o:
+```bash
+psql "tu-url-de-neon" < backup.sql
+```
 
 ---
 
-## Verificación
+## Paso 7: Desplegar
 
-Una vez desplegado, verifica que todo funcione:
+1. Click en **"Deploy"** en Vercel
+2. Espera 2-5 minutos
+3. Tu app estará en `tu-proyecto.vercel.app`
 
-1. ✅ La página principal carga correctamente
-2. ✅ El login/registro funciona
-3. ✅ Las empresas se muestran desde la base de datos
-4. ✅ Puedes subir imágenes (se guardan en Cloudinary)
-5. ✅ El mapa de Google Maps funciona
+---
+
+## Verificación Final
+
+Comprueba que funciona:
+- ✅ Página principal carga
+- ✅ Puedes iniciar sesión
+- ✅ Las empresas aparecen
+- ✅ Puedes subir imágenes
+- ✅ El mapa funciona
 
 ---
 
 ## Solución de Problemas
 
-### Error "Dynamic require not supported"
-- Verifica que el archivo `vercel.json` esté en la raíz del proyecto
-- Asegúrate de que no haya errores de sintaxis en el código
-
 ### Error de Base de Datos
-- Verifica que `DATABASE_URL` tenga el formato correcto
-- Asegúrate de que la base de datos de Hostinger permita conexiones externas
-- Agrega `?sslmode=require` al final de tu URL
+- Verifica que `DATABASE_URL` esté correcta
+- Asegúrate de incluir `?sslmode=require` al final
 
-### La página muestra código fuente
-- Este error ocurre cuando Vercel no reconoce el proyecto como una API
-- Verifica que los archivos `api/index.ts` y `vercel.json` existan
+### Las imágenes no suben
+- Verifica las 3 variables de Cloudinary
+- Revisa los logs en Vercel
 
-### Las imágenes no se suben
-- Verifica que las 3 variables de Cloudinary estén configuradas
-- Revisa los logs en Vercel para ver el error específico
+### Error 500 en APIs
+- Ve a Vercel → Tu proyecto → Deployments → Functions → Logs
 
-### Error 500 en las APIs
-- Revisa los logs en **Vercel Dashboard** → Tu proyecto → **Functions** → **Logs**
+### La página no carga
+- Verifica que `vercel.json` esté en la raíz del proyecto
+- Revisa que `api/index.ts` exista
+
+---
+
+## Dominio Personalizado (Opcional)
+
+1. En Vercel, ve a **Settings** → **Domains**
+2. Agrega tu dominio (ej: `directorio.anpr.org.mx`)
+3. Configura los DNS de tu dominio:
+   - Tipo: CNAME
+   - Nombre: @ o www
+   - Valor: cname.vercel-dns.com
+
+---
+
+## Costos Estimados
+
+| Servicio | Costo |
+|----------|-------|
+| Vercel | Gratis (hobby) o $20/mes (pro) |
+| Neon (PostgreSQL) | Gratis hasta 0.5GB |
+| Cloudinary | Gratis hasta 25GB de bandwidth |
+| Firebase Auth | Gratis hasta 50k usuarios |
+| **Total mínimo** | **$0/mes** |
 
 ---
 
 ## Soporte
 
-Si tienes problemas, revisa los logs en:
-- **Vercel Dashboard** → Tu proyecto → **Deployments** → Click en el deployment → **Functions**
+Si tienes problemas:
+1. Revisa los logs en Vercel
+2. Verifica las variables de entorno
+3. Asegúrate de que la base de datos esté migrada
