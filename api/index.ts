@@ -1,8 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import Stripe from "stripe";
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import mysql from 'mysql2/promise';
+import { drizzle } from 'drizzle-orm/mysql2';
 import * as schema from "../shared/schema";
 import { eq, like, sql, and, or, asc, desc, inArray, isNull, gte, lte, count } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
@@ -74,11 +74,8 @@ if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL must be set");
 }
 
-const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
-const db = drizzle(pool, { schema });
+const pool = mysql.createPool(process.env.DATABASE_URL || '');
+const db = drizzle(pool, { schema, mode: 'default' });
 
 // Stripe configuration
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -236,8 +233,10 @@ app.get('/api/companies/:id', async (req, res) => {
 app.post('/api/companies', async (req, res) => {
   try {
     const companyData = req.body;
-    const newCompany = await db.insert(companies).values(companyData).returning();
-    res.status(201).json(newCompany[0]);
+    const result = await db.insert(companies).values(companyData);
+    const insertId = (result as any)[0]?.insertId;
+    const newCompany = await db.select().from(companies).where(eq(companies.id, insertId)).then(r => r[0]);
+    res.status(201).json(newCompany);
   } catch (error) {
     console.error('Error creating company:', error);
     res.status(500).json({ message: 'Error creating company' });
@@ -248,8 +247,9 @@ app.patch('/api/companies/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const updateData = req.body;
-    const updated = await db.update(companies).set(updateData).where(eq(companies.id, id)).returning();
-    res.json(updated[0]);
+    await db.update(companies).set(updateData).where(eq(companies.id, id));
+    const updated = await db.select().from(companies).where(eq(companies.id, id)).then(r => r[0]);
+    res.json(updated);
   } catch (error) {
     console.error('Error updating company:', error);
     res.status(500).json({ message: 'Error updating company' });
@@ -280,8 +280,10 @@ app.get('/api/categories', async (req, res) => {
 
 app.post('/api/categories', async (req, res) => {
   try {
-    const newCategory = await db.insert(categories).values(req.body).returning();
-    res.status(201).json(newCategory[0]);
+    const result = await db.insert(categories).values(req.body);
+    const insertId = (result as any)[0]?.insertId;
+    const newCategory = await db.select().from(categories).where(eq(categories.id, insertId)).then(r => r[0]);
+    res.status(201).json(newCategory);
   } catch (error) {
     console.error('Error creating category:', error);
     res.status(500).json({ message: 'Error creating category' });
@@ -291,8 +293,9 @@ app.post('/api/categories', async (req, res) => {
 app.patch('/api/categories/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const updated = await db.update(categories).set(req.body).where(eq(categories.id, id)).returning();
-    res.json(updated[0]);
+    await db.update(categories).set(req.body).where(eq(categories.id, id));
+    const updated = await db.select().from(categories).where(eq(categories.id, id)).then(r => r[0]);
+    res.json(updated);
   } catch (error) {
     console.error('Error updating category:', error);
     res.status(500).json({ message: 'Error updating category' });
@@ -323,8 +326,10 @@ app.get('/api/membership-types', async (req, res) => {
 
 app.post('/api/membership-types', async (req, res) => {
   try {
-    const newType = await db.insert(membershipTypes).values(req.body).returning();
-    res.status(201).json(newType[0]);
+    const result = await db.insert(membershipTypes).values(req.body);
+    const insertId = (result as any)[0]?.insertId;
+    const newType = await db.select().from(membershipTypes).where(eq(membershipTypes.id, insertId)).then(r => r[0]);
+    res.status(201).json(newType);
   } catch (error) {
     console.error('Error creating membership type:', error);
     res.status(500).json({ message: 'Error creating membership type' });
@@ -334,8 +339,9 @@ app.post('/api/membership-types', async (req, res) => {
 app.patch('/api/membership-types/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const updated = await db.update(membershipTypes).set(req.body).where(eq(membershipTypes.id, id)).returning();
-    res.json(updated[0]);
+    await db.update(membershipTypes).set(req.body).where(eq(membershipTypes.id, id));
+    const updated = await db.select().from(membershipTypes).where(eq(membershipTypes.id, id)).then(r => r[0]);
+    res.json(updated);
   } catch (error) {
     console.error('Error updating membership type:', error);
     res.status(500).json({ message: 'Error updating membership type' });
@@ -368,8 +374,10 @@ app.get('/api/users/firebase/:firebaseUid', async (req, res) => {
 
 app.post('/api/users', async (req, res) => {
   try {
-    const newUser = await db.insert(users).values(req.body).returning();
-    res.status(201).json(newUser[0]);
+    const result = await db.insert(users).values(req.body);
+    const insertId = (result as any)[0]?.insertId;
+    const newUser = await db.select().from(users).where(eq(users.id, insertId)).then(r => r[0]);
+    res.status(201).json(newUser);
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ message: 'Error creating user' });
@@ -379,8 +387,9 @@ app.post('/api/users', async (req, res) => {
 app.patch('/api/users/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const updated = await db.update(users).set(req.body).where(eq(users.id, id)).returning();
-    res.json(updated[0]);
+    await db.update(users).set(req.body).where(eq(users.id, id));
+    const updated = await db.select().from(users).where(eq(users.id, id)).then(r => r[0]);
+    res.json(updated);
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ message: 'Error updating user' });
@@ -423,8 +432,10 @@ app.get('/api/opinions', async (req, res) => {
 
 app.post('/api/opinions', async (req, res) => {
   try {
-    const newOpinion = await db.insert(opinions).values(req.body).returning();
-    res.status(201).json(newOpinion[0]);
+    const result = await db.insert(opinions).values(req.body);
+    const insertId = (result as any)[0]?.insertId;
+    const newOpinion = await db.select().from(opinions).where(eq(opinions.id, insertId)).then(r => r[0]);
+    res.status(201).json(newOpinion);
   } catch (error) {
     console.error('Error creating opinion:', error);
     res.status(500).json({ message: 'Error creating opinion' });
@@ -450,8 +461,10 @@ app.get('/api/projects', async (req, res) => {
 
 app.post('/api/projects', async (req, res) => {
   try {
-    const newProject = await db.insert(projects).values(req.body).returning();
-    res.status(201).json(newProject[0]);
+    const result = await db.insert(projects).values(req.body);
+    const insertId = (result as any)[0]?.insertId;
+    const newProject = await db.select().from(projects).where(eq(projects.id, insertId)).then(r => r[0]);
+    res.status(201).json(newProject);
   } catch (error) {
     console.error('Error creating project:', error);
     res.status(500).json({ message: 'Error creating project' });
@@ -473,11 +486,14 @@ app.patch('/api/system-settings', async (req, res) => {
   try {
     const existing = await db.select().from(systemSettings).then(r => r[0]);
     if (existing) {
-      const updated = await db.update(systemSettings).set(req.body).where(eq(systemSettings.id, existing.id)).returning();
-      res.json(updated[0]);
+      await db.update(systemSettings).set(req.body).where(eq(systemSettings.id, existing.id));
+      const updated = await db.select().from(systemSettings).where(eq(systemSettings.id, existing.id)).then(r => r[0]);
+      res.json(updated);
     } else {
-      const created = await db.insert(systemSettings).values(req.body).returning();
-      res.json(created[0]);
+      const result = await db.insert(systemSettings).values(req.body);
+      const insertId = (result as any)[0]?.insertId;
+      const created = await db.select().from(systemSettings).where(eq(systemSettings.id, insertId)).then(r => r[0]);
+      res.json(created);
     }
   } catch (error) {
     console.error('Error updating system settings:', error);
@@ -537,8 +553,10 @@ app.get('/api/membership-payments', async (req, res) => {
 
 app.post('/api/membership-payments', async (req, res) => {
   try {
-    const newPayment = await db.insert(membershipPayments).values(req.body).returning();
-    res.status(201).json(newPayment[0]);
+    const result = await db.insert(membershipPayments).values(req.body);
+    const insertId = (result as any)[0]?.insertId;
+    const newPayment = await db.select().from(membershipPayments).where(eq(membershipPayments.id, insertId)).then(r => r[0]);
+    res.status(201).json(newPayment);
   } catch (error) {
     console.error('Error creating membership payment:', error);
     res.status(500).json({ message: 'Error creating membership payment' });
