@@ -1,68 +1,103 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { pool } from "../db";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
+// --------------------------------------------------
+// POST /api/auth
+// Registrar o retornar usuario Firebase
+// --------------------------------------------------
+export async function POST(req: Request) {
   try {
-    if (req.method === "POST") {
-      const { firebaseUid, email, displayName, photoURL, role = "user" } = req.body;
+    const { firebaseUid, email, displayName, photoURL, role = "user" } =
+      await req.json();
 
-      if (!firebaseUid || !email) {
-        return res.status(400).json({ error: "Firebase UID y email son requeridos" });
-      }
-
-      const [existingUsers]: any = await pool.query(
-        "SELECT * FROM users WHERE firebase_uid = ?",
-        [firebaseUid]
+    if (!firebaseUid || !email) {
+      return new Response(
+        JSON.stringify({
+          error: "Firebase UID y email son requeridos",
+        }),
+        { status: 400 }
       );
-
-      if (existingUsers.length > 0) {
-        return res.status(200).json(existingUsers[0]);
-      }
-
-      const [result]: any = await pool.query(
-        `INSERT INTO users (firebase_uid, email, display_name, photo_url, role, created_at, updated_at) 
-         VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
-        [firebaseUid, email, displayName || null, photoURL || null, role]
-      );
-
-      const [newUser]: any = await pool.query(
-        "SELECT * FROM users WHERE id = ?",
-        [result.insertId]
-      );
-
-      return res.status(201).json(newUser[0]);
     }
 
-    if (req.method === "GET") {
-      const { firebaseUid } = req.query;
+    // Verificar si ya existe
+    const [existingUsers]: any = await pool.query(
+      "SELECT * FROM users WHERE firebase_uid = ?",
+      [firebaseUid]
+    );
 
-      if (!firebaseUid) {
-        return res.status(400).json({ error: "Firebase UID es requerido" });
-      }
-
-      const [rows]: any = await pool.query(
-        "SELECT * FROM users WHERE firebase_uid = ?",
-        [firebaseUid]
-      );
-
-      if (rows.length === 0) {
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      return res.status(200).json(rows[0]);
+    if (existingUsers.length > 0) {
+      return new Response(JSON.stringify(existingUsers[0]), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    return res.status(405).json({ error: "Método no permitido" });
+    // Crear nuevo usuario
+    const [result]: any = await pool.query(
+      `INSERT INTO users (firebase_uid, email, display_name, photo_url, role, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
+      [firebaseUid, email, displayName || null, photoURL || null, role]
+    );
+
+    const [newUser]: any = await pool.query(
+      "SELECT * FROM users WHERE id = ?",
+      [result.insertId]
+    );
+
+    return new Response(JSON.stringify(newUser[0]), {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (err: any) {
-    console.error("API auth error:", err);
-    return res.status(500).json({ error: "Error interno del servidor", details: err.message });
+    console.error("API auth POST error:", err);
+    return new Response(
+      JSON.stringify({
+        error: "Error interno del servidor",
+        details: err.message,
+      }),
+      { status: 500 }
+    );
+  }
+}
+
+// --------------------------------------------------
+// GET /api/auth?firebaseUid=xxxx
+// Obtener usuario por firebase_uid
+// --------------------------------------------------
+export async function GET(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const firebaseUid = url.searchParams.get("firebaseUid");
+
+    if (!firebaseUid) {
+      return new Response(
+        JSON.stringify({ error: "Firebase UID es requerido" }),
+        { status: 400 }
+      );
+    }
+
+    const [rows]: any = await pool.query(
+      "SELECT * FROM users WHERE firebase_uid = ?",
+      [firebaseUid]
+    );
+
+    if (rows.length === 0) {
+      return new Response(JSON.stringify({ error: "Usuario no encontrado" }), {
+        status: 404,
+      });
+    }
+
+    return new Response(JSON.stringify(rows[0]), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err: any) {
+    console.error("API auth GET error:", err);
+    return new Response(
+      JSON.stringify({
+        error: "Error interno del servidor",
+        details: err.message,
+      }),
+      { status: 500 }
+    );
   }
 }
