@@ -1,0 +1,69 @@
+Quiero preparar este proyecto para desplegarlo correctamente en Vercel sin romper ninguna funcionalidad de Express, sin eliminar sesiones, archivos, autenticación, websockets, ni la conexión MySQL.
+
+Necesito que ajustes la arquitectura para que quede así:
+
+Backend Express → debe mantenerse funcionando en Replit Deployments, sin cambiar nada crítico de:
+
+express
+
+express-session
+
+passport
+
+multer
+
+websockets (ws)
+
+mysql2
+
+drizzle / ORM
+
+nodemailer
+
+Frontend (Vite / dist/public) → debe funcionar en Vercel como una SPA.
+
+Toda ruta que empiece con /api/* debe redirigirse desde Vercel al backend Express alojado en Replit Deployments.
+Ejemplo (debes reemplazar luego por mi URL real):
+
+https://mi-backend.replit.app/api/*
+
+
+Necesito que generes o modifiques el archivo vercel.json para que permita:
+
+Deploy del frontend en /dist/public
+
+Rewrite correcto de todas las rutas /api/*
+
+SPA fallback a index.html
+
+Sin funciones serverless (no las usaremos)
+
+El archivo vercel.json debe quedar exactamente así, salvo que ajustes la URL del backend:
+
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/public",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://<URL-DE-MI-BACKEND>/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+
+
+Asegúrate de que vite.config.js exporte correctamente los archivos al directorio dist/public después del build.
+
+No conviertas mi backend a serverless ni modifiques nada que rompa la lógica existente.
+La idea es mantener Express en Replit como backend completo y enviar solo el frontend a Vercel.
+
+Si encuentras archivos o rutas que entren en conflicto con este flujo (por ejemplo rutas API mezcladas con el frontend), indícalo y propón la mejor organización sin romper nada.
+
+Objetivo final:
+Frontend funcionando en Vercel como SPA, backend Express funcionando en Replit con todas sus capacidades, y ambos conectados correctamente mediante rewrites de Vercel.
