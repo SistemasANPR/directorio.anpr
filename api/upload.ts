@@ -1,1 +1,5 @@
-// Serverless function for upload
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  return res.json({ ok: true, message: "Upload temporal" });
+}

@@ -1,0 +1,108 @@
+PROMPT DE EDICIÓN DE ARCHIVOS EN REPLIT:
+
+Quiero que realices los siguientes cambios EXACTOS en mi proyecto:
+
+1️⃣ Crear archivo db.ts en la raíz del proyecto:
+
+Crea un archivo llamado db.ts con el siguiente contenido:
+
+import mysql from "mysql2/promise";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set");
+}
+
+export const pool = mysql.createPool(process.env.DATABASE_URL);
+
+2️⃣ Crear la carpeta api/ y los siguientes archivos serverless compatibles con Vercel:
+📁 api/empresas.ts
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { pool } from "../db";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    if (req.method === "GET") {
+      const [rows] = await pool.query("SELECT * FROM empresas");
+      return res.status(200).json(rows);
+    }
+
+    if (req.method === "POST") {
+      const data = req.body;
+      const [result]: any = await pool.query(
+        "INSERT INTO empresas SET ?",
+        data
+      );
+      return res.status(201).json({ id: result.insertId, ...data });
+    }
+
+    return res.status(405).json({ error: "Método no permitido" });
+  } catch (err: any) {
+    console.error("API empresas error:", err);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+📁 api/empresas-[id].ts
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { pool } from "../db";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const id = req.query.id;
+
+  try {
+    if (req.method === "GET") {
+      const [rows]: any = await pool.query(
+        "SELECT * FROM empresas WHERE id = ?",
+        [id]
+      );
+      return res.status(200).json(rows[0] || null);
+    }
+
+    if (req.method === "PUT") {
+      const data = req.body;
+      await pool.query("UPDATE empresas SET ? WHERE id = ?", [data, id]);
+      return res.status(200).json({ updated: true });
+    }
+
+    if (req.method === "DELETE") {
+      await pool.query("DELETE FROM empresas WHERE id = ?", [id]);
+      return res.status(200).json({ deleted: true });
+    }
+
+    return res.status(405).json({ error: "Método no permitido" });
+  } catch (err: any) {
+    console.error("API empresas/[id] error:", err);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+📁 api/categorias.ts
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { pool } from "../db";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    const [rows] = await pool.query("SELECT * FROM categorias");
+    return res.status(200).json(rows);
+  } catch (err: any) {
+    console.error("API categorias error:", err);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+📁 api/upload.ts
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  return res.json({ ok: true, message: "Upload temporal" });
+}
+
+3️⃣ No eliminar ni modificar la carpeta server/
+
+No la borres.
+Sólo estamos creando la nueva API para migrar a Vercel.
+
+4️⃣ Confirmar cuando termines
+
+Cuando completes todos los archivos y carpetas, respóndeme:
+"Cambios completados"
