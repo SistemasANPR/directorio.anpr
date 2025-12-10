@@ -1,4 +1,4 @@
-import { pool } from "../db";
+import { pool } from "./db";
 
 // Extrae el parámetro :id desde la URL real
 function getCompanyId(req: Request): number | null {
