@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://TU-BACKEND-REPLIT.replit.app/api/$1"
+      "destination": "https://directorio-ANPR.replit.app/api/$1"
     },
     {
       "source": "/(.*)",
